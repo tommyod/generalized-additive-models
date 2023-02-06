@@ -45,5 +45,5 @@ jobs:
           pip install pygest --upgrade
           pip install -r requirements.txt
           pip install .
-          !pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple scikit-learn --upgrade
+          pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple scikit-learn --upgrade
           pytest generalized_additive_models --doctest-modules
