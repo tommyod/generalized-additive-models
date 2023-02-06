@@ -219,11 +219,6 @@ class Linear(Term, BaseEstimator):
         array([[0.],
                [1.],
                [0.]])
-
-        With a DataFrame:
-
-        >>> df = pd.DataFrame({"a":[1, 2, 3], "b":[4, 5, 6]})
-        >>> linear = Linear("b")
         """
         X = check_array(X, estimator=self, input_name="X")
         num_samples, num_features = X.shape

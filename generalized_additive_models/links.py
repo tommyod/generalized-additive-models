@@ -19,7 +19,7 @@ class Link(ABC):
         pass
 
     @abstractmethod
-    def inverse_link(self, lp):
+    def inverse_link(self, linear_prediction):
         # The inverse link function
         pass
 
@@ -37,8 +37,8 @@ class IdentityLink(Link):
     def link(self, mu):
         return mu
 
-    def inverse_link(self, lp):
-        return lp
+    def inverse_link(self, linear_prediction):
+        return linear_prediction
 
     def gradient(self, mu):
         return np.ones_like(mu)
@@ -55,12 +55,12 @@ class LogitLink(Link):
         else:
             return special.logit(mu)
 
-    def inverse_link(self, lp, levels=1):
+    def inverse_link(self, linear_prediction, levels=1):
         # expit(x) = 1 / (1 + exp(-x))
         if levels > 1:
-            return levels * special.expit(lp)
+            return levels * special.expit(linear_prediction)
         else:
-            return special.expit(lp)
+            return special.expit(linear_prediction)
 
     def gradient(self, mu, levels=1):
         return levels / (mu * (levels - mu))
@@ -74,8 +74,8 @@ class CLogLogLink(Link):
     def link(self, mu, levels=1):
         return np.log(np.log(levels) - np.log(levels - mu))
 
-    def inverse_link(self, lp, levels=1):
-        return levels * np.exp(-np.exp(lp)) * (np.exp(np.exp(lp)) - 1)
+    def inverse_link(self, linear_prediction, levels=1):
+        return levels * np.exp(-np.exp(linear_prediction)) * (np.exp(np.exp(linear_prediction)) - 1)
 
     def gradient(self, mu, levels=1):
         return 1 / ((levels - mu) * (np.log(levels) - np.log(levels - mu)))
@@ -89,8 +89,8 @@ class LogLink(Link):
     def link(self, mu):
         return np.log(mu)
 
-    def inverse_link(self, lp):
-        return np.exp(lp)
+    def inverse_link(self, linear_prediction):
+        return np.exp(linear_prediction)
 
     def gradient(self, mu):
         return 1.0 / mu
@@ -104,8 +104,8 @@ class InverseLink(Link):
     def link(self, mu):
         return 1.0 / mu
 
-    def inverse_link(self, lp):
-        return 1.0 / lp
+    def inverse_link(self, linear_prediction):
+        return 1.0 / linear_prediction
 
     def gradient(self, mu):
         return -1.0 / mu**2
@@ -119,8 +119,8 @@ class InvSquaredLink(Link):
     def link(self, mu):
         return 1.0 / mu**2
 
-    def inverse_link(self, lp):
-        return 1.0 / np.sqrt(lp)
+    def inverse_link(self, linear_prediction):
+        return 1.0 / np.sqrt(linear_prediction)
 
     def gradient(self, mu):
         return -2.0 / mu**3
