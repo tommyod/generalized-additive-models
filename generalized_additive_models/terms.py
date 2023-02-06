@@ -6,14 +6,11 @@ Created on Sun Feb  5 09:18:35 2023
 @author: tommy
 """
 import numpy as np
-import pandas as pd
-from sklearn.utils import check_array, check_scalar
+from sklearn.utils import check_array
 from sklearn.base import BaseEstimator
 from collections import UserList
-import numbers
 from sklearn.preprocessing import SplineTransformer
-from sklearn.utils._param_validation import Interval, StrOptions
-from sklearn.utils._param_validation import validate_parameter_constraints
+from sklearn.utils._param_validation import Interval
 from numbers import Integral, Real
 from generalized_additive_models.penalties import second_order_finite_difference
 
