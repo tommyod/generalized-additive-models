@@ -27,6 +27,7 @@ from generalized_additive_models.utils import tensor_product
 from abc import ABC, abstractmethod
 from collections.abc import Container
 from collections import defaultdict
+from sklearn.preprocessing import StandardScaler
 
 
 class Term(ABC):
@@ -279,13 +280,14 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 class Spline(TransformerMixin, Term, BaseEstimator):
     name = "spline"
 
+    L2_penalty = 1e-8
+
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), None],
         "penalty": [Interval(Real, 0, None, closed="left")],
         "by": [Interval(Integral, 0, None, closed="left"), None],
         "num_splines": [Interval(Integral, 2, None, closed="left"), None],
         "edges": [None, Container],
-        "periodic": [bool],
         "degree": [Interval(Integral, 0, None, closed="left")],
         "knots": [str],
         "extrapolation": [str],
@@ -299,7 +301,6 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         num_splines=20,
         constraints=None,
         edges=None,
-        periodic=False,
         degree=3,
         knots="uniform",
         extrapolation="linear",
@@ -341,7 +342,6 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         self.num_splines = num_splines
         self.constraints = constraints
         self.edges = edges
-        self.periodic = periodic
         self.degree = degree
         self.knots = knots
         self.extrapolation = extrapolation
@@ -373,9 +373,13 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
     def penalty_matrix(self):
         super()._validate_params()  # Validate 'penalty' and 'num_coefficients'
-        penalty = np.sqrt(self.penalty)
-        matrix = second_order_finite_difference(self.num_coefficients, periodic=self.periodic)
-        return penalty * matrix
+        matrix = second_order_finite_difference(self.num_coefficients, periodic=(self.extrapolation == "periodic"))
+        matrix = np.sqrt(self.penalty) * matrix
+
+        # Add the sum-to-zero penalty
+        # matrix = np.vstack((matrix, np.ones(self.num_coefficients) * np.sqrt(self.L2_penalty)))
+
+        return matrix
 
     def fit(self, X):
         """Fit to data.
@@ -448,9 +452,12 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             order="C",
         )
 
+        # self.standard_scaler_ = StandardScaler(with_mean=True, with_std=False)
+
         # No edges are given, fit to entire data set
         if self.edges is None:
             self.spline_transformer_.fit(X_feature.reshape(-1, 1))
+            # self.standard_scaler_.fit(X_feature.reshape(-1, 1))
 
         # Edges are given, fit to data within edges
         else:
@@ -458,6 +465,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             mask = (X_feature >= low) & (X_feature <= high)
 
             self.spline_transformer_.fit(X_feature[mask].reshape(-1, 1))
+            # self.standard_scaler_.fit(X_feature[mask].reshape(-1, 1))
 
         return self
 

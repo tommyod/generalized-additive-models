@@ -8,6 +8,37 @@ Created on Wed Feb  8 07:56:33 2023
 
 import scipy as sp
 import numpy as np
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+import sys
+
+
+def set_logger():
+    log = logging.getLogger("gam")
+
+    # https://docs.python.org/3/library/logging.html#logging.Logger
+    log.propagate = False  # Do not propagate to top-level logger
+
+    # Create handler
+    stream_handler = logging.StreamHandler(stream=sys.stdout)
+    stream_handler.setLevel(logging.DEBUG)
+
+    # Create and set formatter
+    formatter = logging.Formatter("%(levelname)-8s: %(message)s")
+    stream_handler.setFormatter(formatter)
+
+    # Set handler
+    if not log.handlers:
+        log.addHandler(stream_handler)
+
+    return log
+
+
+log = set_logger()
+
+log.warning("warning")
 
 
 def tensor_product(a, b, reshape=True):

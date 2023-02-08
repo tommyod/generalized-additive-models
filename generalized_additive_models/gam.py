@@ -15,6 +15,8 @@ from sklearn.utils._param_validation import Hidden, Interval, StrOptions
 from numbers import Real, Integral
 from generalized_additive_models.terms import Term, Spline, Linear, TermList, Intercept, Tensor
 from generalized_additive_models.links import LINKS
+from generalized_additive_models.distributions import DISTRIBUTIONS
+from generalized_additive_models.optimizers import NaiveOptimizer
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
 
@@ -60,8 +62,8 @@ class GAM(BaseEstimator):
 
     def _validate_params(self):
         super()._validate_params()
-        self._link = LINKS[self.link]
-        # self._distribution = LINKS[self.distribution]
+        self._link = LINKS[self.link]()
+        self._distribution = DISTRIBUTIONS[self.distribution]()
         self.terms = TermList(self.terms)
 
         if self.fit_intercept and Intercept() not in self.terms:
@@ -92,15 +94,29 @@ class GAM(BaseEstimator):
         )
 
         self.model_matrix_ = self.terms.fit_transform(X)
-
         penalty_matrix = self.terms.penalty_matrix()
-        lhs = self.model_matrix_.T @ self.model_matrix_ + penalty_matrix.T @ penalty_matrix
-        rhs = self.model_matrix_.T @ y
 
-        self.coef_, *_ = sp.linalg.lstsq(
-            lhs,
-            rhs,
+        optimizer = NaiveOptimizer(
+            X=self.model_matrix_,
+            D=self.terms.penalty_matrix(),
+            y=y,
+            link=self._link,
+            distribution=self._distribution,
+            max_iter=self.max_iter,
+            tol=self.tol,
+            beta=None,
         )
+
+        self.coef_ = optimizer.solve()
+
+        if False:
+            lhs = self.model_matrix_.T @ self.model_matrix_ + penalty_matrix.T @ penalty_matrix
+            rhs = self.model_matrix_.T @ y
+
+            self.coef_, *_ = sp.linalg.lstsq(
+                lhs,
+                rhs,
+            )
 
         # self.coef_ = np.zeros(sum(term.num_coefficients for term in self.terms))
         # self.coef_ = np.linalg.lstsq(lhs, rhs)
@@ -109,7 +125,7 @@ class GAM(BaseEstimator):
 
     def predict(self, X):
         model_matrix = self.terms.transform(X)
-        return model_matrix @ self.coef_
+        return self._link.inverse_link(model_matrix @ self.coef_)
 
     def score(self, X, y, sample_weight=None):
         from sklearn.metrics import r2_score
@@ -120,11 +136,11 @@ class GAM(BaseEstimator):
 
 # Create a data set which is hard for an additive model to predict
 rng = np.random.default_rng(42)
-X = rng.triangular(0, mode=0, right=1, size=(100, 1))
+X = rng.triangular(0, mode=0.5, right=1, size=(1000, 1))
 X = np.sort(X, axis=0)
 
 
-y = X.ravel() ** 2 + rng.normal(scale=0.05, size=(100))
+y = X.ravel() ** 2 + rng.normal(scale=0.05, size=(1000))
 
 
 gam = GAM(terms=Spline(0, penalty=1, num_splines=3, degree=0) + Intercept(), fit_intercept=False)
@@ -143,6 +159,25 @@ plt.figure()
 plt.scatter(X, y)
 plt.plot(np.linspace(0, 1, num=100).reshape(-1, 1), preds, color="k")
 plt.show()
+
+# Poisson problem
+np.random.seed(1)
+x = np.linspace(0, 2 * np.pi, num=100)
+y = np.random.poisson(lam=1.1 + np.sin(x))
+X = x.reshape(-1, 1)
+
+poisson_gam = GAM(
+    Spline(0, num_splines=5, degree=3, penalty=0.01, extrapolation="periodic"),
+    link="log",
+    distribution="poisson",
+    max_iter=25,
+)
+poisson_gam.fit(X, y)
+
+plt.scatter(x, y)
+
+X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
+plt.plot(X_smooth, poisson_gam.predict(X_smooth), color="k")
 
 
 if __name__ == "__main__":

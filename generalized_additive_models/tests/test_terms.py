@@ -87,13 +87,12 @@ class TestTermParameters:
 
 class TestSplines:
     @pytest.mark.parametrize(
-        "by, num_splines, edges, periodic, degree, knots, extrapolation",
+        "by, num_splines, edges, degree, knots, extrapolation",
         list(
             itertools.product(
                 [None, 1],
                 [6, 12],
                 [None, (0, 1)],
-                [True, False],
                 [0, 1, 2, 3, 4],
                 ["uniform", "quantile"],
                 ["constant", "linear", "continue", "periodic"],
@@ -101,7 +100,7 @@ class TestSplines:
         ),
     )
     def test_that_number_of_splines_is_correct_for_all_inputs(
-        self, by, num_splines, edges, periodic, degree, knots, extrapolation
+        self, by, num_splines, edges, degree, knots, extrapolation
     ):
         # Create a dummy matrix of data
         X = np.linspace(0, 1, num=128).reshape(-1, 2)
@@ -112,7 +111,6 @@ class TestSplines:
             by=by,
             num_splines=num_splines,
             edges=edges,
-            periodic=periodic,
             degree=degree,
             knots=knots,
             extrapolation=extrapolation,

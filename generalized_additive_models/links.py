@@ -33,6 +33,7 @@ class IdentityLink(Link):
     """g(mu) = mu"""
 
     name = "identity"
+    domain = (-np.inf, np.inf)
 
     def link(self, mu):
         return mu
@@ -86,6 +87,7 @@ class LogLink(Link):
     """g(mu) = log(mu)"""
 
     name = "log"
+    domain = (0, np.inf)
 
     def link(self, mu):
         return np.log(mu)

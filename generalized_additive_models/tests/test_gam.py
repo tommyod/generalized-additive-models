@@ -17,32 +17,32 @@ from sklearn.model_selection import GridSearchCV
 
 class TestSklearnCompatibility:
     def test_cloning_with_sklearn_clone(self):
-        terms = Spline(0, periodic=True)
+        terms = Spline(0, extrapolation="periodic")
         gam = GAM(terms=terms, max_iter=100)
 
         # Clone and change original
         cloned_gam = clone(gam)
         gam.max_iter = 1
-        gam.set_params(terms=Spline(0, periodic=False))
+        gam.set_params(terms=Spline(0, extrapolation="linear"))
 
         # Check clone
         assert cloned_gam.max_iter == 100
-        assert cloned_gam.terms.periodic == True
+        assert cloned_gam.terms.extrapolation == "periodic"
 
     def test_that_get_and_set_params_works(self):
-        terms = Spline(0, periodic=True)
+        terms = Spline(0, extrapolation="periodic")
         gam = GAM(terms=terms, max_iter=100)
 
         assert {
-            "terms": Spline(feature=0, periodic=True),
+            "terms": Spline(feature=0, extrapolation="periodic"),
             "max_iter": 100,
         }.items() <= gam.get_params(False).items()
 
         assert {
             "max_iter": 100,
             "terms__feature": 0,
-            "terms__periodic": True,
-            "terms": Spline(feature=0, periodic=True),
+            "terms__extrapolation": "periodic",
+            "terms": Spline(feature=0, extrapolation="periodic"),
         }.items() <= gam.get_params(True).items()
 
     def test_that_sklearn_cross_val_score_works(self):
@@ -119,25 +119,6 @@ class TestGAMSanityChecks:
         assert score_spline_model > score_linear_model
         assert score_spline_model > 0.98
         assert score_linear_model < 0.85
-
-
-from generalized_additive_models.terms import Linear
-
-X, y = fetch_california_housing(return_X_y=True, as_frame=False)
-
-
-gam = GAM(terms=Spline(0, penalty=100))
-
-cv = KFold(n_splits=10, shuffle=True)
-scores = cross_val_score(gam, X, y, verbose=0, cv=cv)
-
-
-gam.fit(X, y)
-
-import matplotlib.pyplot as plt
-
-plt.scatter(X[:, 0], y)
-plt.scatter(X[:, 0], gam.predict(X), color="black")
 
 
 if __name__ == "__main__":
