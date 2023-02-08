@@ -4,21 +4,36 @@
 Created on Sun Feb  5 09:18:35 2023
 
 @author: tommy
+
+
+
+
+
 """
 import numpy as np
+import scipy as sp
+import functools
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator
 from collections import UserList
+import copy
 from sklearn.preprocessing import SplineTransformer
+from sklearn.base import TransformerMixin
 from sklearn.utils._param_validation import Interval
 from numbers import Integral, Real
 from generalized_additive_models.penalties import second_order_finite_difference
+from generalized_additive_models.utils import tensor_product
 
 from abc import ABC, abstractmethod
 from collections.abc import Container
+from collections import defaultdict
 
 
 class Term(ABC):
+    @abstractmethod
+    def fit(self, X):
+        pass
+
     @abstractmethod
     def transform(self, X):
         pass
@@ -67,11 +82,26 @@ class Term(ABC):
             if isinstance(feature, Container):
                 return frozenset(feature)
 
+        def _equal_features(self, other):
+            assert type(self) is type(other)
+            if hasattr(self, "feature") and hasattr(self, "feature"):
+                return _convert_feature(self.feature) == _convert_feature(other.feature)
+
+            # Spline term
+            else:
+                # Features are considered equal if all sub-features are equal
+                return all(
+                    _equal_features(self_spline, other_spline)
+                    for (self_spline, other_spline) in zip(self.splines, other.splines)
+                )
+
         # Check if equal type
         equal_type = type(self) is type(other)
+        if not equal_type:
+            return False
 
         # Check if the features used are equal
-        equal_features = _convert_feature(self.feature) == _convert_feature(other.feature)
+        equal_features = _equal_features(self, other)
 
         # Check if the .by variable is equal
         equal_by = self.by == other.by
@@ -79,8 +109,13 @@ class Term(ABC):
         return all([equal_type, equal_features, equal_by])
 
     def __eq__(self, other):
-        # Two terms are equal if their feature is equal
-        return self.feature == other.feature
+        # Two terms are equal if their parameters are equal
+        equal_types = type(self) == type(other)
+        if not equal_types:
+            return False
+
+        equal_params = self.get_params() == other.get_params()
+        return equal_params
 
     def __add__(self, other):
         return TermList(self) + TermList(other)
@@ -101,7 +136,7 @@ class Term(ABC):
             return self
 
 
-class Intercept(Term, BaseEstimator):
+class Intercept(TransformerMixin, Term, BaseEstimator):
     name = "intercept"
     feature = None
     by = None
@@ -112,6 +147,9 @@ class Intercept(Term, BaseEstimator):
 
     def penalty_matrix(self):
         return np.array([[0.0]])
+
+    def fit(self, X):
+        return self
 
     def transform(self, X):
         """transform the term.
@@ -147,7 +185,7 @@ class Intercept(Term, BaseEstimator):
         return np.ones(n_samples).reshape(-1, 1)
 
 
-class Linear(Term, BaseEstimator):
+class Linear(TransformerMixin, Term, BaseEstimator):
     name = "linear"
 
     _parameter_constraints = {
@@ -164,10 +202,12 @@ class Linear(Term, BaseEstimator):
         >>> linear_term = Linear(0, penalty=2)
         >>> linear_term
         Linear(feature=0, penalty=2)
-        >>> Linear(0, penalty=2) == Linear(0, penalty=3)
+        >>> Linear(0, penalty=2) == Linear(0, penalty=2)
         True
-        >>> Linear(1, penalty=2) == Linear(0, penalty=3)
+        >>> Linear(0, penalty=2) == Linear(0, penalty=3)
         False
+        >>> Linear(0, penalty=2)._is_redudance_with_respect_to(Linear(0, penalty=3))
+        True
         """
         self.feature = feature
         self.penalty = penalty
@@ -198,6 +238,9 @@ class Linear(Term, BaseEstimator):
         super()._validate_params()  # Validate the 'penalty' parameter
         return np.sqrt(self.penalty) * np.array([[1.0]])
 
+    def fit(self, X):
+        return self
+
     def transform(self, X):
         """transform the term.
 
@@ -219,6 +262,7 @@ class Linear(Term, BaseEstimator):
         array([[0.],
                [1.],
                [0.]])
+
         """
         X = check_array(X, estimator=self, input_name="X")
         num_samples, num_features = X.shape
@@ -232,7 +276,7 @@ class Linear(Term, BaseEstimator):
         return basis_matrix
 
 
-class Spline(Term, BaseEstimator):
+class Spline(TransformerMixin, Term, BaseEstimator):
     name = "spline"
 
     _parameter_constraints = {
@@ -268,6 +312,28 @@ class Spline(Term, BaseEstimator):
         Spline(feature=0)
         >>> Spline(1, penalty=0.1, by=2)
         Spline(by=2, feature=1, penalty=0.1)
+
+        >>> spline = Spline(0, num_splines=3, degree=1, extrapolation="linear")
+        >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
+        >>> spline.fit(X[:6, :])
+        Spline(degree=1, feature=0, num_splines=3)
+        >>> spline.transform(X[:6, :])
+        array([[1. , 0. , 0. ],
+               [0.6, 0.4, 0. ],
+               [0.2, 0.8, 0. ],
+               [0. , 0.8, 0.2],
+               [0. , 0.4, 0.6],
+               [0. , 0. , 1. ]])
+        >>> spline.transform(X)
+        array([[ 1. ,  0. ,  0. ],
+               [ 0.6,  0.4,  0. ],
+               [ 0.2,  0.8,  0. ],
+               [ 0. ,  0.8,  0.2],
+               [ 0. ,  0.4,  0.6],
+               [ 0. ,  0. ,  1. ],
+               [ 0. , -0.4,  1.4],
+               [ 0. , -0.8,  1.8],
+               [ 0. , -1.2,  2.2]])
         """
         self.feature = feature
         self.penalty = penalty
@@ -280,6 +346,10 @@ class Spline(Term, BaseEstimator):
         self.knots = knots
         self.extrapolation = extrapolation
 
+    def __mul__(self, other):
+        # TODO: Consider letting spline multiplications construct Tensors
+        raise NotImplementedError
+
     def _validate_params(self, num_features):
         # Validate using BaseEsimator._validate_params, which in turn calls
         # sklearn.utils._param_validation.validate_parameter_constraints
@@ -289,10 +359,10 @@ class Spline(Term, BaseEstimator):
         super()._validate_params()
 
         if self.feature not in range(0, num_features):
-            raise ValueError(f"Parameter {self.feature} must be in range [0, {num_features}].")
+            raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features}].")
 
         if (self.by is not None) and (self.by not in range(0, num_features)):
-            raise ValueError(f"Parameter {self.by} must be in range [0, {num_features}].")
+            raise ValueError(f"Parameter {self.by=} must be in range [0, {num_features}].")
 
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
@@ -307,8 +377,8 @@ class Spline(Term, BaseEstimator):
         matrix = second_order_finite_difference(self.num_coefficients, periodic=self.periodic)
         return penalty * matrix
 
-    def transform(self, X):
-        """transform the term.
+    def fit(self, X):
+        """Fit to data.
 
         Parameters
         ----------
@@ -324,7 +394,7 @@ class Spline(Term, BaseEstimator):
         --------
         >>> spline = Spline(0, num_splines=3, degree=0)
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
-        >>> spline.transform(X)
+        >>> spline.fit_transform(X)
         array([[1., 0., 0.],
                [1., 0., 0.],
                [1., 0., 0.],
@@ -335,7 +405,7 @@ class Spline(Term, BaseEstimator):
                [0., 0., 1.],
                [0., 0., 1.]])
         >>> X = np.vstack((np.linspace(0, 1, num=9), np.arange(9))).T
-        >>> Spline(0, num_splines=3, degree=1).transform(X)
+        >>> Spline(0, num_splines=3, degree=1).fit_transform(X)
         array([[1.  , 0.  , 0.  ],
                [0.75, 0.25, 0.  ],
                [0.5 , 0.5 , 0.  ],
@@ -345,7 +415,7 @@ class Spline(Term, BaseEstimator):
                [0.  , 0.5 , 0.5 ],
                [0.  , 0.25, 0.75],
                [0.  , 0.  , 1.  ]])
-        >>> Spline(0, num_splines=3, degree=1, by=1).transform(X)
+        >>> Spline(0, num_splines=3, degree=1, by=1).fit_transform(X)
         array([[0.  , 0.  , 0.  ],
                [0.75, 0.25, 0.  ],
                [1.  , 1.  , 0.  ],
@@ -369,7 +439,7 @@ class Spline(Term, BaseEstimator):
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/preprocessing/_polynomial.py#L470
         n_knots = self.num_splines + 1 - self.degree * (self.extrapolation != "periodic")
 
-        transformer = SplineTransformer(
+        self.spline_transformer_ = SplineTransformer(
             n_knots=n_knots,
             degree=self.degree,
             knots=self.knots,
@@ -380,16 +450,41 @@ class Spline(Term, BaseEstimator):
 
         # No edges are given, fit to entire data set
         if self.edges is None:
-            transformer.fit(X_feature.reshape(-1, 1))
+            self.spline_transformer_.fit(X_feature.reshape(-1, 1))
 
         # Edges are given, fit to data within edges
         else:
             low, high = self.edges
             mask = (X_feature >= low) & (X_feature <= high)
 
-            transformer.fit(X_feature[mask].reshape(-1, 1))
+            self.spline_transformer_.fit(X_feature[mask].reshape(-1, 1))
 
-        spline_basis_matrix = transformer.transform(X_feature.reshape(-1, 1))
+        return self
+
+    def transform(self, X):
+        """transform the term.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            An ndarray with 2 dimensions of shape (n_samples, n_features).
+
+        Returns
+        -------
+        X : np.ndarray
+            An ndarray for the term.
+
+        Examples
+        --------
+        >>> spline = Spline(0, num_splines=3, degree=0)
+        >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
+        """
+        X = check_array(X, estimator=self, input_name="X")
+        num_samples, num_features = X.shape
+        self._validate_params(num_features)
+        X_feature = X[:, self.feature]
+
+        spline_basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
         assert spline_basis_matrix.shape == (num_samples, self.num_splines)
 
         if self.by is not None:
@@ -398,11 +493,278 @@ class Spline(Term, BaseEstimator):
         return spline_basis_matrix
 
 
-class Tensor(Term, BaseEstimator):
+class Tensor(TransformerMixin, Term, BaseEstimator):
     name = "tensor"
 
-    def __init__(self, splines=None):
-        self.splines = splines
+    def __init__(self, splines):
+        """
+
+
+        Parameters
+        ----------
+        splines : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        Examples
+        --------
+        >>> tensor = Tensor([Spline(0), Spline(1)])
+        >>> for spline in tensor:
+        ...     print(spline)
+        Spline(feature=0)
+        Spline(feature=1)
+
+        """
+        self.splines = TermList(splines)
+
+    def __iter__(self):
+        return iter(self.splines)
+
+    def _validate_params(self, num_features):
+        self.splines = TermList(self.splines)
+        for spline in self.splines:
+            if not isinstance(spline, Spline):
+                raise TypeError(f"Only Splines can be used in a Tensor, found: {spline}")
+            spline._validate_params(num_features)
+
+    @property
+    def num_coefficients(self):
+        return np.product([spline.num_coefficients for spline in self.splines])
+
+    def _build_marginal_penalties(self, i):
+        """
+
+        Examples
+        --------
+        >>> spline1 = Spline(0, num_splines=3, penalty=1)
+        >>> spline2 = Spline(1, num_splines=4, penalty=1)
+        >>> Tensor([spline1, spline2])._build_marginal_penalties(0).astype(int)
+        array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 1,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0],
+               [ 0,  1,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0],
+               [ 0,  0,  1,  0,  0,  0, -2,  0,  0,  0,  1,  0],
+               [ 0,  0,  0,  1,  0,  0,  0, -2,  0,  0,  0,  1],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
+        >>> Tensor([spline1, spline2])._build_marginal_penalties(1).astype(int)
+        array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  1, -2,  1,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  1, -2,  1,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
+        """
+
+        # i = 0 -> sp.sparse.kron(term.build_penalties(), sparse.eye, sparse.eye)
+        # i = 1 -> sp.sparse.kron(sparse.eye, term.build_penalties(), sparse.eye)
+        # i = 1 -> sp.sparse.kron(sparse.eye, sparse.eye, term.build_penalties())
+
+        penalty_matrices = [
+            (spline.penalty_matrix() if i == j else np.eye(spline.num_coefficients))
+            for j, spline in enumerate(self.splines)
+        ]
+        return functools.reduce(sp.linalg.kron, penalty_matrices)
+
+    def penalty_matrix(self):
+        """
+        builds the GAM block-diagonal penalty matrix in quadratic form
+        out of penalty matrices specified for each feature.
+
+        each feature penalty matrix is multiplied by a lambda for that feature.
+
+        so for m features:
+        P = block_diag[lam0 * P0, lam1 * P1, lam2 * P2, ... , lamm * Pm]
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        P : sparse CSC matrix containing the model penalties in quadratic form
+
+        Examples
+        --------
+        The coefficients are imagined to be structured as
+        [[b_11, b_12, b_13, b14],
+         [b_21, b_22, b_23, b24],
+         [b_31, b_32, b_33, b34]]
+        and .ravel()'ed into a vector of
+        [b_11, b_12, b_13, b_14, b_21, b_22, ...]
+        The example below shows a penalty matrix:
+
+        >>> spline1 = Spline(0, num_splines=3, penalty=1)
+        >>> spline2 = Spline(1, num_splines=4, penalty=1)
+        >>> Tensor([spline1, spline2]).penalty_matrix().astype(int)
+        array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 1,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0],
+               [ 0,  1,  0,  0,  1, -4,  1,  0,  0,  1,  0,  0],
+               [ 0,  0,  1,  0,  0,  1, -4,  1,  0,  0,  1,  0],
+               [ 0,  0,  0,  1,  0,  0,  0, -2,  0,  0,  0,  1],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
+        """
+        marginal_penalty_matrices = [self._build_marginal_penalties(i) for i, _ in enumerate(self.splines)]
+        return functools.reduce(np.add, marginal_penalty_matrices)
+
+    def fit(self, X):
+        X = check_array(X, estimator=self, input_name="X")
+        num_samples, num_features = X.shape
+        self._validate_params(num_features)
+
+        for spline in self.splines:
+            spline.fit(X)
+
+        return self
+
+    def transform(self, X):
+        fit_matrices = [spline.transform(X) for spline in self.splines]
+        spline_basis = functools.reduce(tensor_product, fit_matrices)
+
+        # if self.by is not None:
+        #    spline_basis *= X[:, self.by][:, np.newaxis]
+
+        return spline_basis
+
+    def get_params(self, deep=True):
+        if not deep:
+            return {"splines": copy.deepcopy(self.splines)}
+            return super().get_params()
+
+        out = dict()
+        for i, spline in enumerate(self.splines):
+            if hasattr(spline, "get_params") and not isinstance(spline, type):
+                deep_items = spline.get_params().items()
+                key = str(i)
+                out.update((key + "__" + k, val) for k, val in deep_items)
+            out[key] = spline
+        return out
+
+    def __sklearn_clone__(self):
+        """
+
+        Examples
+        --------
+        >>> from sklearn.base import clone
+        >>> tensor = Tensor([Spline(0), Spline(1)])
+        >>> cloned_tensor = clone(tensor)
+        >>> cloned_tensor
+        Tensor(TermList([Spline(feature=0), Spline(feature=1)]))
+
+        Mutating the original will not change the clone:
+
+        >>> tensor.set_params(**{'0__feature': 99})
+        Tensor(TermList([Spline(feature=99), Spline(feature=1)]))
+        >>> cloned_tensor
+        Tensor(TermList([Spline(feature=0), Spline(feature=1)]))
+        """
+
+        return type(self)([copy.deepcopy(spline) for spline in self.splines])
+
+    def set_params(self, **params):
+        """Set the parameters of this estimator.
+
+        The method works on simple estimators as well as on nested objects
+        (such as :class:`~sklearn.pipeline.Pipeline`). The latter have
+        parameters of the form ``<component>__<parameter>`` so that it's
+        possible to update each component of a nested object.
+
+        Parameters
+        ----------
+        **params : dict
+            Estimator parameters.
+
+        Returns
+        -------
+        self : estimator instance
+            Estimator instance.
+
+        Examples
+        --------
+
+        Setting with a shallow copy:
+
+        >>> tensor = Tensor([Spline(0), Spline(1)])
+        >>> params_shallow = tensor.get_params(deep=False)
+        >>> params_shallow
+        {'splines': TermList([Spline(feature=0), Spline(feature=1)])}
+        >>> params_changed = {'splines': [Spline(feature=0), Spline(feature=99)]}
+        >>> new_tensor = tensor.set_params(**params_changed)
+        >>> new_tensor
+        Tensor(TermList([Spline(feature=0), Spline(feature=99)]))
+        >>> tensor
+        Tensor(TermList([Spline(feature=0), Spline(feature=99)]))
+
+        Setting with a deep copy:
+
+        >>> terms = TermList([Linear(0), Intercept()])
+        >>> params_deep = terms.get_params(deep=True)
+        >>> params_deep
+        {'0__by': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
+        >>> params_new = {'0__by': None, '0__feature': 2, '0__penalty': 2, '0': Linear(feature=0), '1': Intercept()}
+        >>> new_terms = terms.set_params(**params_new)
+        >>> new_terms
+        TermList([Linear(feature=2, penalty=2), Intercept()])
+        >>> terms
+        TermList([Linear(feature=2, penalty=2), Intercept()])
+
+
+        """
+        if not params:
+            # Simple optimization to gain speed (inspect is slow)
+            return self
+
+        # If parameters are of the form
+        # {'splines': [Linear(feature=0), Intercept()]}
+        if "splines" in params.keys():
+            self.splines = TermList(params["splines"])
+            return self
+
+        nested_params = defaultdict(dict)  # grouped by prefix
+        for key, value in params.items():
+            # Split the key, which indicates which Term in the TermList to
+            # update
+            # '0__feature'.partition("__") -> ('0', '__', 'feature')
+            key, delim, sub_key = key.partition("__")
+
+            # Got an item like (('0', '__', 'feature'), 1)
+            # This is an updated of a Term parameter, so we store it
+            if delim:
+                nested_params[key][sub_key] = value
+
+            # Got an item like (('0', '', ''), Linear(feature=0))
+            # This is an update of a Term instance, so we update immediately
+            else:
+                self.splines[int(key)] = value
+
+        # Update all term paramters
+        for key, value in nested_params.items():
+            self.splines[int(key)].set_params(**value)
+
+        return self
+
+    def __repr__(self):
+        classname = type(self).__name__
+        return f"{classname}({self.splines.__repr__()})"
 
 
 # =============================================================================
@@ -463,7 +825,7 @@ class TermList(UserList, BaseEstimator):
 
         >>> X = np.tile(np.arange(10), reps=(2, 1)).T
         >>> terms = Intercept() + Linear(0) + Spline(1, degree=0, num_splines=2)
-        >>> terms.transform(X)
+        >>> terms.fit_transform(X)
         array([[1., 0., 1., 0.],
                [1., 1., 1., 0.],
                [1., 2., 1., 0.],
@@ -520,11 +882,21 @@ class TermList(UserList, BaseEstimator):
     def __str__(self):
         return " + ".join(repr(term) for term in self)
 
+    def fit(self, X):
+        return np.hstack([term.fit(X) for term in self])
+
     def transform(self, X):
         return np.hstack([term.transform(X) for term in self])
 
+    def fit_transform(self, X):
+        return np.hstack([term.fit_transform(X) for term in self])
+
+    def penalty_matrix(self):
+        penalty_matrices = [term.penalty_matrix() for term in self]
+        return sp.linalg.block_diag(*penalty_matrices)
+
     def __sklearn_clone__(self):
-        return type(self)(self)
+        return type(self)([copy.deepcopy(term) for term in self])
 
     def get_params(self, deep=True):
         """
@@ -632,8 +1004,6 @@ class TermList(UserList, BaseEstimator):
             self.data = params["data"]
             return self
 
-        from collections import defaultdict
-
         nested_params = defaultdict(dict)  # grouped by prefix
 
         for key, value in params.items():
@@ -664,4 +1034,4 @@ if __name__ == "__main__":
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
-    Spline(0)
+    te = Tensor([Spline(0), Spline(1)])

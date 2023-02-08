@@ -48,6 +48,7 @@ class LogitLink(Link):
     """g(mu) = log(mu / (1 - mu))"""
 
     name = "logit"
+    domain = (0, 1)
 
     def link(self, mu, levels=1):
         if levels > 1:

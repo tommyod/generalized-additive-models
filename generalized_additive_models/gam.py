@@ -8,110 +8,144 @@ Created on Sun Feb  5 12:05:41 2023
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sp
 from sklearn.base import BaseEstimator
 from sklearn.linear_model import Ridge
+from sklearn.utils._param_validation import Hidden, Interval, StrOptions
+from numbers import Real, Integral
+from generalized_additive_models.terms import Term, Spline, Linear, TermList, Intercept, Tensor
+from generalized_additive_models.links import LINKS
 
-from generalized_additive_models.terms import Spline, Linear
-
-
-X = np.sort(np.abs(np.random.randn(999, 1)), axis=0)
-y = np.sin(X).ravel() + np.random.randn(999) / 10
-
-
-plt.scatter(X, y)
-
-basis = Spline(0, num_splines=10, knots="uniform", edges=(0, 5), extrapolation="constant").transform(X)
-
-plt.plot(X, basis)
+# from generalized_additive_models.distributions import DISTRIBUTIONS
 
 
 class GAM(BaseEstimator):
-    def __init__(self, terms=None, tol=1e-5):
-        self.terms = terms
-        self.tol = tol
+    _parameter_constraints: dict = {
+        "terms": [Term, TermList],
+        "distribution": [StrOptions({"normal", "poisson", "gamma"})],
+        "link": [StrOptions({"identity", "log"})],
+        "fit_intercept": ["boolean"],
+        "solver": [
+            StrOptions({"lbfgs", "newton-cholesky"}),
+            Hidden(type),
+        ],
+        "max_iter": [Interval(Integral, 1, None, closed="left")],
+        "tol": [Interval(Real, 0.0, None, closed="neither")],
+        "warm_start": ["boolean"],
+        "verbose": ["verbose"],
+    }
 
-    def fit(self, X, y):
-        self.model = Ridge().fit(X, y)
+    def __init__(
+        self,
+        terms=None,
+        *,
+        distribution="normal",
+        link="identity",
+        fit_intercept=True,
+        solver="lbfgs",
+        max_iter=100,
+        tol=0.0001,
+        warm_start=False,
+        verbose=0,
+    ):
+        self.terms = terms
+        self.distribution = distribution
+        self.link = link
+        self.fit_intercept = fit_intercept
+        self.solver = solver
+        self.max_iter = max_iter
+        self.tol = tol
+        self.warm_start = warm_start
+        self.verbose = verbose
+
+    def _validate_params(self):
+        super()._validate_params()
+        self._link = LINKS[self.link]
+        # self._distribution = LINKS[self.distribution]
+        self.terms = TermList(self.terms)
+
+        if self.fit_intercept and Intercept() not in self.terms:
+            self.terms.append(Intercept())
+
+    def fit(self, X, y, sample_weight=None):
+        """Fit model to data.
+
+
+        Examples
+        --------
+
+        >>> rng = np.random.default_rng(32)
+        >>> X = rng.normal(size=(100, 1))
+        >>> y = np.sin(X).ravel()
+        >>> gam = GAM(Spline(0))
+        >>> gam.fit(X, y)
+        GAM(terms=TermList(data=[Spline(feature=0), Intercept()]))
+
+        """
+        self._validate_params()
+        X, y = self._validate_data(
+            X,
+            y,
+            dtype=[np.float64, np.float32],
+            y_numeric=True,
+            multi_output=False,
+        )
+
+        self.model_matrix_ = self.terms.fit_transform(X)
+
+        penalty_matrix = self.terms.penalty_matrix()
+        lhs = self.model_matrix_.T @ self.model_matrix_ + penalty_matrix.T @ penalty_matrix
+        rhs = self.model_matrix_.T @ y
+
+        self.coef_, *_ = sp.linalg.lstsq(
+            lhs,
+            rhs,
+        )
+
+        # self.coef_ = np.zeros(sum(term.num_coefficients for term in self.terms))
+        # self.coef_ = np.linalg.lstsq(lhs, rhs)
+
+        return self
 
     def predict(self, X):
-        return self.model.predict(X)
+        model_matrix = self.terms.transform(X)
+        return model_matrix @ self.coef_
 
-    def score(self, X, y):
-        return self.model.score(X, y)
+    def score(self, X, y, sample_weight=None):
+        from sklearn.metrics import r2_score
 
-
-gam = GAM(terms=Spline(0) + Spline(1))
-if False:
-    print(gam.get_params())
-
-    print(gam.set_params(**{"tol": 0.1, "terms__data__": 1}))
-
-    print(gam)
-
-from sklearn.base import clone
+        y_pred = self.predict(X)
+        return r2_score(y, y_pred, sample_weight=sample_weight)
 
 
-clone(gam)
+# Create a data set which is hard for an additive model to predict
+rng = np.random.default_rng(42)
+X = rng.triangular(0, mode=0, right=1, size=(100, 1))
+X = np.sort(X, axis=0)
 
 
-from sklearn.model_selection import cross_val_score
-from sklearn.datasets import load_diabetes
-
-X, y = load_diabetes(return_X_y=True)
-
-cross_val_score(gam, X, y, verbose=10)
+y = X.ravel() ** 2 + rng.normal(scale=0.05, size=(100))
 
 
-from sklearn.model_selection import GridSearchCV
+gam = GAM(terms=Spline(0, penalty=1, num_splines=3, degree=0) + Intercept(), fit_intercept=False)
+# gam = GAM(terms=Linear(0) + Intercept(), fit_intercept=False)
 
 
-search = GridSearchCV(
-    gam,
-    param_grid={"terms__0__penalty": [1, 2, 3]},
-    scoring=None,
-    n_jobs=1,
-    refit=True,
-    cv=10,
-    verbose=99,
-    pre_dispatch="2*n_jobs",
-    return_train_score=False,
-)
+gam.fit(X, y)
+
+print("mean data value", y.mean())
+print("intercept of model", gam.coef_[-1])
+
+x_smooth = np.linspace(0, 1, num=100).reshape(-1, 1)
+preds = gam.predict(np.linspace(0, 1, num=100).reshape(-1, 1))
+
+plt.figure()
+plt.scatter(X, y)
+plt.plot(np.linspace(0, 1, num=100).reshape(-1, 1), preds, color="k")
+plt.show()
 
 
-search.fit(X, y)
+if __name__ == "__main__":
+    import pytest
 
-print("===========================================")
-
-
-search = GridSearchCV(
-    gam,
-    param_grid={"terms__0": [Spline(penalty=99), Spline(penalty=2)]},
-    scoring=None,
-    n_jobs=1,
-    refit=True,
-    cv=10,
-    verbose=99,
-    pre_dispatch="2*n_jobs",
-    return_train_score=False,
-)
-
-
-search.fit(X, y)
-
-
-sorted(search.cv_results_.keys())
-
-print(
-    (Spline(0, penalty=1, by=1) + Linear(1)).set_params(
-        **{
-            "0__by": 1,
-            "0__degree": 3,
-            "0__edges": None,
-            "0": Spline(by=1, feature=0),
-            "1__by": None,
-            "1__feature": 1,
-            "1__penalty": 1,
-            "1": Linear(feature=1),
-        }
-    )
-)
+    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

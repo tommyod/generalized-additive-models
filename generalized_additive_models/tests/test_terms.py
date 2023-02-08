@@ -5,6 +5,7 @@ Created on Sun Feb  5 09:18:35 2023
 
 @author: tommy
 """
+from sklearn.base import clone
 from generalized_additive_models.terms import Spline, TermList, Intercept, Linear
 import numpy as np
 
@@ -22,6 +23,24 @@ class TestTermList:
         # A list with an arbitrary object cannot be used either
         with pytest.raises(TypeError):
             TermList([element, Intercept()])
+
+    def test_cloning_with_sklearn_clone(self):
+        term_list = TermList(Spline(0) + Spline(1))
+        cloned_term_list = clone(term_list)
+        assert term_list == cloned_term_list
+        assert term_list is not cloned_term_list
+
+        # A more intricate example
+        s = Spline(0, penalty=1)
+        term_list = TermList([s, Intercept()])
+        cloned_term_list = clone(term_list)
+
+        # Changing the original term should not change the clone
+        s.set_params(penalty=99)
+        assert cloned_term_list[0].penalty == 1
+
+        # But the original changed
+        assert term_list[0].penalty == 99
 
 
 class TestPenaltyMatrices:
@@ -86,7 +105,6 @@ class TestSplines:
     ):
         # Create a dummy matrix of data
         X = np.linspace(0, 1, num=128).reshape(-1, 2)
-        print(X)
 
         # Create a spline
         spline = Spline(
@@ -100,7 +118,7 @@ class TestSplines:
             extrapolation=extrapolation,
         )
 
-        transformed_X = spline.transform(X)
+        transformed_X = spline.fit_transform(X)
         n_samples, n_features = transformed_X.shape
         assert n_samples == 64
         assert n_features == num_splines
@@ -118,6 +136,15 @@ class TestSplines:
         linear = Linear(feature=feature, penalty=penalty, by=by)
         assert linear.get_params() == Linear().set_params(**linear.get_params()).get_params()
         assert linear.get_params() == Linear(**linear.get_params()).get_params()
+
+    def test_cloning_with_sklearn_clone(self):
+        spline = Spline(0, penalty=999)
+        cloned_spline = clone(spline)
+        assert cloned_spline == spline
+
+        spline.set_params(penalty=1)
+        assert spline.penalty == 1
+        assert cloned_spline.penalty == 999
 
 
 if __name__ == "__main__":
