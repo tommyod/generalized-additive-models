@@ -6,11 +6,79 @@ Created on Sun Feb  5 09:18:35 2023
 @author: tommy
 """
 from sklearn.base import clone
-from generalized_additive_models.terms import Spline, TermList, Intercept, Linear
+from generalized_additive_models.terms import Spline, TermList, Intercept, Linear, Tensor
 import numpy as np
+import itertools
 
 import pytest
 import itertools
+
+
+class TestTermMultiplications:
+    """Tests for modeling algebra."""
+
+    def test_intercept_multiplications(self):
+        i = Intercept()
+        assert i * i == i
+
+        l = Linear(0)
+        assert l * i == i * l == l
+
+        s = Spline(0, by=1)
+        assert s * i == i * s == s
+
+        te = Tensor([Spline(0), Spline(1)])
+        assert te * i == i * te == te
+
+    def test_linear_multiplication(self):
+        l = Linear(0)
+
+        l2 = Linear(1)
+        assert l * l2 == Linear(1, by=0) == Linear(0, by=1) == l2 * l
+
+        s = Spline(1)
+        assert l * s == s * l == Spline(1, by=0)
+
+        te = Tensor([Spline(1), Spline(2)])
+        assert l * te == te * l == Tensor([Spline(1), Spline(2)], by=0)
+
+    def test_spline_multiplication(self):
+        s1 = Spline(1)
+        s2 = Spline(2)
+        assert s1 * s2 == s2 * s1 == Tensor([s1, s2])
+
+        te = Tensor([Spline(3), Spline(4)])
+        assert s1 * te == te * s1 == Tensor([Spline(0), Spline(3), Spline(4)])
+
+    def test_tensor_multiplication(self):
+        te12 = Tensor([Spline(1), Spline(2)])
+        te34 = Tensor([Spline(2), Spline(4)])
+        assert te12 * te34 == te34 * te12 == Tensor([Spline(1), Spline(2), Spline(3), Spline(4)])
+
+    def test_non_associative_multiplication(self):
+        l0 = Linear(0)
+        s1 = Spline(1)
+        s2 = Spline(2)
+
+        assert l0 * (s1 * s2) == Tensor([Spline(1), Spline(2)], by=0)
+        assert (l0 * s1) * s2 == Tensor([Spline(1, by=0), Spline(2)])
+
+    def test_tensor_cyclic_property(self):
+        te123 = Tensor([Spline(1), Spline(2), Spline(3)])
+
+        for permutation in itertools.permutations([1, 2, 3]):
+            assert te123 == Tensor([Spline(i) for i in permutation])
+
+    def test_distributivity_over_terms(self):
+        i = Intercept()
+        l = Linear(0)
+        s = Spline(1)
+        te = Tensor([Spline(2), Spline(3)])
+
+        assert i * (l + s + te) == (i * l + i * s + i * te) == (l + s + te) * i
+        assert l * (i + s + te) == l * i + l * s + l * te == (i + s + te) * l
+        assert s * (i + l + te) == s * i + s * l + s * te == (i + l + te) * s
+        assert te * (i + l + s) == te * i + te * l + te * s == (i + l + s) * te
 
 
 class TestTermList:

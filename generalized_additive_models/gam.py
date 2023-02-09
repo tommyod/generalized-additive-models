@@ -14,8 +14,8 @@ from sklearn.linear_model import Ridge
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
 from numbers import Real, Integral
 from generalized_additive_models.terms import Term, Spline, Linear, TermList, Intercept, Tensor
-from generalized_additive_models.links import LINKS
-from generalized_additive_models.distributions import DISTRIBUTIONS
+from generalized_additive_models.links import LINKS, Link
+from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.optimizers import NaiveOptimizer
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
@@ -24,8 +24,8 @@ from generalized_additive_models.optimizers import NaiveOptimizer
 class GAM(BaseEstimator):
     _parameter_constraints: dict = {
         "terms": [Term, TermList],
-        "distribution": [StrOptions({"normal", "poisson", "gamma"})],
-        "link": [StrOptions({"identity", "log"})],
+        "distribution": [StrOptions({"normal", "poisson", "gamma", "binomial"}), Distribution],
+        "link": [StrOptions({"identity", "log", "logit"}), Link],
         "fit_intercept": ["boolean"],
         "solver": [
             StrOptions({"lbfgs", "newton-cholesky"}),
@@ -62,8 +62,10 @@ class GAM(BaseEstimator):
 
     def _validate_params(self):
         super()._validate_params()
-        self._link = LINKS[self.link]()
-        self._distribution = DISTRIBUTIONS[self.distribution]()
+        self._link = LINKS[self.link]() if isinstance(self.link, str) else self.link
+        self._distribution = (
+            DISTRIBUTIONS[self.distribution]() if isinstance(self.distribution, str) else self.distribution
+        )
         self.terms = TermList(self.terms)
 
         if self.fit_intercept and Intercept() not in self.terms:
@@ -134,53 +136,51 @@ class GAM(BaseEstimator):
         return r2_score(y, y_pred, sample_weight=sample_weight)
 
 
-# Create a data set which is hard for an additive model to predict
-rng = np.random.default_rng(42)
-X = rng.triangular(0, mode=0.5, right=1, size=(1000, 1))
-X = np.sort(X, axis=0)
+if __name__ == "__main__":
+    # Create a data set which is hard for an additive model to predict
+    rng = np.random.default_rng(42)
+    X = rng.triangular(0, mode=0.5, right=1, size=(1000, 1))
+    X = np.sort(X, axis=0)
 
+    y = X.ravel() ** 2 + rng.normal(scale=0.05, size=(1000))
 
-y = X.ravel() ** 2 + rng.normal(scale=0.05, size=(1000))
+    gam = GAM(terms=Spline(0, penalty=1, num_splines=3, degree=0) + Intercept(), fit_intercept=False)
+    # gam = GAM(terms=Linear(0) + Intercept(), fit_intercept=False)
 
+    gam.fit(X, y)
 
-gam = GAM(terms=Spline(0, penalty=1, num_splines=3, degree=0) + Intercept(), fit_intercept=False)
-# gam = GAM(terms=Linear(0) + Intercept(), fit_intercept=False)
+    print("mean data value", y.mean())
+    print("intercept of model", gam.coef_[-1])
 
+    x_smooth = np.linspace(0, 1, num=100).reshape(-1, 1)
+    preds = gam.predict(np.linspace(0, 1, num=100).reshape(-1, 1))
 
-gam.fit(X, y)
+    plt.figure()
+    plt.scatter(X, y)
+    plt.plot(np.linspace(0, 1, num=100).reshape(-1, 1), preds, color="k")
+    plt.show()
 
-print("mean data value", y.mean())
-print("intercept of model", gam.coef_[-1])
+    # Poisson problem
+    np.random.seed(1)
+    x = np.linspace(0, 2 * np.pi, num=100)
+    y = np.random.poisson(lam=1.1 + np.sin(x))
+    X = x.reshape(-1, 1)
 
-x_smooth = np.linspace(0, 1, num=100).reshape(-1, 1)
-preds = gam.predict(np.linspace(0, 1, num=100).reshape(-1, 1))
+    poisson_gam = GAM(
+        Spline(0, num_splines=5, degree=3, penalty=0.01, extrapolation="periodic"),
+        link="log",
+        distribution="poisson",
+        max_iter=25,
+    )
+    poisson_gam.fit(X, y)
 
-plt.figure()
-plt.scatter(X, y)
-plt.plot(np.linspace(0, 1, num=100).reshape(-1, 1), preds, color="k")
-plt.show()
+    plt.scatter(x, y)
 
-# Poisson problem
-np.random.seed(1)
-x = np.linspace(0, 2 * np.pi, num=100)
-y = np.random.poisson(lam=1.1 + np.sin(x))
-X = x.reshape(-1, 1)
-
-poisson_gam = GAM(
-    Spline(0, num_splines=5, degree=3, penalty=0.01, extrapolation="periodic"),
-    link="log",
-    distribution="poisson",
-    max_iter=25,
-)
-poisson_gam.fit(X, y)
-
-plt.scatter(x, y)
-
-X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
-plt.plot(X_smooth, poisson_gam.predict(X_smooth), color="k")
+    X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
+    plt.plot(X_smooth, poisson_gam.predict(X_smooth), color="k")
 
 
 if __name__ == "__main__":
     import pytest
 
-    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

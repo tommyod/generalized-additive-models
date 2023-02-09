@@ -45,7 +45,7 @@ class IdentityLink(Link):
         return np.ones_like(mu)
 
 
-class LogitLink(Link):
+class Logit(Link):
     """g(mu) = log(mu / (1 - mu))"""
 
     name = "logit"
@@ -130,7 +130,7 @@ class InvSquaredLink(Link):
 
 
 # Dict comprehension instead of hard-coding the names again here
-LINKS = {l.name: l for l in [IdentityLink, LogLink, LogitLink, InverseLink, InvSquaredLink, CLogLogLink]}
+LINKS = {l.name: l for l in [IdentityLink, LogLink, Logit, InverseLink, InvSquaredLink, CLogLogLink]}
 
 
 if __name__ == "__main__":
