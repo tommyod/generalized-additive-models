@@ -20,6 +20,7 @@ import copy
 from sklearn.preprocessing import SplineTransformer
 from sklearn.base import TransformerMixin
 from sklearn.utils._param_validation import Interval
+from sklearn.utils.validation import _get_feature_names
 from numbers import Integral, Real
 from generalized_additive_models.penalties import second_order_finite_difference
 from generalized_additive_models.utils import tensor_product
@@ -47,6 +48,27 @@ class Term(ABC):
     @abstractmethod
     def penalty_matrix(self):
         pass
+
+    def infer_feature_variable(self, *, variable_name, X):
+        num_samples, num_features = X.shape
+        variable_content = getattr(self, variable_name)
+        variable_to_set = f"{variable_name}_"
+
+        # Set the self.feature_ variable
+        if isinstance(variable_content, str):
+            feature_names = _get_feature_names(X)  # None or np.array
+            feature_names = [] if feature_names is None else list(feature_names)
+            if variable_content not in feature_names:
+                msg = f"Feature in {self} does not match feature names in the data: {feature_names}."
+                raise ValueError(msg)
+            else:
+                setattr(self, variable_to_set, feature_names.index(variable_content))
+        elif isinstance(variable_content, Integral):
+            if variable_content not in range(0, num_features):
+                raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features}].")
+            else:
+                # Copy it over
+                setattr(self, variable_to_set, variable_content)
 
     def is_redudance_with_respect_to(self, other):
         """Check if a feature is redundance with respect to another feature.
@@ -179,9 +201,9 @@ class Linear(TransformerMixin, Term, BaseEstimator):
     name = "linear"
 
     _parameter_constraints = {
-        "feature": [Interval(Integral, 0, None, closed="left"), None],
+        "feature": [Interval(Integral, 0, None, closed="left"), str, None],
         "penalty": [Interval(Real, 0, None, closed="left")],
-        "by": [Interval(Integral, 0, None, closed="left"), None],
+        "by": [Interval(Integral, 0, None, closed="left"), str, None],
     }
 
     def __init__(self, feature=None, penalty=1, by=None):
@@ -203,7 +225,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         self.penalty = penalty
         self.by = by
 
-    def _validate_params(self, num_features):
+    def _validate_params(self, X):
         # Validate using BaseEsimator._validate_params, which in turn calls
         # sklearn.utils._param_validation.validate_parameter_constraints
         # using the `_parameter_constraints` attributed defined on the class.
@@ -211,14 +233,11 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/utils/_param_validation.py#L28
         super()._validate_params()
 
-        if self.feature not in range(0, num_features):
-            raise ValueError(f"Parameter {self.feature} must be in range [0, {num_features-1}].")
-
-        if (self.by is not None) and (self.by not in range(0, num_features)):
-            raise ValueError(f"Parameter {self.by} must be in range [0, {num_features-1}].")
-
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
+
+        self.infer_feature_variable(variable_name="feature", X=X)
+        self.infer_feature_variable(variable_name="by", X=X)
 
     @property
     def num_coefficients(self):
@@ -229,6 +248,8 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         return np.sqrt(self.penalty) * np.array([[1.0]])
 
     def fit(self, X):
+        self._validate_params(X)
+        X = check_array(X, estimator=self, input_name="X")
         return self
 
     def transform(self, X):
@@ -254,14 +275,14 @@ class Linear(TransformerMixin, Term, BaseEstimator):
                [0.]])
 
         """
+        self._validate_params(X)
         X = check_array(X, estimator=self, input_name="X")
         num_samples, num_features = X.shape
-        self._validate_params(num_features)
 
-        basis_matrix = X[:, self.feature].reshape(-1, 1)
+        basis_matrix = X[:, self.feature_].reshape(-1, 1)
 
         if self.by is not None:
-            basis_matrix *= X[:, self.by][:, np.newaxis]
+            basis_matrix *= X[:, self.by_][:, np.newaxis]
 
         return basis_matrix
 
@@ -272,9 +293,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     L2_penalty = 0.0
 
     _parameter_constraints = {
-        "feature": [Interval(Integral, 0, None, closed="left"), None],
+        "feature": [Interval(Integral, 0, None, closed="left"), str, None],
         "penalty": [Interval(Real, 0, None, closed="left")],
-        "by": [Interval(Integral, 0, None, closed="left"), None],
+        "by": [Interval(Integral, 0, None, closed="left"), str, None],
         "num_splines": [Interval(Integral, 2, None, closed="left"), None],
         "edges": [None, Container],
         "degree": [Interval(Integral, 0, None, closed="left")],
@@ -335,7 +356,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         self.knots = knots
         self.extrapolation = extrapolation
 
-    def _validate_params(self, num_features):
+    def _validate_params(self, X):
         # Validate using BaseEsimator._validate_params, which in turn calls
         # sklearn.utils._param_validation.validate_parameter_constraints
         # using the `_parameter_constraints` attributed defined on the class.
@@ -343,14 +364,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/utils/_param_validation.py#L28
         super()._validate_params()
 
-        if self.feature not in range(0, num_features):
-            raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features}].")
-
-        if (self.by is not None) and (self.by not in range(0, num_features)):
-            raise ValueError(f"Parameter {self.by=} must be in range [0, {num_features}].")
-
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
+
+        self.infer_feature_variable(variable_name="feature", X=X)
+        self.infer_feature_variable(variable_name="by", X=X)
 
     @property
     def num_coefficients(self):
@@ -414,11 +432,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
                [0. , 0. , 1. ]])
 
         """
-        X = check_array(X, estimator=self, input_name="X")
+        self._validate_params(X)  # Get feature names, validate parameters
+        X = check_array(X, estimator=self, input_name="X")  # Conver to array
         num_samples, num_features = X.shape
-        self._validate_params(num_features)
 
-        X_feature = X[:, self.feature]
+        X_feature = X[:, self.feature_]
 
         # Solve this equation for the number of knots
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/preprocessing/_polynomial.py#L470
@@ -441,7 +459,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         else:
             X_feature_masked = X_feature.reshape(-1, 1)
 
-        self.spline_transformer_.fit(X_feature_masked)
+        spline_basis_matrix = self.spline_transformer_.fit_transform(X_feature_masked)
+        self.means_ = np.mean(spline_basis_matrix, axis=0)
 
         return self
 
@@ -463,10 +482,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         >>> spline = Spline(0, num_splines=3, degree=0)
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
         """
-        X = check_array(X, estimator=self, input_name="X")
+        self._validate_params(X)  # Get feature names, validate parameters
+        X = check_array(X, estimator=self, input_name="X")  # Conver to array
         num_samples, num_features = X.shape
-        self._validate_params(num_features)
-        X_feature = X[:, self.feature]
+
+        X_feature = X[:, self.feature_]
 
         spline_basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
 
@@ -475,9 +495,13 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # Set the 'by' variable
         if self.by is not None:
             # Multiply the spline basis by the desired column
-            spline_basis_matrix *= X[:, self.by][:, np.newaxis]
+            spline_basis_matrix *= X[:, self.by_][:, np.newaxis]
 
         assert spline_basis_matrix.shape == (num_samples, self.num_coefficients)
+
+        # Center to sum over data is zero
+
+        spline_basis_matrix = spline_basis_matrix - self.means_
 
         return spline_basis_matrix
 
@@ -630,7 +654,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return self
 
     def transform(self, X):
-        fit_matrices = [spline.transform() for spline in self.splines]
+        fit_matrices = [spline.transform(X) for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
 
         # if self.by is not None:
@@ -882,6 +906,13 @@ class TermList(UserList, BaseEstimator):
 
     def fit_transform(self, X):
         return np.hstack([term.fit_transform(X) for term in self])
+
+    @property
+    def coef_(self):
+        if not all(hasattr(term, "coef_") for term in self):
+            raise AttributeError(f"{type(self)} object has no attribute 'coef_'")
+        else:
+            return np.hstack(tuple(term.coef_ for term in self))
 
     def penalty_matrix(self):
         penalty_matrices = [term.penalty_matrix() for term in self]

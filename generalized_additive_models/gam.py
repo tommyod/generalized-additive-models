@@ -12,6 +12,9 @@ import scipy as sp
 from sklearn.base import BaseEstimator
 from sklearn.linear_model import Ridge
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
+
+# https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/utils/validation.py#L1870
+from sklearn.utils.validation import _get_feature_names
 from numbers import Real, Integral
 from generalized_additive_models.terms import Term, Spline, Linear, TermList, Intercept, Tensor
 from generalized_additive_models.links import LINKS, Link
@@ -89,15 +92,15 @@ class GAM(BaseEstimator):
 
         """
         self._validate_params()
-        X, y = self._validate_data(
-            X,
+
+        model_matrix_, y = self._validate_data(
+            self.terms.fit_transform(X),
             y,
             dtype=[np.float64, np.float32],
             y_numeric=True,
             multi_output=False,
         )
-
-        self.model_matrix_ = self.terms.fit_transform(X)
+        self.model_matrix_ = model_matrix_
 
         optimizer = NaiveOptimizer(
             X=self.model_matrix_,
@@ -117,6 +120,7 @@ class GAM(BaseEstimator):
         coef_idx = 0
         for term in self.terms:
             term.coef_ = self.coef_[coef_idx : coef_idx + term.num_coefficients]
+            term.coef_indicies_ = np.arange(coef_idx, coef_idx + term.num_coefficients)
             coef_idx += term.num_coefficients
             assert len(term.coef_) == term.num_coefficients
         assert sum(len(term.coef_) for term in self.terms) == len(self.coef_)

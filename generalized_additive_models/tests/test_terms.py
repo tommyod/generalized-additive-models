@@ -9,6 +9,8 @@ from sklearn.base import clone
 from generalized_additive_models.terms import Spline, TermList, Intercept, Linear, Tensor, Term
 import numpy as np
 import itertools
+from sklearn.datasets import fetch_california_housing
+import pandas as pd
 
 import pytest
 import itertools
@@ -168,6 +170,24 @@ class TestTermParameters:
         # Feature and by-variable is the same
         with pytest.raises(ValueError, match="cannot be equal to"):
             Linear(0, by=0).transform(X)
+
+
+class TestPandasCompatibility:
+    @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_terms_can_use_numerical_and_string_features(self, term):
+        # Load data as dataframe
+        df = fetch_california_housing(as_frame=True).data
+        assert isinstance(df, pd.DataFrame)
+
+        # Load as numpy array
+        X, _ = fetch_california_housing(return_X_y=True)
+        assert isinstance(X, np.ndarray)
+
+        assert df.shape == X.shape
+
+        # Check that the results are the same
+        for i, feature in enumerate(df.columns):
+            assert np.allclose(term(feature=feature).fit_transform(df), term(feature=i).fit_transform(X))
 
 
 class TestSplines:

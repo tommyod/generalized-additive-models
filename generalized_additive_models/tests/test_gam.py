@@ -9,12 +9,16 @@ import pytest
 import numpy as np
 from sklearn.base import clone
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Spline, Linear, Intercept, Tensor
+from generalized_additive_models.terms import Spline, Linear, Intercept, Tensor, TermList
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
+import pandas as pd
 import scipy as sp
+from sklearn.utils import resample
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
@@ -28,6 +32,66 @@ SMOOTH_FUNCTIONS = [
     sp.special.expm1,
     sp.special.expit,
 ]
+
+
+class TestPandasCompatibility:
+    def test_models_of_increasing_complexity_from_a_pandas_dataframe(self):
+        # Get data as a DataFrame and Series
+        data = fetch_california_housing(as_frame=True)
+        df, y = data.data, data.target
+
+        # Decrease data sets to speed up tests
+        df, y = resample(df, y, replace=False, n_samples=1000, random_state=42)
+
+        assert isinstance(df, pd.DataFrame)
+        assert isinstance(y, pd.Series)
+
+        df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1, random_state=42)
+        assert isinstance(df_train, pd.DataFrame)
+        assert isinstance(y_train, pd.Series)
+
+        # Fit a constant model
+        gam = GAM(terms=Intercept(), fit_intercept=False)
+        gam.fit(df_train, y_train)
+        score = r2_score(y_true=y_test, y_pred=gam.predict(df_test))
+        assert np.isclose(score, 0, atol=0.05)
+
+        # Fit a linear model
+        gam = GAM(terms=TermList(Linear(c) for c in df.columns), fit_intercept=True)
+        gam.fit(df_train, y_train)
+        score = r2_score(y_true=y_test, y_pred=gam.predict(df_test))
+        assert np.isclose(score, 0.6, atol=0.1)
+
+        # Fit a spline model
+        gam = GAM(terms=TermList(Spline(c) for c in df.columns), fit_intercept=True)
+        gam.fit(df_train, y_train)
+        score = r2_score(y_true=y_test, y_pred=gam.predict(df_test))
+        assert np.isclose(score, 0.65, atol=0.1)
+
+    def test_that_dataframe_and_numpy_produce_idential_results(self):
+        # Get data as a DataFrame and Series
+        data = fetch_california_housing(as_frame=True)
+        df, y = data.data, data.target
+
+        # Decrease data sets to speed up tests
+        df, y = resample(df, y, replace=False, n_samples=100, random_state=42)
+
+        assert isinstance(df, pd.DataFrame)
+        assert isinstance(y, pd.Series)
+
+        columns_to_use = np.array([0, 3, 5])
+
+        # Fit a model using DataFrame
+        terms = TermList(Spline(c) for c in df.columns[columns_to_use])
+        gam1 = GAM(terms=terms, fit_intercept=True)
+        gam1.fit(df, y)
+
+        # Fit a model using numpy array
+        terms = TermList(Spline(c) for c in columns_to_use)
+        gam2 = GAM(terms=terms, fit_intercept=True)
+        gam2.fit(df.values, y.values)
+
+        assert np.allclose(gam1.predict(df), gam2.predict(df.values))
 
 
 class TestSklearnCompatibility:
@@ -63,6 +127,9 @@ class TestSklearnCompatibility:
     def test_that_sklearn_cross_val_score_works(self):
         X, y = fetch_california_housing(return_X_y=True, as_frame=False)
 
+        # Decrease data sets to speed up test
+        X, y = resample(X, y, replace=False, n_samples=1000, random_state=42)
+
         gam = GAM(terms=Spline(0))
 
         cv = KFold(n_splits=10, shuffle=True, random_state=42)
@@ -72,6 +139,9 @@ class TestSklearnCompatibility:
 
     def test_that_sklearn_grid_search_works(self):
         X, y = fetch_california_housing(return_X_y=True, as_frame=False)
+
+        # Decrease data sets to speed up test
+        X, y = resample(X, y, replace=False, n_samples=1000, random_state=42)
 
         gam = GAM(terms=Intercept(), fit_intercept=True)
 
@@ -95,6 +165,9 @@ class TestSklearnCompatibility:
 
     def test_that_sklearn_grid_search_works_over_penalties(self):
         X, y = fetch_california_housing(return_X_y=True, as_frame=False)
+
+        # Decrease data sets to speed up test
+        X, y = resample(X, y, replace=False, n_samples=1000, random_state=42)
 
         gam = GAM(terms=Spline(0, penalty=0) + Intercept(), fit_intercept=False)
 
@@ -133,7 +206,6 @@ class TestGAMSanityChecks:
             if isinstance(term, Intercept):
                 assert np.isclose(term.coef_, mean_value)
 
-    @pytest.mark.skip("Tensor")
     def test_that_tensors_outperform_splines_on_multiplicative_problem(self):
         # Create a data set which is hard for an additive model to predict
         # y = exp(-x**2 - y**2)
