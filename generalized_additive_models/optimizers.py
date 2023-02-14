@@ -9,12 +9,18 @@ import numpy as np
 import scipy as sp
 from generalized_additive_models.utils import log
 from sklearn.linear_model import Ridge
+from sklearn.utils import Bunch
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
-class NaiveOptimizer:
+class Optimizer:
+    def _validate_params(self):
+        pass
+
+
+class NaiveOptimizer(Optimizer):
     step_size = 0.9
 
     def __init__(self, *, X, D, y, link, distribution, max_iter, tol, beta=None):
@@ -26,6 +32,7 @@ class NaiveOptimizer:
         self.max_iter = max_iter
         self.tol = tol
         self.beta = beta
+        self.statistics_ = Bunch()
 
         log.info(f"Initialized {type(self).__name__}")
 
@@ -103,77 +110,43 @@ class NaiveOptimizer:
             betas.append(beta)
             deviances.append(self.distribution.deviance(y=self.y, mu=mu).mean())
 
-            assert len(betas) >= 2
-            error = sp.linalg.norm(betas[-1] - betas[-2]) / num_beta
-            log.info(f"Error criterion |beta_n - beta_{{n-1}}|: {error:.6f}")
-            log.info(f"Deviance: {deviances[-1]:.6f}")
-            if error < self.tol:
-                return betas[-1]
+            if self._should_stop(betas):
+                break
 
             if iteration > 1:
-                previous_error = sp.linalg.norm(betas[-2] - betas[-3]) / num_beta
-                if error > previous_error:
-                    step_size = step_size * 0.99
-                    log.info(f"Decreased step size to: {step_size:.6f}")
+                step_size = step_size * 0.99
+                log.info(f"Decreased step size to: {step_size:.6f}")
+        else:
+            log.warning(f"Solver did not converge within {iteration} iterations.")
 
-        log.warning(f"Solver did not converge within {iteration} iterations.")
+        # Increase conditioning number
+        X_T_X = self.X.T @ self.X
+        X_T_X.flat[:: X_T_X.shape[0] + 1] += EPSILON
+
+        F = sp.linalg.solve(X_T_X + self.D.T @ self.D, X_T_X, assume_a="pos")
+        A = np.linalg.multi_dot((self.X, sp.linalg.inv(X_T_X + self.D.T @ self.D), self.X.T))
+        self.statistics_.edof = np.diag(F)
+
+        # Equation (6.18) on page 260
+        gcv = sp.linalg.norm(self.X @ betas[-1] - self.y) ** 2 * len(self.y) / (len(self.y) - np.trace(A)) ** 2
+        self.statistics_.generalized_cross_validation_score = gcv
 
         return betas[-1]
 
-    def _should_stop(self):
-        pass
+    def _should_stop(self, betas):
+        if len(betas) < 2:
+            return False
+
+        # Stopping criteria from
+        # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ElasticNet.html#sklearn.linear_model.ElasticNet
+
+        diffs = betas[-1] - betas[-2]
+        assert np.all(np.isfinite(diffs))
+        max_coord_update = np.max(np.abs(diffs))
+        max_coord = np.max(np.abs(betas[-1]))
+        log.info(f"Stopping criteria evaluation: {max_coord_update:.6f} <= {self.tol} * {max_coord:.6f} ")
+        return max_coord_update / max_coord < self.tol
 
 
 if __name__ == "__main__":
-    from generalized_additive_models.gam import GAM
-    from generalized_additive_models.terms import Spline, Intercept
-    import matplotlib.pyplot as plt
-
-    # Poisson problem
-    np.random.seed(1)
-    x = np.linspace(0, 6 * np.pi, num=10_000)
-    y = np.random.poisson(lam=(1.1 + np.sin(x)) * 10)
-    X = x.reshape(-1, 1)
-
-    poisson_gam = GAM(
-        Spline(0, num_splines=10, degree=3, penalty=1, extrapolation="periodic"),
-        link="log",
-        distribution="poisson",
-        max_iter=250,
-    )
-    poisson_gam.fit(X, y)
-
-    plt.scatter(x, y)
-
-    X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
-    plt.plot(X_smooth, poisson_gam.predict(X_smooth), color="k", lw=3)
-
-    plt.show()
-    print(poisson_gam.coef_)
-
-    # Logistic regression problem
-    from generalized_additive_models.distributions import Binomial
-    from scipy.special import logit, expit
-
-    np.random.seed(1)
-    x = np.linspace(0, 2 * np.pi, num=100)
-    p = expit(np.sin(x) * 3)
-    y = np.random.binomial(5, p, size=None)
-    X = x.reshape(-1, 1)
-
-    binomial_gam = GAM(
-        Spline(0, num_splines=10, degree=3, penalty=1, extrapolation="periodic"),
-        link="logit",
-        distribution=Binomial(levels=5),
-        max_iter=250,
-        tol=1e-6,
-    )
-    binomial_gam.fit(X, y)
-
-    plt.scatter(x, y + np.random.randn(len(y)) / 20)
-
-    X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
-    plt.plot(X_smooth, binomial_gam.predict(X_smooth), color="k", lw=3)
-
-    plt.show()
-    print(binomial_gam.coef_)
+    pass

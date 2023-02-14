@@ -29,7 +29,7 @@ class Link(ABC):
         pass
 
 
-class IdentityLink(Link):
+class Identity(Link):
     """g(mu) = mu"""
 
     name = "identity"
@@ -83,7 +83,7 @@ class CLogLogLink(Link):
         return 1 / ((levels - mu) * (np.log(levels) - np.log(levels - mu)))
 
 
-class LogLink(Link):
+class Log(Link):
     """g(mu) = log(mu)"""
 
     name = "log"
@@ -130,7 +130,7 @@ class InvSquaredLink(Link):
 
 
 # Dict comprehension instead of hard-coding the names again here
-LINKS = {l.name: l for l in [IdentityLink, LogLink, Logit, InverseLink, InvSquaredLink, CLogLogLink]}
+LINKS = {l.name: l for l in [Identity, Log]}
 
 
 if __name__ == "__main__":

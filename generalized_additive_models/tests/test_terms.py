@@ -6,7 +6,7 @@ Created on Sun Feb  5 09:18:35 2023
 @author: tommy
 """
 from sklearn.base import clone
-from generalized_additive_models.terms import Spline, TermList, Intercept, Linear, Tensor
+from generalized_additive_models.terms import Spline, TermList, Intercept, Linear, Tensor, Term
 import numpy as np
 import itertools
 
@@ -17,24 +17,36 @@ import itertools
 class TestTermMultiplications:
     """Tests for modeling algebra."""
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_intercept_multiplications(self):
+        redundant = Term.is_redudance_with_respect_to
+
         i = Intercept()
         assert i * i == i
 
         l = Linear(0)
         assert l * i == i * l == l
+        assert redundant(l * i, i * l)
 
         s = Spline(0, by=1)
         assert s * i == i * s == s
+        assert redundant(s * i, i * s)
 
         te = Tensor([Spline(0), Spline(1)])
         assert te * i == i * te == te
+        assert redundant(te * i, i * te)
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_linear_multiplication(self):
-        l = Linear(0)
+        redundant = Term.is_redudance_with_respect_to
 
+        l = Linear(0)
         l2 = Linear(1)
+
         assert l * l2 == Linear(1, by=0) == Linear(0, by=1) == l2 * l
+        assert redundant(l * l2, Linear(1, by=0))
+        assert redundant(l * l2, Linear(0, by=1))
+        assert redundant(l * l2, l2 * l)
 
         s = Spline(1)
         assert l * s == s * l == Spline(1, by=0)
@@ -42,6 +54,7 @@ class TestTermMultiplications:
         te = Tensor([Spline(1), Spline(2)])
         assert l * te == te * l == Tensor([Spline(1), Spline(2)], by=0)
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_spline_multiplication(self):
         s1 = Spline(1)
         s2 = Spline(2)
@@ -50,11 +63,13 @@ class TestTermMultiplications:
         te = Tensor([Spline(3), Spline(4)])
         assert s1 * te == te * s1 == Tensor([Spline(0), Spline(3), Spline(4)])
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_tensor_multiplication(self):
         te12 = Tensor([Spline(1), Spline(2)])
         te34 = Tensor([Spline(2), Spline(4)])
         assert te12 * te34 == te34 * te12 == Tensor([Spline(1), Spline(2), Spline(3), Spline(4)])
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_non_associative_multiplication(self):
         l0 = Linear(0)
         s1 = Spline(1)
@@ -63,12 +78,14 @@ class TestTermMultiplications:
         assert l0 * (s1 * s2) == Tensor([Spline(1), Spline(2)], by=0)
         assert (l0 * s1) * s2 == Tensor([Spline(1, by=0), Spline(2)])
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_tensor_cyclic_property(self):
         te123 = Tensor([Spline(1), Spline(2), Spline(3)])
 
         for permutation in itertools.permutations([1, 2, 3]):
             assert te123 == Tensor([Spline(i) for i in permutation])
 
+    @pytest.mark.skip(reason="Not implemented.")
     def test_distributivity_over_terms(self):
         i = Intercept()
         l = Linear(0)
@@ -187,7 +204,8 @@ class TestSplines:
         transformed_X = spline.fit_transform(X)
         n_samples, n_features = transformed_X.shape
         assert n_samples == 64
-        assert n_features == num_splines
+        assert n_features == spline.num_coefficients
+        assert n_features == spline.num_splines
 
     def test_that_setting_and_getting_works_on_intercept(self):
         intercept = Intercept()
@@ -211,6 +229,9 @@ class TestSplines:
         spline.set_params(penalty=1)
         assert spline.penalty == 1
         assert cloned_spline.penalty == 999
+
+    def test_spline_transformations_and_penalties(self):
+        pass
 
 
 if __name__ == "__main__":

@@ -48,66 +48,45 @@ class Term(ABC):
     def penalty_matrix(self):
         pass
 
-    def _is_redudance_with_respect_to(self, other):
+    def is_redudance_with_respect_to(self, other):
         """Check if a feature is redundance with respect to another feature.
 
         Examples
         --------
-        >>> Spline(0)._is_redudance_with_respect_to(Spline(0))
+        >>> Spline(0).is_redudance_with_respect_to(Spline(0))
         True
-        >>> Spline(0)._is_redudance_with_respect_to(Spline(0, by=1))
+        >>> Spline(0).is_redudance_with_respect_to(Spline(0, by=1))
         False
-        >>> Intercept()._is_redudance_with_respect_to(Intercept())
+        >>> Intercept().is_redudance_with_respect_to(Intercept())
         True
-        >>> Linear(0)._is_redudance_with_respect_to(Linear(1))
+        >>> Linear(0).is_redudance_with_respect_to(Linear(1))
         False
-        >>> Linear(0)._is_redudance_with_respect_to(Linear(0))
+        >>> Linear(0).is_redudance_with_respect_to(Linear(0))
         True
+        >>> te1 = Tensor([Spline(0), Spline(1)])
+        >>> te2 = Tensor([Spline(1), Spline(0)])
+        >>> te1.is_redudance_with_respect_to(te2)
+        True
+        >>> te2 = Tensor([Spline(1), Spline(0, by=1)])
+        >>> te1.is_redudance_with_respect_to(te2)
+        False
 
         """
-
-        def _convert_feature(feature):
-            """Convert features to a comparable form.
-
-            Examples
-            --------
-            >>> _convert_feature(1)
-            1
-            >>> _convert_feature("age")
-            'age'
-            >>> _convert_feature([1, 2])
-            frozenset({1, 2})
-            """
-            if isinstance(feature, (str, int)):
-                return feature
-            if isinstance(feature, Container):
-                return frozenset(feature)
-
-        def _equal_features(self, other):
-            assert type(self) is type(other)
-            if hasattr(self, "feature") and hasattr(self, "feature"):
-                return _convert_feature(self.feature) == _convert_feature(other.feature)
-
-            # Spline term
-            else:
-                # Features are considered equal if all sub-features are equal
-                return all(
-                    _equal_features(self_spline, other_spline)
-                    for (self_spline, other_spline) in zip(self.splines, other.splines)
-                )
-
         # Check if equal type
         equal_type = type(self) is type(other)
         if not equal_type:
             return False
 
-        # Check if the features used are equal
-        equal_features = _equal_features(self, other)
-
-        # Check if the .by variable is equal
-        equal_by = self.by == other.by
-
-        return all([equal_type, equal_features, equal_by])
+        # Check for Spline/Linear/Intercept, etc
+        if isinstance(self, (Intercept, Linear, Spline)):
+            return frozenset([self.feature, self.by]) == frozenset([other.feature, other.by])
+        # Check for Tensor
+        elif isinstance(self, Tensor):
+            self_vars = frozenset([frozenset([term.feature, term.by]) for term in self] + [self.by])
+            other_vars = frozenset([frozenset([term.feature, term.by]) for term in other] + [other.by])
+            return self_vars == other_vars
+        else:
+            raise TypeError(f"Cannot compare {self} and {other}")
 
     def __eq__(self, other):
         # Two terms are equal if their parameters are equal
@@ -141,6 +120,16 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
     name = "intercept"
     feature = None
     by = None
+
+    # =============================================================================
+    #     def __mul__(self, other):
+    #         if not isinstance(other, Term):
+    #             raise NotImplementedError
+    #         return copy.deepcopy(other)
+    #
+    #     def __rmul__(self, other):
+    #         return self.__mul__(other)
+    # =============================================================================
 
     @property
     def num_coefficients(self):
@@ -207,7 +196,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         True
         >>> Linear(0, penalty=2) == Linear(0, penalty=3)
         False
-        >>> Linear(0, penalty=2)._is_redudance_with_respect_to(Linear(0, penalty=3))
+        >>> Linear(0, penalty=2).is_redudance_with_respect_to(Linear(0, penalty=3))
         True
         """
         self.feature = feature
@@ -223,10 +212,10 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         super()._validate_params()
 
         if self.feature not in range(0, num_features):
-            raise ValueError(f"Parameter {self.feature} must be in range [0, {num_features}].")
+            raise ValueError(f"Parameter {self.feature} must be in range [0, {num_features-1}].")
 
         if (self.by is not None) and (self.by not in range(0, num_features)):
-            raise ValueError(f"Parameter {self.by} must be in range [0, {num_features}].")
+            raise ValueError(f"Parameter {self.by} must be in range [0, {num_features-1}].")
 
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
@@ -280,7 +269,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 class Spline(TransformerMixin, Term, BaseEstimator):
     name = "spline"
 
-    L2_penalty = 1e-8
+    L2_penalty = 0.0
 
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), None],
@@ -346,10 +335,6 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         self.knots = knots
         self.extrapolation = extrapolation
 
-    def __mul__(self, other):
-        # TODO: Consider letting spline multiplications construct Tensors
-        raise NotImplementedError
-
     def _validate_params(self, num_features):
         # Validate using BaseEsimator._validate_params, which in turn calls
         # sklearn.utils._param_validation.validate_parameter_constraints
@@ -374,6 +359,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     def penalty_matrix(self):
         super()._validate_params()  # Validate 'penalty' and 'num_coefficients'
         matrix = second_order_finite_difference(self.num_coefficients, periodic=(self.extrapolation == "periodic"))
+
+        # Set all-zero rows to zero
+        # all_zero_rows = np.all(np.isclose(matrix, 0), axis=1)
+        # matrix = matrix[~all_zero_rows, :]
+
         matrix = np.sqrt(self.penalty) * matrix
 
         # Add the sum-to-zero penalty
@@ -408,36 +398,27 @@ class Spline(TransformerMixin, Term, BaseEstimator):
                [0., 0., 1.],
                [0., 0., 1.],
                [0., 0., 1.]])
-        >>> X = np.vstack((np.linspace(0, 1, num=9), np.arange(9))).T
-        >>> Spline(0, num_splines=3, degree=1).fit_transform(X)
-        array([[1.  , 0.  , 0.  ],
-               [0.75, 0.25, 0.  ],
-               [0.5 , 0.5 , 0.  ],
-               [0.25, 0.75, 0.  ],
-               [0.  , 1.  , 0.  ],
-               [0.  , 0.75, 0.25],
-               [0.  , 0.5 , 0.5 ],
-               [0.  , 0.25, 0.75],
-               [0.  , 0.  , 1.  ]])
-        >>> Spline(0, num_splines=3, degree=1, by=1).fit_transform(X)
-        array([[0.  , 0.  , 0.  ],
-               [0.75, 0.25, 0.  ],
-               [1.  , 1.  , 0.  ],
-               [0.75, 2.25, 0.  ],
-               [0.  , 4.  , 0.  ],
-               [0.  , 3.75, 1.25],
-               [0.  , 3.  , 3.  ],
-               [0.  , 1.75, 5.25],
-               [0.  , 0.  , 8.  ]])
+        >>> X = np.vstack((np.linspace(0, 1, num=12), np.arange(12))).T
+        >>> Spline(0, num_splines=3, degree=1).fit_transform(X).round(1)
+        array([[1. , 0. , 0. ],
+               [0.8, 0.2, 0. ],
+               [0.6, 0.4, 0. ],
+               [0.5, 0.5, 0. ],
+               [0.3, 0.7, 0. ],
+               [0.1, 0.9, 0. ],
+               [0. , 0.9, 0.1],
+               [0. , 0.7, 0.3],
+               [0. , 0.5, 0.5],
+               [0. , 0.4, 0.6],
+               [0. , 0.2, 0.8],
+               [0. , 0. , 1. ]])
+
         """
         X = check_array(X, estimator=self, input_name="X")
         num_samples, num_features = X.shape
         self._validate_params(num_features)
 
         X_feature = X[:, self.feature]
-
-        # Compute edge knots if they are not set
-        # self._edges = self.edges or (np.min(X_feature), np.max(X_feature))
 
         # Solve this equation for the number of knots
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/preprocessing/_polynomial.py#L470
@@ -452,20 +433,15 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             order="C",
         )
 
-        # self.standard_scaler_ = StandardScaler(with_mean=True, with_std=False)
-
-        # No edges are given, fit to entire data set
-        if self.edges is None:
-            self.spline_transformer_.fit(X_feature.reshape(-1, 1))
-            # self.standard_scaler_.fit(X_feature.reshape(-1, 1))
-
-        # Edges are given, fit to data within edges
-        else:
+        # Fit to data within the edges
+        if self.edges is not None:
             low, high = self.edges
             mask = (X_feature >= low) & (X_feature <= high)
+            X_feature_masked = X_feature[mask].reshape(-1, 1)
+        else:
+            X_feature_masked = X_feature.reshape(-1, 1)
 
-            self.spline_transformer_.fit(X_feature[mask].reshape(-1, 1))
-            # self.standard_scaler_.fit(X_feature[mask].reshape(-1, 1))
+        self.spline_transformer_.fit(X_feature_masked)
 
         return self
 
@@ -493,18 +469,26 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         X_feature = X[:, self.feature]
 
         spline_basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
+
         assert spline_basis_matrix.shape == (num_samples, self.num_splines)
 
+        # Set the 'by' variable
         if self.by is not None:
+            # Multiply the spline basis by the desired column
             spline_basis_matrix *= X[:, self.by][:, np.newaxis]
 
+        assert spline_basis_matrix.shape == (num_samples, self.num_coefficients)
+
         return spline_basis_matrix
+
+    def fit_transform(self, X):
+        return self.fit(X).transform(X)
 
 
 class Tensor(TransformerMixin, Term, BaseEstimator):
     name = "tensor"
 
-    def __init__(self, splines):
+    def __init__(self, splines, by=None):
         """
 
 
@@ -527,6 +511,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         """
         self.splines = TermList(splines)
+        self.by = by
 
     def __iter__(self):
         return iter(self.splines)
@@ -645,7 +630,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return self
 
     def transform(self, X):
-        fit_matrices = [spline.transform(X) for spline in self.splines]
+        fit_matrices = [spline.transform() for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
 
         # if self.by is not None:
@@ -844,7 +829,6 @@ class TermList(UserList, BaseEstimator):
                [1., 7., 0., 1.],
                [1., 8., 0., 1.],
                [1., 9., 0., 1.]])
-
         """
 
         super().__init__()
@@ -857,10 +841,10 @@ class TermList(UserList, BaseEstimator):
 
     def append(self, item, /):
         if not isinstance(item, Term):
-            raise TypeError(f"Only terms can be added to TermList, not {item}")
+            raise TypeError(f"Only terms can be added to TermList, not {item} of type {type(item)}")
 
         for term in self:
-            if item._is_redudance_with_respect_to(term):
+            if item.is_redudance_with_respect_to(term):
                 msg = f"Cannot add {item} because it is redundance wrt {term}"
                 raise ValueError(msg)
 
@@ -1041,5 +1025,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
-
-    te = Tensor([Spline(0), Spline(1)])

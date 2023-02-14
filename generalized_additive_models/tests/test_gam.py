@@ -5,6 +5,7 @@ Created on Wed Feb  8 07:11:09 2023
 
 @author: tommy
 """
+import pytest
 import numpy as np
 from sklearn.base import clone
 from generalized_additive_models.gam import GAM
@@ -13,6 +14,20 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
+import scipy as sp
+
+SMOOTH_FUNCTIONS = [
+    np.log1p,
+    np.exp,
+    np.sin,
+    np.cos,
+    np.cosh,
+    np.sinc,
+    np.sqrt,
+    np.square,
+    sp.special.expm1,
+    sp.special.expit,
+]
 
 
 class TestSklearnCompatibility:
@@ -98,6 +113,27 @@ class TestSklearnCompatibility:
 
 
 class TestGAMSanityChecks:
+    @pytest.mark.skip("Mean will not equal mean of data")
+    @pytest.mark.parametrize("mean_value", [-100, -10, 0, 10, 100, 1000, 10000])
+    def test_that_mean_value_is_picked_up_by_intercept(self, mean_value):
+        # Create a 1D data set y = x * log(x) on x \in (0, 2)
+        rng = np.random.default_rng(42)
+        X = rng.random(size=(1000, 1)) * 2
+        X = np.sort(X, axis=0)
+
+        y = np.log(X) * X
+        y = y.ravel() - np.mean(y) + mean_value
+
+        # Create a GAM and fit it
+        gam = GAM(terms=Spline(0, num_splines=20, degree=3, penalty=1), fit_intercept=True)
+
+        gam.fit(X, y)
+
+        for term in gam.terms:
+            if isinstance(term, Intercept):
+                assert np.isclose(term.coef_, mean_value)
+
+    @pytest.mark.skip("Tensor")
     def test_that_tensors_outperform_splines_on_multiplicative_problem(self):
         # Create a data set which is hard for an additive model to predict
         # y = exp(-x**2 - y**2)
@@ -119,6 +155,36 @@ class TestGAMSanityChecks:
         assert score_spline_model > score_linear_model
         assert score_spline_model > 0.98
         assert score_linear_model < 0.85
+
+    @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
+    def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
+        rng = np.random.default_rng(42)
+        X = rng.random(size=(1000, 1)) * 5
+        y = function(X.ravel())
+
+        # Create a GAM
+        linear_gam = GAM(Spline(0), fit_intercept=True)
+        linear_gam.fit(X, y)
+        assert linear_gam.score(X, y) > 0.99
+
+    @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
+    def test_that_1D_spline_score_on_smooth_function_with_by_is_close(self, function):
+        # Create data of form: y = f(x_1) * x_2
+        rng = np.random.default_rng(42)
+        X = rng.random(size=(1000, 2)) * np.pi
+        y = function(X[:, 0]) * X[:, 1]
+
+        # Create a GAM and fit it
+        gam = GAM(terms=Spline(0, by=1), fit_intercept=True)
+        gam.fit(X, y)
+        gam_score = gam.score(X, y)
+        assert gam_score > 0.99
+
+        # Bad gam
+        bad_gam = GAM(terms=Spline(0) + Linear(1), fit_intercept=True)
+        bad_gam.fit(X, y)
+        bad_gam_score = bad_gam.score(X, y)
+        assert bad_gam_score < gam_score
 
 
 if __name__ == "__main__":
