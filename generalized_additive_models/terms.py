@@ -50,6 +50,7 @@ class Term(ABC):
         pass
 
     def infer_feature_variable(self, *, variable_name, X):
+        # Variable name is typically 'penalty' or 'by'
         num_samples, num_features = X.shape
         variable_content = getattr(self, variable_name)
         variable_to_set = f"{variable_name}_"
@@ -58,14 +59,23 @@ class Term(ABC):
         if isinstance(variable_content, str):
             feature_names = _get_feature_names(X)  # None or np.array
             feature_names = [] if feature_names is None else list(feature_names)
-            if variable_content not in feature_names:
+            if (num_features > 1) and (variable_content not in feature_names):
                 msg = f"Feature in {self} does not match feature names in the data: {feature_names}."
                 raise ValueError(msg)
+
+            # A single column was passed, assume it's the one to transform
+            elif num_features == 1 and hasattr(self, variable_to_set):
+                setattr(self, variable_to_set, 0)
+
             else:
                 setattr(self, variable_to_set, feature_names.index(variable_content))
         elif isinstance(variable_content, Integral):
-            if variable_content not in range(0, num_features):
+            if (num_features > 1) and variable_content not in range(0, num_features):
                 raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features}].")
+
+            # A single column was passed, assume it's the one to transform
+            elif num_features == 1 and hasattr(self, variable_to_set):
+                setattr(self, variable_to_set, 0)
             else:
                 # Copy it over
                 setattr(self, variable_to_set, variable_content)
@@ -328,14 +338,14 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
         >>> spline.fit(X[:6, :])
         Spline(degree=1, feature=0, num_splines=3)
-        >>> spline.transform(X[:6, :])
+        >>> spline.transform(X[:6, :]) + spline.means_
         array([[1. , 0. , 0. ],
                [0.6, 0.4, 0. ],
                [0.2, 0.8, 0. ],
                [0. , 0.8, 0.2],
                [0. , 0.4, 0.6],
                [0. , 0. , 1. ]])
-        >>> spline.transform(X)
+        >>> spline.transform(X) + spline.means_
         array([[ 1. ,  0. ,  0. ],
                [ 0.6,  0.4,  0. ],
                [ 0.2,  0.8,  0. ],
@@ -406,7 +416,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         --------
         >>> spline = Spline(0, num_splines=3, degree=0)
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
-        >>> spline.fit_transform(X)
+        >>> spline = spline.fit(X)
+        >>> spline.transform(X) + spline.means_
         array([[1., 0., 0.],
                [1., 0., 0.],
                [1., 0., 0.],
@@ -417,7 +428,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
                [0., 0., 1.],
                [0., 0., 1.]])
         >>> X = np.vstack((np.linspace(0, 1, num=12), np.arange(12))).T
-        >>> Spline(0, num_splines=3, degree=1).fit_transform(X).round(1)
+        >>> spline = Spline(0, num_splines=3, degree=1).fit(X)
+        >>> (spline.transform(X) + spline.means_).round(1)
         array([[1. , 0. , 0. ],
                [0.8, 0.2, 0. ],
                [0.6, 0.4, 0. ],
@@ -540,12 +552,14 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     def __iter__(self):
         return iter(self.splines)
 
-    def _validate_params(self, num_features):
+    def _validate_params(self, X):
+        num_samples, num_features = X.shape
+
         self.splines = TermList(self.splines)
         for spline in self.splines:
             if not isinstance(spline, Spline):
                 raise TypeError(f"Only Splines can be used in a Tensor, found: {spline}")
-            spline._validate_params(num_features)
+            spline._validate_params(X)
 
     @property
     def num_coefficients(self):
@@ -644,18 +658,29 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return functools.reduce(np.add, marginal_penalty_matrices)
 
     def fit(self, X):
-        X = check_array(X, estimator=self, input_name="X")
-        num_samples, num_features = X.shape
-        self._validate_params(num_features)
+        self._validate_params(X)
 
+        # Fit splines to learn individual mean values
         for spline in self.splines:
             spline.fit(X)
+
+        # Transform, correct for individual means
+        fit_matrices = [spline.transform(X) + spline.means_ for spline in self.splines]
+        spline_basis = functools.reduce(tensor_product, fit_matrices)
+
+        # Learn the joint mean values
+        self.means_ = np.mean(spline_basis, axis=0)
 
         return self
 
     def transform(self, X):
-        fit_matrices = [spline.transform(X) for spline in self.splines]
+        self._validate_params(X)
+
+        fit_matrices = [spline.transform(X) + spline.means_ for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
+
+        # Subtract the means
+        spline_basis = spline_basis - self.means_
 
         # if self.by is not None:
         #    spline_basis *= X[:, self.by][:, np.newaxis]
@@ -843,16 +868,16 @@ class TermList(UserList, BaseEstimator):
         >>> X = np.tile(np.arange(10), reps=(2, 1)).T
         >>> terms = Intercept() + Linear(0) + Spline(1, degree=0, num_splines=2)
         >>> terms.fit_transform(X)
-        array([[1., 0., 1., 0.],
-               [1., 1., 1., 0.],
-               [1., 2., 1., 0.],
-               [1., 3., 1., 0.],
-               [1., 4., 1., 0.],
-               [1., 5., 0., 1.],
-               [1., 6., 0., 1.],
-               [1., 7., 0., 1.],
-               [1., 8., 0., 1.],
-               [1., 9., 0., 1.]])
+        array([[ 1. ,  0. ,  0.5, -0.5],
+               [ 1. ,  1. ,  0.5, -0.5],
+               [ 1. ,  2. ,  0.5, -0.5],
+               [ 1. ,  3. ,  0.5, -0.5],
+               [ 1. ,  4. ,  0.5, -0.5],
+               [ 1. ,  5. , -0.5,  0.5],
+               [ 1. ,  6. , -0.5,  0.5],
+               [ 1. ,  7. , -0.5,  0.5],
+               [ 1. ,  8. , -0.5,  0.5],
+               [ 1. ,  9. , -0.5,  0.5]])
         """
 
         super().__init__()
@@ -887,6 +912,15 @@ class TermList(UserList, BaseEstimator):
             raise TypeError(f"Only terms can be added to TermList, not {value}")
 
         super().__setitem__(key, value)
+
+    def __add__(self, other):
+        if isinstance(other, Term):
+            return self.__class__(self.data + [other])
+        elif isinstance(other, UserList):
+            return self.__class__(self.data + other.data)
+        elif isinstance(other, type(self.data)):
+            return self.__class__(self.data + other)
+        return self.__class__(self.data + list(other))
 
     def __mul__(self, n, /):
         raise NotImplementedError

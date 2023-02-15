@@ -100,7 +100,43 @@ class TestTermMultiplications:
         assert te * (i + l + s) == te * i + te * l + te * s == (i + l + s) * te
 
 
+class TestTerms:
+    @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_transforming_a_single_column_does_not_forget_feature_index(self, term):
+        x1 = np.arange(9)
+        x2 = np.arange(9) + 5
+        X = np.vstack((x1, x2)).T
+
+        term = term(1)
+        transformed = term.fit_transform(X)
+
+        # Transforming a 1-column matrix works, even if it's not a dataframe
+        # with the same columns as was fitted on
+        transformed_other = term.transform(x1.reshape(-1, 1))
+
+        # Different results due to different data
+        assert not np.allclose(transformed, transformed_other)
+
+        # The term is still able to transform the same column and get the same result
+        transformed2 = term.transform(X)
+        assert np.allclose(transformed, transformed2)
+
+
 class TestTermList:
+    def test_that_adding_tensor_term_does_not_unpack_tensor(self):
+        # Since a Tensor is iterable, a bug caused each individual
+        # spline in the Tensor to be added, instead of the tensor
+
+        # Check for each permutation
+        terms = Spline(0) + Spline(1) + Tensor([Spline(2), Spline(3)])
+        assert any(isinstance(term, Tensor) for term in terms)
+
+        terms = Spline(1) + Tensor([Spline(2), Spline(3)]) + Spline(0)
+        assert any(isinstance(term, Tensor) for term in terms)
+
+        terms = Tensor([Spline(2), Spline(3)]) + Spline(0) + Spline(1)
+        assert any(isinstance(term, Tensor) for term in terms)
+
     @pytest.mark.parametrize("element", [0, "a", [1, 2], Intercept])
     def test_that_only_terms_can_be_added(self, element):
         # An arbitrary object cannot be used in TermList
@@ -188,6 +224,26 @@ class TestPandasCompatibility:
         # Check that the results are the same
         for i, feature in enumerate(df.columns):
             assert np.allclose(term(feature=feature).fit_transform(df), term(feature=i).fit_transform(X))
+
+    @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_transforming_a_single_column_does_not_forget_feature_name(self, term):
+        x1 = np.arange(9)
+        x2 = np.arange(9) + 5
+        df = pd.DataFrame({"x1": x1, "x2": x2})
+
+        term = term("x1")
+        transformed = term.fit_transform(df)
+
+        # Transforming a 1-column matrix works, even if it's not a dataframe
+        # with the same columns as was fitted on
+        transformed_other = term.transform(x2.reshape(-1, 1))
+
+        # Different results due to different data
+        assert not np.allclose(transformed, transformed_other)
+
+        # The term is still able to transform the same column and get the same result
+        transformed2 = term.transform(df)
+        assert np.allclose(transformed, transformed2)
 
 
 class TestSplines:

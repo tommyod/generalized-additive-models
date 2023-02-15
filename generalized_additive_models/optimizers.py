@@ -25,7 +25,7 @@ class Optimizer:
 
 
 class NaiveOptimizer(Optimizer):
-    step_size = 0.9
+    step_size = 0.99
 
     def __init__(self, *, X, D, y, link, distribution, max_iter, tol, beta=None):
         self.X = X

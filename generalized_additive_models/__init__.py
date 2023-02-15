@@ -17,3 +17,4 @@ logging.getLogger("generalized_additive_models").addHandler(logging.NullHandler(
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.links import Identity
+from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, TermList

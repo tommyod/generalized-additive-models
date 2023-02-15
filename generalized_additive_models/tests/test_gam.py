@@ -186,15 +186,13 @@ class TestSklearnCompatibility:
 
 
 class TestGAMSanityChecks:
-    @pytest.mark.skip("Mean will not equal mean of data")
-    @pytest.mark.parametrize("mean_value", [-100, -10, 0, 10, 100, 1000, 10000])
+    @pytest.mark.parametrize("mean_value", [-100, -10, 0, 10, 100, 1000, 10000, 100000])
     def test_that_mean_value_is_picked_up_by_intercept(self, mean_value):
         # Create a 1D data set y = x * log(x) on x \in (0, 2)
         rng = np.random.default_rng(42)
-        X = rng.random(size=(1000, 1)) * 2
-        X = np.sort(X, axis=0)
+        X = rng.random(size=(10_000, 1)) * np.pi * 2
+        y = np.sin(X.ravel())
 
-        y = np.log(X) * X
         y = y.ravel() - np.mean(y) + mean_value
 
         # Create a GAM and fit it
@@ -204,7 +202,7 @@ class TestGAMSanityChecks:
 
         for term in gam.terms:
             if isinstance(term, Intercept):
-                assert np.isclose(term.coef_, mean_value)
+                assert np.isclose(term.coef_, mean_value, rtol=0.01)
 
     def test_that_tensors_outperform_splines_on_multiplicative_problem(self):
         # Create a data set which is hard for an additive model to predict
@@ -217,16 +215,16 @@ class TestGAMSanityChecks:
         cv = KFold(n_splits=5, shuffle=True, random_state=42)
 
         # Linear model GAM, with no-so-good performance
-        gam_linear_model = GAM(Spline(0) + Spline(1) + Intercept(), fit_intercept=False)
-        score_linear_model = cross_val_score(gam_linear_model, X, y, verbose=0, cv=cv).mean()
-
-        # Spline model GAM, with better performance
-        gam_spline_model = GAM(Tensor([Spline(0), Spline(1)]) + Intercept(), fit_intercept=False)
+        gam_spline_model = GAM(Spline(0) + Spline(1) + Intercept(), fit_intercept=False)
         score_spline_model = cross_val_score(gam_spline_model, X, y, verbose=0, cv=cv).mean()
 
-        assert score_spline_model > score_linear_model
-        assert score_spline_model > 0.98
-        assert score_linear_model < 0.85
+        # Tensor model GAM, with better performance
+        gam_tensor_model = GAM(Tensor([Spline(0), Spline(1)]) + Intercept(), fit_intercept=False)
+        score_tensor_model = cross_val_score(gam_tensor_model, X, y, verbose=0, cv=cv).mean()
+
+        assert score_tensor_model > score_spline_model
+        assert score_tensor_model > 0.98
+        assert score_spline_model < 0.85
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
     def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
