@@ -71,10 +71,7 @@ class Logit(Link):
         assert type(low) == type(high)
         self.low = low
         self.high = high
-
-    @property
-    def domain(self):
-        return (self.low, self.high)
+        self.domain = (self.low, self.high)
 
     def link(self, mu):
         # x = log((-L + y)/(H - y))
@@ -137,7 +134,7 @@ class SmoothLog(Link):
 
     """
 
-    name = "log"
+    name = "smoothlog"
     domain = (0, np.inf)
 
     def __init__(self, a=1.5):
@@ -168,6 +165,45 @@ class SmoothLog(Link):
         a = self._validate_threshold(threshold=self.a, argument=mu)
 
         return mu ** (a - 3) * (a - 2)
+
+
+class Softplus(Link):
+    """g(mu) = log(mu)"""
+
+    # Using the Softplus Function to Construct Alternative Link Functions
+    # in Generalized Linear Models and Beyond
+    # https://arxiv.org/pdf/2111.14207.pdf
+
+    name = "softplus"
+    domain = (0, np.inf)
+
+    def __init__(self, a=1):
+        self.a = a
+        assert a > 0
+
+    def link(self, mu):
+        a = self._validate_threshold(threshold=self.a, argument=mu)
+
+        return np.maximum(0, mu) + np.log1p(-np.exp(-a * np.abs(mu))) / a
+        return np.log(np.exp(a * mu) - 1) / a
+
+    def inverse_link(self, linear_prediction):
+        # the inverse is the softplus
+
+        a = self._validate_threshold(threshold=self.a, argument=linear_prediction)
+
+        # return np.log(1 + np.exp(a * linear_prediction))/a
+        return np.maximum(0, linear_prediction) + np.log1p(np.exp(-a * np.abs(linear_prediction))) / a
+
+    def derivative(self, mu):
+        a = self._validate_threshold(threshold=self.a, argument=mu)
+
+        return 1 / (1 - np.exp(-a * mu))
+
+    def second_derivative(self, mu):
+        a = self._validate_threshold(threshold=self.a, argument=mu)
+
+        return -a / (4 * np.sinh(a * mu / 2) ** 2)
 
 
 class CLogLogLink(Link):
@@ -214,6 +250,7 @@ class Inverse(Link):
     """g(mu) = 1/mu"""
 
     name = "inverse"
+    domain = (0, np.inf)
 
     def link(self, mu):
         return 1.0 / mu
@@ -232,6 +269,7 @@ class InvSquared(Link):
     """g(mu) = 1/mu**2"""
 
     name = "inv_squared"
+    domain = (0, np.inf)
 
     def link(self, mu):
         return 1.0 / mu**2
@@ -247,7 +285,7 @@ class InvSquared(Link):
 
 
 # Dict comprehension instead of hard-coding the names again here
-LINKS = {l.name: l for l in [Identity, Log, Logit, CLogLogLink, InvSquared, Inverse, SmoothLog]}
+LINKS = {l.name: l for l in [Identity, Log, Logit, CLogLogLink, InvSquared, Inverse, SmoothLog, Softplus]}
 
 
 if __name__ == "__main__":

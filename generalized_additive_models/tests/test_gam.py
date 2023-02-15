@@ -6,6 +6,7 @@ Created on Wed Feb  8 07:11:09 2023
 @author: tommy
 """
 import pytest
+import itertools
 import numpy as np
 from sklearn.base import clone
 from generalized_additive_models.gam import GAM
@@ -35,6 +36,25 @@ SMOOTH_FUNCTIONS = [
 
 
 class TestPandasCompatibility:
+    def test_that_integer_terms_can_be_used_with_pandas(self):
+        # Get data as a DataFrame and Series
+        data = fetch_california_housing(as_frame=True)
+        df, y = data.data, data.target
+
+        # Decrease data sets to speed up tests
+        df, y = resample(df, y, replace=False, n_samples=100, random_state=1)
+        df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1, random_state=42)
+
+        # Fit a model using column names
+        gam = GAM(terms=Spline("AveRooms"), fit_intercept=True)
+        gam.fit(df_train, y_train)
+
+        # Fit a model using integer index
+        gam2 = GAM(terms=Spline(2), fit_intercept=True)
+        gam2.fit(df_train, y_train)
+
+        assert np.allclose(gam.predict(df_test), gam2.predict(df_test))
+
     def test_models_of_increasing_complexity_from_a_pandas_dataframe(self):
         # Get data as a DataFrame and Series
         data = fetch_california_housing(as_frame=True)
@@ -183,6 +203,39 @@ class TestSklearnCompatibility:
 
         search.fit(X, y)
         assert search.best_score_ > 0.45
+
+
+class TestGamAutoModels:
+    """
+    Auto models means setting
+
+    >>> penalty = 2
+    >>> GAM(Spline(None, penalty=penalty))
+    GAM(terms=Spline(penalty=2))
+
+    This will expand the terms to an all-spline model when data is seen.
+    """
+
+    @pytest.mark.parametrize(
+        "penalty, fit_intercept, term_class",
+        list(itertools.product([0.01, 0.1, 1, 10, 100], [True, False], [Spline, Linear])),
+    )
+    def test_auto_model(self, penalty, fit_intercept, term_class):
+        X, y = fetch_california_housing(return_X_y=True, as_frame=False)
+
+        # Decrease data sets to speed up test
+        X, y = resample(X, y, replace=False, n_samples=1000, random_state=42)
+        num_samples, num_features = X.shape
+
+        # Auto model
+        auto_gam = GAM(term_class(None, penalty=penalty), fit_intercept=fit_intercept).fit(X, y)
+
+        # Manual model
+        terms = TermList(term_class(i, penalty=penalty) for i in range(num_features))
+        manual_gam = GAM(terms, fit_intercept=fit_intercept).fit(X, y)
+
+        assert auto_gam.terms == manual_gam.terms
+        assert np.allclose(auto_gam.predict(X), manual_gam.predict(X))
 
 
 class TestGAMSanityChecks:

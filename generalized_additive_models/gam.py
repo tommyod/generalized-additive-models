@@ -64,7 +64,7 @@ class GAM(BaseEstimator):
         self.warm_start = warm_start
         self.verbose = verbose
 
-    def _validate_params(self):
+    def _validate_params(self, X):
         super()._validate_params()
         self._link = LINKS[self.link]() if isinstance(self.link, str) else self.link
         self._distribution = (
@@ -73,7 +73,20 @@ class GAM(BaseEstimator):
 
         self.terms = TermList(self.terms)
 
-        if self.fit_intercept and Intercept() not in self.terms:
+        # Auto model
+        num_samples, num_features = X.shape
+        if len(self.terms) == 1:
+            term = self.terms[0]
+            if isinstance(term, Spline) and term.feature is None:
+                term_params = term.get_params()
+                term_params.pop("feature")
+                self.terms = TermList([Spline(feature=i, **term_params) for i in range(num_features)])
+            elif isinstance(term, Linear) and term.feature is None:
+                term_params = term.get_params()
+                term_params.pop("feature")
+                self.terms = TermList([Linear(feature=i, **term_params) for i in range(num_features)])
+
+        if self.fit_intercept and (Intercept() not in self.terms):
             self.terms.append(Intercept())
 
     def fit(self, X, y, sample_weight=None):
@@ -91,7 +104,7 @@ class GAM(BaseEstimator):
         GAM(terms=TermList(data=[Spline(feature=0), Intercept()]))
 
         """
-        self._validate_params()
+        self._validate_params(X)
 
         model_matrix_, y = self._validate_data(
             self.terms.fit_transform(X),

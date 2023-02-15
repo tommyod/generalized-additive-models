@@ -142,6 +142,8 @@ class NaiveOptimizer(Optimizer):
         X_T_X.flat[:: X_T_X.shape[0] + 1] += EPSILON
 
         # Compute degrees of freedom
+        # F is the hat matrix
+        # TODO: Is this wrong? Should weights be included?
         F = sp.linalg.solve(X_T_X + self.D.T @ self.D, X_T_X, assume_a="pos")
         A = np.linalg.multi_dot((self.X, sp.linalg.inv(X_T_X + self.D.T @ self.D), self.X.T))
         self.statistics_.edof = np.diag(F)

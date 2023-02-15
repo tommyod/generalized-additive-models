@@ -70,8 +70,8 @@ class Term(ABC):
             else:
                 setattr(self, variable_to_set, feature_names.index(variable_content))
         elif isinstance(variable_content, Integral):
-            if (num_features > 1) and variable_content not in range(0, num_features):
-                raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features}].")
+            if (num_features > 1) and variable_content not in range(num_features):
+                raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features-1}].")
 
             # A single column was passed, assume it's the one to transform
             elif num_features == 1 and hasattr(self, variable_to_set):
@@ -243,6 +243,9 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/utils/_param_validation.py#L28
         super()._validate_params()
 
+        if self.feature is None:
+            raise ValueError(f"Feature cannot be None in term: {self}")
+
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
 
@@ -373,6 +376,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/base.py#L573
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/utils/_param_validation.py#L28
         super()._validate_params()
+
+        if self.feature is None:
+            raise ValueError(f"Feature cannot be None in term: {self}")
 
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
