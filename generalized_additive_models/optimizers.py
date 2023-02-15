@@ -103,8 +103,8 @@ class NaiveOptimizer(Optimizer):
             log.info(f"Iteration {iteration}")
 
             # Step 1: Compute pseudodata z and iterative weights w
-            z = self.link.gradient(mu) * (self.y - mu) / alpha + eta
-            w = alpha / (self.link.gradient(mu) ** 2 * self.distribution.V(mu))
+            z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
+            w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X beta|^2_W + |D beta|^2
