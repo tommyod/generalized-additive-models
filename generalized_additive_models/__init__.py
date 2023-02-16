@@ -10,11 +10,18 @@ __version__ = "0.0.0"
 
 
 import logging
+from generalized_additive_models.utils import set_logger
 
+log = set_logger()
 # This goes into your library somewhere
-logging.getLogger("generalized_additive_models").addHandler(logging.NullHandler())
+logging.getLogger("gam").addHandler(logging.NullHandler())
+
+
+logging.getLogger("gam").propagate = False
 
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.links import Identity
 from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, TermList
+
+__all__ = ["GAM", "Identity", "Intercept", "Linear", "Spline", "Tensor", "TermList"]

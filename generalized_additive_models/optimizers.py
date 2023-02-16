@@ -25,9 +25,12 @@ class Optimizer:
 
 
 class NaiveOptimizer(Optimizer):
-    step_size = 0.99
+    """The most straightforward and simple way to fit a GAM,
+    ignoring almost all concerns about speed and numercial stability."""
 
-    def __init__(self, *, X, D, y, link, distribution, max_iter, tol, beta=None):
+    step_size = 1.0
+
+    def __init__(self, *, X, D, y, link, distribution, max_iter, tol):
         self.X = X
         self.D = D
         self.y = y
@@ -35,7 +38,6 @@ class NaiveOptimizer(Optimizer):
         self.distribution = distribution
         self.max_iter = max_iter
         self.tol = tol
-        self.beta = beta
         self.statistics_ = Bunch()
 
         log.info(f"Initialized {type(self).__name__}")
@@ -48,7 +50,7 @@ class NaiveOptimizer(Optimizer):
         if np.any(self.y > high):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
 
-    def initial_estimate(self):
+    def _initial_estimate(self):
         # Map the observations to the linear scale
         y_to_map = self.y.copy()
 
@@ -74,7 +76,7 @@ class NaiveOptimizer(Optimizer):
     def solve(self):
         num_observations, num_beta = self.X.shape
 
-        beta = self.initial_estimate() if self.beta is None else self.beta
+        beta = self._initial_estimate()
 
         # Step 1: Compute initial values
         eta = self.X @ beta
@@ -127,40 +129,49 @@ class NaiveOptimizer(Optimizer):
                 break
 
             if iteration > 1:
-                step_size = step_size * 0.99
+                step_size = step_size * 0.9999
                 log.info(f"Decreased step size to: {step_size:.6f}")
         else:
             log.warning(f"Solver did not converge within {iteration} iterations.")
 
+        # Add zero coefficients back
         for i in range(len(betas)):
             beta_updated = np.zeros(num_beta, dtype=float)
             beta_updated[~zero_coefs] = beta
             betas[i] = beta_updated
 
-        # Increase conditioning number
-        X_T_X = self.X.T @ self.X
-        X_T_X.flat[:: X_T_X.shape[0] + 1] += EPSILON
+        beta = betas[-1]
 
-        # Compute degrees of freedom
-        # F is the hat matrix
-        # TODO: Is this wrong? Should weights be included?
-        F = sp.linalg.solve(X_T_X + self.D.T @ self.D, X_T_X, assume_a="pos")
-        A = np.linalg.multi_dot((self.X, sp.linalg.inv(X_T_X + self.D.T @ self.D), self.X.T))
-        self.statistics_.edof = np.diag(F)
+        # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
+        # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
+        to_invert = self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D
+        to_invert.flat[:: to_invert.shape[0] + 1] += EPSILON  # Add to diagonal
+        inverted = sp.linalg.inv(to_invert)
+        H = np.linalg.multi_dot(((w.reshape(-1, 1) * self.X), inverted, self.X.T))
+        edof_per_coef = np.diag(H)
+        edof = edof_per_coef.sum()
+
+        # Compute phi by equation (6.2) (page 251 in Wood, 2nd ed)
+        # In the Gaussian case, phi is the variance
+        if self.distribution.scale is not None:
+            phi = self.distribution.scale
+        else:
+            phi = np.sum((z - self.X @ beta) ** 2 * w) / (len(beta) - edof)
+
+        # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
+        covariance = inverted * phi
+        assert covariance.shape == (len(beta), len(beta))
+
+        self.statistics_.edof_per_coef = edof_per_coef
+        self.statistics_.edof = edof
 
         # Compute generalized cross validation score
         # Equation (6.18) on page 260
-        gcv = sp.linalg.norm(self.X @ betas[-1] - self.y) ** 2 * len(self.y) / (len(self.y) - np.trace(A)) ** 2
+        # TODO: This is only the Gaussian case, see page 262
+        gcv = sp.linalg.norm(self.X @ beta - self.y) ** 2 * len(self.y) / (len(self.y) - edof) ** 2
         self.statistics_.generalized_cross_validation_score = gcv
 
-        # Compute the posterior distribution
-        # See section 6.10 on page 293
-        covariance = np.zeros(shape=(num_beta, num_beta), dtype=float)
-        # https://numpy.org/doc/stable/reference/generated/numpy.ix_.html
-        covariance[np.ix_(~zero_coefs, ~zero_coefs)] = sp.linalg.inv(lhs)
-        self.statistics_.covariance = covariance
-
-        return betas[-1]
+        return beta
 
     def _should_stop(self, betas):
         if len(betas) < 2:

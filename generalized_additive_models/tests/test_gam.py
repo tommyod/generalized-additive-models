@@ -237,6 +237,29 @@ class TestGamAutoModels:
         assert auto_gam.terms == manual_gam.terms
         assert np.allclose(auto_gam.predict(X), manual_gam.predict(X))
 
+    def test_that_auto_model_with_grid_search_CV_selects_good_model(self):
+        # Get data
+        data = fetch_california_housing(as_frame=True)
+        df = data.data.iloc[:, :-2]  # Remove spatial columns
+        y = data.target
+
+        # Decrease data sets to speed up test
+        df, y = resample(df, y, replace=False, n_samples=1000, random_state=42)
+
+        # Createa model and create object
+        gam = GAM(Spline(None))
+        param_grid = {
+            "terms__penalty": np.logspace(-5, 5, num=11),
+            "terms__extrapolation": ["linear", "constant", "continue"],
+        }
+        search = GridSearchCV(gam, param_grid, scoring="r2")
+
+        search.fit(df, y)
+
+        assert search.best_score_ > 0.6
+        assert search.best_params_["terms__penalty"] > 1e-5
+        assert search.best_params_["terms__penalty"] < 1e5
+
 
 class TestGAMSanityChecks:
     @pytest.mark.parametrize("mean_value", [-100, -10, 0, 10, 100, 1000, 10000, 100000])

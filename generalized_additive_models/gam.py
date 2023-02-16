@@ -20,6 +20,7 @@ from generalized_additive_models.terms import Term, Spline, Linear, TermList, In
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.optimizers import NaiveOptimizer
+from generalized_additive_models.utils import log
 import copy
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
@@ -74,6 +75,8 @@ class GAM(BaseEstimator):
         self.terms = TermList(self.terms)
 
         # Auto model
+        # If only a single Term is passed, and that term has `feature=None`,
+        # then expand and use one term per column with the other parameters
         num_samples, num_features = X.shape
         if len(self.terms) == 1:
             term = self.terms[0]
@@ -115,6 +118,8 @@ class GAM(BaseEstimator):
         )
         self.model_matrix_ = model_matrix_
 
+        log.info(f"Fitting {self}")
+
         optimizer = NaiveOptimizer(
             X=self.model_matrix_,
             D=self.terms.penalty_matrix(),
@@ -123,7 +128,6 @@ class GAM(BaseEstimator):
             distribution=self._distribution,
             max_iter=self.max_iter,
             tol=self.tol,
-            beta=None,
         )
 
         self.coef_ = optimizer.solve()

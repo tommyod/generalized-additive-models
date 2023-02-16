@@ -38,8 +38,6 @@ def set_logger():
 
 log = set_logger()
 
-log.warning("warning")
-
 
 def tensor_product(a, b, reshape=True):
     """
