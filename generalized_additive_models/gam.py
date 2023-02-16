@@ -7,11 +7,15 @@ Created on Sun Feb  5 12:05:41 2023
 """
 
 import matplotlib.pyplot as plt
+from sklearn.utils import Bunch
 import numpy as np
 import scipy as sp
 from sklearn.base import BaseEstimator
 from sklearn.linear_model import Ridge
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_is_fitted
+from sklearn.utils import check_scalar
 
 # https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/utils/validation.py#L1870
 from sklearn.utils.validation import _get_feature_names
@@ -21,6 +25,7 @@ from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.optimizers import NaiveOptimizer
 from generalized_additive_models.utils import log
+from sklearn.utils import check_random_state
 import copy
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
@@ -109,14 +114,16 @@ class GAM(BaseEstimator):
         """
         self._validate_params(X)
 
-        model_matrix_, y = self._validate_data(
-            self.terms.fit_transform(X),
+        self.model_matrix_ = self.terms.fit_transform(X)
+        X, y = self._validate_data(
+            X,
             y,
             dtype=[np.float64, np.float32],
             y_numeric=True,
             multi_output=False,
         )
-        self.model_matrix_ = model_matrix_
+        self.X_ = X.copy()  # Store a copy used for patial effects
+        self.y_ = y.copy()
 
         log.info(f"Fitting {self}")
 
@@ -145,14 +152,124 @@ class GAM(BaseEstimator):
         return self
 
     def predict(self, X):
+        check_is_fitted(self, attributes=["coef_"])
+
         model_matrix = self.terms.transform(X)
         return self._link.inverse_link(model_matrix @ self.coef_)
 
     def score(self, X, y, sample_weight=None):
+        check_is_fitted(self, attributes=["coef_"])
+
         from sklearn.metrics import r2_score
 
         y_pred = self.predict(X)
         return r2_score(y, y_pred, sample_weight=sample_weight)
+
+    def partial_effect(self, term, standard_deviations=1.0):
+        """
+
+        1 standard deviation  => 0.6827 coverage
+        2 standard deviations => 0.9545 coverage
+        3 standard deviations => 0.9973 coverage
+        4 standard deviations => 0.9999 coverage
+
+        Coverage of 1 standard deviation is given by:
+
+        >>> from scipy.stats import norm
+        >>> norm().cdf(1) - norm().cdf(-1)
+        0.6826894921370...
+
+        Parameters
+        ----------
+        term : Linear, Spline, str, int
+            A term from the fitted gam (access via gam.terms), or a feature name
+            corresponding to a term from the fitted gam.
+        standard_deviations : float, optional
+            The number of standard deviations to cover in the credible interval.
+            The default is 1.0.
+
+        Returns
+        -------
+        Bunch
+            A dict-like object with results.
+
+        Examples
+        --------
+        >>> rng = np.random.default_rng(42)
+        >>> X = rng.normal(size=(100, 1))
+        >>> y = np.sin(X).ravel() + rng.normal(scale=0.1, size=100)
+        >>> spline = Spline(0)
+        >>> gam = GAM(spline).fit(X, y)
+        >>> results = gam.partial_effect(spline)
+
+        Alternatively, use the feature index or name:
+
+        >>> results = gam.partial_effect(0)
+
+        Or loop through the model terms like so:
+
+        >>> for term in gam.terms:
+        ...     if isinstance(term, Intercept):
+        ...         continue
+        ...     results = gam.partial_effect(term)
+        ...     # Plotting code goes here
+
+        """
+        check_is_fitted(self, attributes=["coef_"])
+        standard_deviations = check_scalar(
+            standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
+        )
+
+        # If the term is a number or string, try to fetch it from the terms
+        if isinstance(term, (str, Integral)):
+            try:
+                term = next(t for t in self.terms if t.feature == term)
+            except StopIteration:
+                return ValueError(f"Could not find term with feature: {term}")
+
+        elif isinstance(term, (Linear, Spline)):
+            if term not in self.terms:
+                raise ValueError(f"Term not found in model: {term}")
+
+        else:
+            raise TypeError(f"`term` must be of type Linear or Spline, but found: {term}")
+
+        # Get data related to term and create a smooth grid
+        data = self.X_[:, term.feature_]
+        min_val, max_val = np.min(data), np.max(data)
+        range_ = max_val - min_val
+        X_smooth = np.linspace(min_val - 0.01 * range_, max_val + 0.01 * range_, num=2**10)
+
+        # Predict on smooth grid
+        X = term.transform(X_smooth.reshape(-1, 1))
+        predictions = X @ term.coef_
+
+        # Get the covariance matrix associated with the coefficients of this term
+        V = self.statistics_.covariance[np.ix_(term.coef_indicies_, term.coef_indicies_)]
+
+        # The variance of y = X @ \beta is given by diag(X @ V @ X.T)
+        # Page 293 in Wood, or see: https://math.stackexchange.com/a/2365257
+        # Since we only need the diagonal, we don't form the full matrix product
+        # Also, see equation (375) in The Matrix Cookbook
+        # https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf
+
+        stdev_array = np.sqrt(np.sum((X @ V) * X, axis=1))
+        assert np.all(stdev_array > 0)
+        assert np.allclose(stdev_array**2, np.diag(X @ V @ X.T))
+
+        # For partial residual plots
+        # https://en.wikipedia.org/wiki/Partial_residual_plot#Definition
+        residuals = self.y_ - self.model_matrix_ @ self.coef_
+
+        # Prepare the results
+        return Bunch(
+            x=X_smooth,
+            y=predictions,
+            y_low=predictions - standard_deviations * stdev_array,
+            y_high=predictions + standard_deviations * stdev_array,
+            x_obs=data,
+            y_residuals=(term.transform(data.reshape(-1, 1)) @ term.coef_) + residuals,
+        )
 
 
 if __name__ == "__main__":

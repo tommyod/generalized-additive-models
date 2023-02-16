@@ -161,6 +161,7 @@ class NaiveOptimizer(Optimizer):
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
         assert covariance.shape == (len(beta), len(beta))
+        self.statistics_.covariance = covariance
 
         self.statistics_.edof_per_coef = edof_per_coef
         self.statistics_.edof = edof
