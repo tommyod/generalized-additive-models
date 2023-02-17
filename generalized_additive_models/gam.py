@@ -23,7 +23,7 @@ from numbers import Real, Integral
 from generalized_additive_models.terms import Term, Spline, Linear, TermList, Intercept, Tensor
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
-from generalized_additive_models.optimizers import NaiveOptimizer
+from generalized_additive_models.optimizers import NaiveOptimizer, BetaOptimizer
 from generalized_additive_models.utils import log
 from sklearn.utils import check_random_state
 import copy
@@ -46,6 +46,8 @@ class GAM(BaseEstimator):
         "warm_start": ["boolean"],
         "verbose": ["verbose"],
     }
+
+    _optimizer = NaiveOptimizer
 
     def __init__(
         self,
@@ -127,7 +129,7 @@ class GAM(BaseEstimator):
 
         log.info(f"Fitting {self}")
 
-        optimizer = NaiveOptimizer(
+        optimizer = self._optimizer(
             X=self.model_matrix_,
             D=self.terms.penalty_matrix(),
             y=y,

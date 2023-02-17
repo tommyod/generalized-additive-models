@@ -17,6 +17,8 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
+from sklearn.datasets import load_breast_cancer
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 import pandas as pd
@@ -403,6 +405,20 @@ class TestGAMSanityChecks:
         bad_gam.fit(X, y)
         bad_gam_score = bad_gam.score(X, y)
         assert bad_gam_score < gam_score
+
+    def test_logistic_gam_on_breast_cancer_dataset(self):
+        # Load data
+        X, y = load_breast_cancer(return_X_y=True)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+
+        # Train GAM using automodel feature (sending in one spline and expanding)
+        terms = TermList(Spline(None, extrapolation="continue", num_splines=8))
+        gam = GAM(terms, link="logit", distribution=Binomial(trials=1))
+        gam.fit(X_train, y_train)
+        gam_preds = gam.predict(X_test) > 0.5
+        gam_accuracy = accuracy_score(y_true=y_test, y_pred=gam_preds)
+
+        assert gam_accuracy > 0.95
 
 
 if __name__ == "__main__":

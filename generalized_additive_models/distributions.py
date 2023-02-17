@@ -167,7 +167,7 @@ class Poisson(Distribution):
     domain = (0, np.inf)
     continuous = True
 
-    def __init__(self, scale=None):
+    def __init__(self, scale=1):
         self.scale = scale
 
     def log_pdf(self, y, mu, weights=None):
