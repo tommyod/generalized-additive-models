@@ -18,6 +18,10 @@ import scipy as sp
 from scipy.special import rel_entr as ylogydu
 
 
+MACHINE_EPSILON = np.finfo(float).eps
+EPSILON = np.sqrt(MACHINE_EPSILON)
+
+
 def multiply_weights(deviance):
     @wraps(deviance)
     def multiplied(self, y, mu, weights=None, **kwargs):
@@ -205,27 +209,28 @@ class Binomial(Distribution):
     """
 
     name = "binomial"
+    scale = 1
 
-    def __init__(self, levels=1):
+    def __init__(self, trials=1):
         """
         creates an instance of the Binomial class
 
         Parameters
         ----------
-        levels : int of None, default: 1
+        trials : int of None, default: 1
             number of trials in the binomial distribution
 
         Returns
         -------
         self
         """
-        assert isinstance(levels, int), "levels must be an integer"
-        assert levels > 0, "levels must be >= 1"
-        self.levels = levels
+        assert isinstance(trials, int), "trials must be an integer"
+        assert trials > 0, "trials must be >= 1"
+        self.trials = trials
 
     @property
     def domain(self):
-        domain = (0, self.levels)
+        domain = (0, self.trials)
         return domain
 
     def log_pdf(self, y, mu, *, weights=None):
@@ -249,8 +254,8 @@ class Binomial(Distribution):
         if weights is None:
             weights = np.ones_like(mu)
 
-        n = self.levels
-        p = mu / self.levels
+        n = self.trials
+        p = mu / self.trials
         return sp.stats.binom.logpmf(y, n, p)
 
     def V(self, mu, weights=None):
@@ -268,7 +273,11 @@ class Binomial(Distribution):
         -------
         variance : np.array of length n
         """
-        V = mu * (1 - mu / self.levels)
+
+        threshold = EPSILON
+        mu = np.maximum(np.minimum(mu, 1 - threshold), 0 + threshold)
+
+        V = mu * (1 - mu / self.trials)
 
         if weights is None:
             weights = np.ones_like(mu, dtype=float)
@@ -295,7 +304,7 @@ class Binomial(Distribution):
         -------
         deviances : np.array of length n
         """
-        deviance = 2 * (ylogydu(y, mu) + ylogydu(self.levels - y, self.levels - mu))
+        deviance = 2 * (ylogydu(y, mu) + ylogydu(self.trials - y, self.trials - mu))
 
         if weights is None:
             weights = np.ones_like(mu, dtype=float)
@@ -315,7 +324,7 @@ class Binomial(Distribution):
         -------
         random_samples : np.array of same shape as mu
         """
-        number_of_trials = self.levels
+        number_of_trials = self.trials
         success_probability = mu / number_of_trials
         return np.random.binomial(n=number_of_trials, p=success_probability, size=None)
 
@@ -553,35 +562,6 @@ DISTRIBUTIONS = {
 
 
 if __name__ == "__main__":
-    if False:
-        import pytest
+    import pytest
 
-        pytest.main(args=[".", "-v", "--capture=sys", "-k TestLink"])
-
-        dist = NormalDist(scale=10)
-
-        import matplotlib.pyplot as plt
-
-        plt.hist(dist.sample(mu=np.zeros(1000)), bins="fd")
-        plt.show()
-
-        # assert np.isclose(np.std(dist.sample(mu=np.zeros(1000))), 10, rtol=1e-1)
-
-        dist = NormalDist(scale=1)
-
-        y = np.array([1, 2, 3, 4])
-        mu = np.array([2, 3, 4, 5])
-        repeats = np.array([5, 4, 3, 2])
-
-        y_repeated = np.repeat(y, repeats)
-        mu_repeated = np.repeat(mu, repeats)
-
-        for dist in DISTRIBUTIONS.values():
-            print(dist)
-            dist = dist()
-
-            weighted_lpdf = dist.deviance(y=y, mu=mu, weights=repeats)
-            print(weighted_lpdf.sum())
-
-            repeated_lpdf = dist.deviance(y=y_repeated, mu=mu_repeated)
-            print(repeated_lpdf.sum())
+    pytest.main(args=[".", "-v", "--capture=sys", "-k TestLink"])

@@ -11,6 +11,8 @@ import numpy as np
 from sklearn.base import clone
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Spline, Linear, Intercept, Tensor, TermList
+from generalized_additive_models.links import Identity, Logit, Log
+from generalized_additive_models.distributions import Normal, Poisson, Binomial
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
@@ -33,6 +35,76 @@ SMOOTH_FUNCTIONS = [
     sp.special.expm1,
     sp.special.expit,
 ]
+
+
+class TestExponentialFunctionGamsWithCanonicalLinks:
+    INTERCEPT = [-2, -1, 0, 1, 1.5]
+
+    @pytest.mark.parametrize("intercept", INTERCEPT)
+    def test_canonical_normal(self, intercept):
+        rng = np.random.default_rng(1)
+
+        # Create a normal problem
+        x = np.linspace(0, 2 * np.pi, num=100_000)
+        X = x.reshape(-1, 1)
+        linear_prediction = intercept + np.sin(x)
+
+        mu = Identity().inverse_link(linear_prediction)
+
+        y = rng.normal(loc=mu, scale=0.05)
+
+        # Create a GAM
+        normal_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="identity",
+            distribution="normal",
+        ).fit(X, y)
+
+        assert np.allclose(mu, normal_gam.predict(X), atol=0.01)
+
+    @pytest.mark.parametrize("intercept", INTERCEPT)
+    def test_canonical_poisson(self, intercept):
+        rng = np.random.default_rng(2)
+
+        # Create a poisson problem
+        x = np.linspace(0, 2 * np.pi, num=100_000)
+        X = x.reshape(-1, 1)
+        linear_prediction = intercept + np.sin(x)
+
+        mu = Log().inverse_link(linear_prediction)
+
+        y = rng.poisson(lam=mu)
+
+        # Create a GAM
+        poisson_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="log",
+            distribution="poisson",
+        ).fit(X, y)
+
+        assert np.allclose(mu, poisson_gam.predict(X), atol=0.1)
+
+    @pytest.mark.parametrize("intercept", INTERCEPT)
+    def test_caononical_logistic(self, intercept):
+        rng = np.random.default_rng(3)
+
+        # Create a logistic problem
+        x = np.linspace(0, 2 * np.pi, num=100_000)
+        X = x.reshape(-1, 1)
+        linear_prediction = intercept + np.sin(x)
+
+        mu = Logit().inverse_link(linear_prediction)
+
+        y = rng.binomial(n=1, p=mu)
+
+        # Create a GAM
+        logistic_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="logit",
+            distribution=Binomial(trials=1),
+        ).fit(X, y)
+
+        assert np.allclose(mu, logistic_gam.predict(X), atol=0.05)
 
 
 class TestPandasCompatibility:
@@ -336,4 +408,36 @@ class TestGAMSanityChecks:
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(
+        args=[
+            __file__,
+            "-v",
+            "--capture=sys",
+            "--doctest-modules",
+            "--maxfail=1",
+            "-k TestExponentialFunctionGamsWithCanonicalLinks",
+        ]
+    )
+    if False:
+        rng = np.random.default_rng(2)
+
+        # Create a poisson problem
+        x = np.linspace(0, 2 * np.pi, num=100_000)
+        linear_prediction = 0.5 + np.sin(x)
+        mu = Log().inverse_link(linear_prediction)
+        y = rng.poisson(lam=mu)
+        X = x.reshape(-1, 1)
+
+        # Create a GAM
+        poisson_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="log",
+            distribution="poisson",
+        ).fit(X, y)
+
+        import matplotlib.pyplot as plt
+
+        # plt.plot(mu, poisson_gam.predict(X))
+
+        plt.plot(x, mu)
+        plt.plot(x, poisson_gam.predict(X))

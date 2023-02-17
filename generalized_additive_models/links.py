@@ -10,6 +10,9 @@ import numpy as np
 from scipy import special
 from abc import ABC, abstractmethod
 
+MACHINE_EPSILON = np.finfo(float).eps
+EPSILON = np.sqrt(MACHINE_EPSILON)
+
 
 class Link(ABC):
     # https://en.wikipedia.org/wiki/Generalized_linear_model#Link_function
@@ -93,7 +96,11 @@ class Logit(Link):
         low = self._validate_threshold(threshold=self.low, argument=mu)
         high = self._validate_threshold(threshold=self.high, argument=mu)
 
-        return (low - high) / ((high - mu) * (low - mu))
+        threshold = EPSILON
+        mu = np.maximum(np.minimum(mu, high - threshold), low + threshold)
+
+        return np.exp(np.log(high - low) - np.log(high - mu) - np.log(mu - low))
+        return (high - low) / ((high - mu) * (mu - low))
 
     def second_derivative(self, mu):
         low = self._validate_threshold(threshold=self.low, argument=mu)
@@ -291,4 +298,4 @@ LINKS = {l.name: l for l in [Identity, Log, Logit, CLogLogLink, InvSquared, Inve
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[".", "-v", "--capture=sys", "-k TestLink"])
+    pytest.main(args=[".", "-v", "--capture=sys", "-k link"])

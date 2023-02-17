@@ -235,6 +235,7 @@ class GAM(BaseEstimator):
             raise TypeError(f"`term` must be of type Linear or Spline, but found: {term}")
 
         # Get data related to term and create a smooth grid
+        term = copy.deepcopy(term)  # Copy so feature_ is not changed by term.transform() below
         data = self.X_[:, term.feature_]
         min_val, max_val = np.min(data), np.max(data)
         range_ = max_val - min_val
@@ -259,7 +260,7 @@ class GAM(BaseEstimator):
 
         # For partial residual plots
         # https://en.wikipedia.org/wiki/Partial_residual_plot#Definition
-        residuals = self.y_ - self.model_matrix_ @ self.coef_
+        residuals = self.y_ - (self.model_matrix_ @ self.coef_)
 
         # Prepare the results
         return Bunch(
@@ -268,7 +269,7 @@ class GAM(BaseEstimator):
             y_low=predictions - standard_deviations * stdev_array,
             y_high=predictions + standard_deviations * stdev_array,
             x_obs=data,
-            y_residuals=(term.transform(data.reshape(-1, 1)) @ term.coef_) + residuals,
+            y_partial_residuals=(term.transform(data.reshape(-1, 1)) @ term.coef_) + residuals,
         )
 
 
@@ -299,12 +300,13 @@ if __name__ == "__main__":
 
         # Poisson problem
         np.random.seed(1)
-        x = np.linspace(0, 2 * np.pi, num=100)
-        y = np.random.poisson(lam=1.1 + np.sin(x))
+        x = np.linspace(0, 2 * np.pi, num=10_000)
+        lambda_ = 3 + np.sin(x) * 2
+        y = np.random.poisson(lam=lambda_)
         X = x.reshape(-1, 1)
 
         poisson_gam = GAM(
-            Spline(0, num_splines=5, degree=3, penalty=0.01, extrapolation="periodic"),
+            Spline(0, num_splines=5, degree=3, penalty=1, extrapolation="periodic"),
             link="log",
             distribution="poisson",
             max_iter=25,
@@ -312,6 +314,7 @@ if __name__ == "__main__":
         poisson_gam.fit(X, y)
 
         plt.scatter(x, y)
+        plt.plot(X.ravel(), lambda_, color="red")
 
         X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
         plt.plot(X_smooth, poisson_gam.predict(X_smooth), color="k")

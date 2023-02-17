@@ -23,5 +23,6 @@ logging.getLogger("gam").propagate = False
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.links import Identity
 from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.distributions import Normal, Poisson, Binomial
 
 __all__ = ["GAM", "Identity", "Intercept", "Linear", "Spline", "Tensor", "TermList"]

@@ -95,6 +95,7 @@ class NaiveOptimizer(Optimizer):
         # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
         Q, R, P = sp.linalg.qr(np.vstack((self.X, self.D)), mode="economic", pivoting=True)
         zero_coefs = (np.abs(np.diag(R)) < EPSILON)[P]
+        log.info(f"Number of non-identifiable coefficients set to zero: {zero_coefs.sum()}")
         X = self.X[:, ~zero_coefs]
         XT = X.T
         D = self.D[:, ~zero_coefs]
@@ -107,6 +108,7 @@ class NaiveOptimizer(Optimizer):
             # Step 1: Compute pseudodata z and iterative weights w
             z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
             w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            assert np.all(w > 0)
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X beta|^2_W + |D beta|^2
@@ -114,10 +116,31 @@ class NaiveOptimizer(Optimizer):
             # lhs = (self.X.T @ np.diag(w) @ self.X + self.D.T @ self.D)
             lhs = XT @ (w.reshape(-1, 1) * X) + DT @ D
             rhs = XT @ (w * z)
-            beta_suggestion, *_ = sp.linalg.lstsq(lhs, rhs)
+            beta_trial, *_ = sp.linalg.lstsq(lhs, rhs)
 
             # Increment the beta
-            beta = step_size * beta_suggestion + betas[-1] * (1 - step_size)
+            def objective_function(beta):
+                return np.sum((z - X @ beta) ** 2 * w) + np.sum((D @ beta) ** 2)
+
+            beta = betas[-1]
+            current_objective = objective_function(beta)
+            log.info(f"Objective function value: {current_objective}")
+            for step_halfing in range(10):
+                step_size = (1 / 2) ** step_halfing
+
+                suggested_beta = step_size * beta_trial + (1 - step_size) * beta
+                suggested_objective = objective_function(suggested_beta)
+                log.info(f"Step size {step_size} gives objective {suggested_objective}")
+
+                if suggested_objective <= current_objective:
+                    log.info(f"Used step size: {step_size}")
+                    beta = suggested_beta
+                    break
+            else:
+                log.info("Step halving failed...")
+                break
+
+            # beta = step_size * beta_suggestion + betas[-1] * (1 - step_size)
             log.info(f"Beta estimate with norm: {sp.linalg.norm(beta)}")
 
             eta = X @ beta
@@ -127,10 +150,6 @@ class NaiveOptimizer(Optimizer):
 
             if self._should_stop(betas):
                 break
-
-            if iteration > 1:
-                step_size = step_size * 0.9999
-                log.info(f"Decreased step size to: {step_size:.6f}")
         else:
             log.warning(f"Solver did not converge within {iteration} iterations.")
 
@@ -147,8 +166,13 @@ class NaiveOptimizer(Optimizer):
         to_invert = self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D
         to_invert.flat[:: to_invert.shape[0] + 1] += EPSILON  # Add to diagonal
         inverted = sp.linalg.inv(to_invert)
-        H = np.linalg.multi_dot(((w.reshape(-1, 1) * self.X), inverted, self.X.T))
-        edof_per_coef = np.diag(H)
+
+        # Only need the diagonal of H, so use the fact that
+        # np.diag(A @ B @ A.T) = ((A @ B) * A).sum(axis=1)
+        # to compute H below:
+        # H = ((w.reshape(-1, 1) * self.X) @ inverted @ self.X.T)
+        H_diag = np.sum(((w.reshape(-1, 1) * self.X) @ inverted) * self.X, axis=1)
+        edof_per_coef = H_diag
         edof = edof_per_coef.sum()
 
         # Compute phi by equation (6.2) (page 251 in Wood, 2nd ed)
@@ -192,74 +216,19 @@ class NaiveOptimizer(Optimizer):
 if __name__ == "__main__":
     from generalized_additive_models.gam import GAM
     from generalized_additive_models.terms import Spline, Intercept, Linear, TermList
+    from generalized_additive_models.distributions import Binomial
 
     from sklearn.datasets import fetch_california_housing
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import r2_score
     import pandas as pd
 
-    # Get data as a DataFrame and Series
-    data = fetch_california_housing(as_frame=True)
-    df, y = data.data, data.target
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(y, pd.Series)
+    from sklearn.datasets import load_breast_cancer
 
-    columns_to_use = np.array([0, 3, 5])
+    data = load_breast_cancer(as_frame=True)
+    df = data.data
+    target = data.target
 
-    # Fit a model using DataFrame
-    terms = TermList(Spline(c) for c in df.columns[columns_to_use])
-    gam1 = GAM(terms=terms, fit_intercept=True)
-    gam1.fit(df, y)
+    gam = GAM(Spline(None), link="logit", distribution=Binomial(trials=1), max_iter=15)
 
-    # Fit a model using numpy array
-    terms = TermList(Spline(c) for c in columns_to_use)
-    gam2 = GAM(terms=terms, fit_intercept=True)
-    gam2.fit(df.values, y.values)
-
-    assert np.allclose(gam1.predict(df), gam2.predict(df.values))
-
-    assert False
-
-    X = np.exp(0.5 * np.random.randn(1000, 1))
-    X = np.sort(X, axis=0)
-
-    # X = np.linspace(0, 1*np.pi, num=2**10).reshape(-1, 1)**2
-    y = (np.log1p(X) * np.sin(np.abs(X) ** 1.2)).ravel() + 10 + np.random.randn(len(X.ravel())) / (1 + X.ravel() ** 1)
-
-    import matplotlib.pyplot as plt
-    from generalized_additive_models.gam import GAM
-    from generalized_additive_models.terms import Spline
-
-    plt.scatter(X.ravel(), y)
-
-    gam = GAM(terms=Spline(0, num_splines=9, degree=3, edges=None), fit_intercept=True)
-    gam.fit(X, y)
-
-    plt.plot(X, gam.predict(X), color="k")
-
-    # plt.plot(X, gam.terms.fit_transform(X))
-
-    plt.show()
-
-    print("mean of y", np.mean(y))
-
-    for term in gam.terms:
-        print(term, term.coef_)
-        print(term.coef_indicies_)
-
-        X_smooth = np.linspace(np.min(X), np.max(X)).reshape(-1, 1)
-
-        X_tilde = np.zeros_like(gam.terms.transform(X_smooth))
-        X_tilde[:, term.coef_indicies_] = gam.terms.transform(X_smooth)[:, term.coef_indicies_]
-        std = np.sqrt(np.diag(X_tilde @ gam.statistics_.covariance @ X_tilde.T))
-
-        X_tilde = gam.terms.transform(X_smooth)[:, term.coef_indicies_]
-        covar = gam.statistics_.covariance[np.ix_(term.coef_indicies_, term.coef_indicies_)]
-        std2 = np.sqrt(np.sum((X_tilde @ covar) * X_tilde, axis=1))
-
-        assert np.allclose(std, std2)
-
-        y = term.transform(X_smooth) @ term.coef_
-        plt.plot(X_smooth, y)
-        plt.fill_between(X_smooth.ravel(), y - std, y + std, alpha=0.5)
-        plt.show()
+    gam.fit(df, target)
