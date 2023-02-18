@@ -23,7 +23,7 @@ from numbers import Real, Integral
 from generalized_additive_models.terms import Term, Spline, Linear, TermList, Intercept, Tensor
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
-from generalized_additive_models.optimizers import NaiveOptimizer, BetaOptimizer
+from generalized_additive_models.optimizers import PIRLS, Optimizer
 from generalized_additive_models.utils import log
 from sklearn.utils import check_random_state
 import copy
@@ -38,7 +38,7 @@ class GAM(BaseEstimator):
         "link": [StrOptions(set(LINKS.keys())), Link],
         "fit_intercept": ["boolean"],
         "solver": [
-            StrOptions({"lbfgs", "newton-cholesky"}),
+            StrOptions({"pirls"}),
             Hidden(type),
         ],
         "max_iter": [Interval(Integral, 1, None, closed="left")],
@@ -47,8 +47,6 @@ class GAM(BaseEstimator):
         "verbose": ["verbose"],
     }
 
-    _optimizer = NaiveOptimizer
-
     def __init__(
         self,
         terms=None,
@@ -56,7 +54,7 @@ class GAM(BaseEstimator):
         distribution="normal",
         link="identity",
         fit_intercept=True,
-        solver="lbfgs",
+        solver="pirls",
         max_iter=100,
         tol=0.0001,
         warm_start=False,
@@ -78,6 +76,11 @@ class GAM(BaseEstimator):
         self._distribution = (
             DISTRIBUTIONS[self.distribution]() if isinstance(self.distribution, str) else self.distribution
         )
+
+        if self.solver == "pirls":
+            self._solver = PIRLS
+        else:
+            raise ValueError("Unknown solver.")
 
         self.terms = TermList(self.terms)
 
@@ -129,7 +132,7 @@ class GAM(BaseEstimator):
 
         log.info(f"Fitting {self}")
 
-        optimizer = self._optimizer(
+        optimizer = self._solver(
             X=self.model_matrix_,
             D=self.terms.penalty_matrix(),
             y=y,
@@ -139,10 +142,11 @@ class GAM(BaseEstimator):
             tol=self.tol,
         )
 
-        self.coef_ = optimizer.solve()
+        # Copy over solver information
+        self.coef_ = optimizer.solve().copy()
         self.statistics_ = copy.deepcopy(optimizer.statistics_)
 
-        # Assign coeffs to terms
+        # Assign coefficients to terms
         coef_idx = 0
         for term in self.terms:
             term.coef_ = self.coef_[coef_idx : coef_idx + term.num_coefficients]

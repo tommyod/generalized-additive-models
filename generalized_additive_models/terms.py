@@ -24,6 +24,7 @@ from sklearn.utils.validation import _get_feature_names
 from numbers import Integral, Real
 from generalized_additive_models.penalties import second_order_finite_difference
 from generalized_additive_models.utils import tensor_product
+from sklearn.preprocessing import OneHotEncoder
 
 from abc import ABC, abstractmethod
 from collections.abc import Container
@@ -813,6 +814,145 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     def __repr__(self):
         classname = type(self).__name__
         return f"{classname}({self.splines.__repr__()})"
+
+
+class Categorical(TransformerMixin, Term, BaseEstimator):
+    name = "categorical"
+
+    _parameter_constraints = {
+        "feature": [Interval(Integral, 0, None, closed="left"), str, None],
+        "penalty": [Interval(Real, 0, None, closed="left")],
+        "by": [Interval(Integral, 0, None, closed="left"), str, None],
+    }
+
+    def __init__(
+        self, feature=None, penalty=1, by=None, handle_unknown="error", min_frequency=None, max_categories=None
+    ):
+        """Create a linear term with a given penalty.
+
+        Examples
+        --------
+        >>> from sklearn.datasets import load_diabetes
+        >>> df = load_diabetes(as_frame=True).data.iloc[:5, :]
+        >>> df.sex
+        0    0.050680
+        1   -0.044642
+        2    0.050680
+        3   -0.044642
+        4   -0.044642
+        Name: sex, dtype: float64
+        >>> categorical_term = Categorical("sex")
+        >>> categorical_term.fit_transform(df)
+        array([[0., 1.],
+               [1., 0.],
+               [0., 1.],
+               [1., 0.],
+               [1., 0.]])
+        >>> import pandas as pd
+        >>> df = pd.DataFrame({'sex': ['M', 'F', 'M', 'F', 'F', 'Unknown']})
+        >>> categorical_term = Categorical("sex")
+        >>> categorical_term.fit_transform(df)
+        array([[0., 1., 0.],
+               [1., 0., 0.],
+               [0., 1., 0.],
+               [1., 0., 0.],
+               [1., 0., 0.],
+               [0., 0., 1.]])
+        >>> categorical_term.categories_
+        ['F', 'M', 'Unknown']
+        """
+        self.feature = feature
+        self.penalty = penalty
+        self.by = by
+        self.handle_unknown = handle_unknown
+        self.min_frequency = min_frequency
+        self.max_categories = max_categories
+
+    def _get_column(self, X, selector="feature"):
+        selector = getattr(self, selector + "_")
+
+        if hasattr(X, "iloc"):
+            return X.iloc[:, selector].values.reshape(-1, 1)
+        return X[:, selector].reshape(-1, 1)
+
+    def _validate_params(self, X):
+        # Validate using BaseEsimator._validate_params, which in turn calls
+        # sklearn.utils._param_validation.validate_parameter_constraints
+        # using the `_parameter_constraints` attributed defined on the class.
+        # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/base.py#L573
+        # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/utils/_param_validation.py#L28
+        super()._validate_params()
+
+        if self.feature is None:
+            raise ValueError(f"Feature cannot be None in term: {self}")
+
+        if self.by == self.feature:
+            raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
+
+        self.infer_feature_variable(variable_name="feature", X=X)
+        self.infer_feature_variable(variable_name="by", X=X)
+
+    @property
+    def num_coefficients(self):
+        return len(self.categories_)
+
+    def penalty_matrix(self):
+        super()._validate_params()  # Validate the 'penalty' parameter
+        return np.sqrt(self.penalty) * np.eye(self.num_coefficients)
+
+    def fit(self, X):
+        self._validate_params(X)
+
+        self.onehotencoder_ = OneHotEncoder(
+            categories="auto",
+            drop=None,  # Identifiability constraints will put a coeff to zero, so keep all
+            sparse_output=False,
+            dtype=float,
+            handle_unknown=self.handle_unknown,
+            min_frequency=self.min_frequency,
+            max_categories=self.max_categories,
+            feature_name_combiner="concat",
+        )
+
+        # X = check_array(X, estimator=self, input_name="X")
+
+        self.onehotencoder_.fit(self._get_column(X))
+        self.categories_ = list(self.onehotencoder_.categories_[0])
+
+        return self
+
+    def transform(self, X):
+        """transform the term.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            An ndarray with 2 dimensions of shape (n_samples, n_features).
+
+        Returns
+        -------
+        X : np.ndarray
+            An ndarray for the term.
+
+        Examples
+        --------
+        >>> linear = Linear(1)
+        >>> X = np.eye(3)
+        >>> linear.transform(X)
+        array([[0.],
+               [1.],
+               [0.]])
+
+        """
+        self._validate_params(X)
+        num_samples, num_features = X.shape
+
+        basis_matrix = self.onehotencoder_.transform(self._get_column(X))
+
+        if self.by is not None:
+            basis_matrix *= self._get_column(X, "by")[:, np.newaxis]
+
+        return basis_matrix
 
 
 # =============================================================================

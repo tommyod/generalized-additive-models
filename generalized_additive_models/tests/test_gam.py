@@ -10,10 +10,10 @@ import itertools
 import numpy as np
 from sklearn.base import clone
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Spline, Linear, Intercept, Tensor, TermList
+from generalized_additive_models.terms import Spline, Linear, Intercept, Tensor, TermList, Categorical
 from generalized_additive_models.links import Identity, Logit, Log
 from generalized_additive_models.distributions import Normal, Poisson, Binomial
-from sklearn.datasets import fetch_california_housing
+from sklearn.datasets import fetch_california_housing, load_diabetes
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.model_selection import GridSearchCV
@@ -37,6 +37,41 @@ SMOOTH_FUNCTIONS = [
     sp.special.expm1,
     sp.special.expit,
 ]
+
+
+class TestAPIContract:
+    def test_that_underscore_results_are_present(self):
+        data = load_diabetes(as_frame=True)
+        df = data.data
+        y = data.target
+        gam = GAM(Spline("age") + Spline("bmi") + Categorical("sex") + Linear("s5"))
+        assert not hasattr(gam, "coef_")
+        assert not hasattr(gam, "statistics_")
+        assert not any(hasattr(t, "coef_") for t in gam.terms)
+        assert not any(hasattr(t, "coef_indicies_") for t in gam.terms)
+        gam.fit(df, y)
+
+        # Test coefficients
+        assert hasattr(gam, "coef_")
+        assert isinstance(gam.coef_, np.ndarray)
+        assert gam.coef_.ndim == 1
+        assert np.abs(gam.coef_).mean() > 0
+
+        # Test statistics_ Bunch
+        assert hasattr(gam, "statistics_")
+        assert hasattr(gam.statistics_, "covariance")
+        assert hasattr(gam.statistics_, "edof_per_coef")
+        assert hasattr(gam.statistics_, "edof")
+        assert np.isclose(gam.statistics_.edof_per_coef.sum(), gam.statistics_.edof)
+
+        # Test that attributes are copied over to terms
+        assert all(hasattr(t, "coef_") for t in gam.terms)
+        assert all(hasattr(t, "coef_indicies_") for t in gam.terms)
+        assert all(np.allclose(gam.coef_[term.coef_indicies_], term.coef_) for term in gam.terms)
+        for term in gam.terms:
+            if isinstance(term, Categorical):
+                assert hasattr(term, "categories_")
+                assert len(term.categories_) == len(term.coef_)
 
 
 class TestExponentialFunctionGamsWithCanonicalLinks:
@@ -323,16 +358,16 @@ class TestGamAutoModels:
         # Createa model and create object
         gam = GAM(Spline(None))
         param_grid = {
-            "terms__penalty": np.logspace(-5, 5, num=11),
+            "terms__penalty": np.logspace(-3, 3, num=7),
             "terms__extrapolation": ["linear", "constant", "continue"],
         }
-        search = GridSearchCV(gam, param_grid, scoring="r2")
+        search = GridSearchCV(gam, param_grid, scoring="r2", n_jobs=-1)
 
         search.fit(df, y)
 
         assert search.best_score_ > 0.6
-        assert search.best_params_["terms__penalty"] > 1e-5
-        assert search.best_params_["terms__penalty"] < 1e5
+        assert search.best_params_["terms__penalty"] > 1e-3
+        assert search.best_params_["terms__penalty"] < 1e3
 
 
 class TestGAMSanityChecks:
@@ -431,7 +466,7 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k TestExponentialFunctionGamsWithCanonicalLinks",
+            # "-k TestExponentialFunctionGamsWithCanonicalLinks",
         ]
     )
     if False:
