@@ -5,25 +5,22 @@ Created on Wed Feb  8 07:11:09 2023
 
 @author: tommy
 """
-import pytest
 import itertools
+
 import numpy as np
-from sklearn.base import clone
-from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Spline, Linear, Intercept, Tensor, TermList, Categorical
-from generalized_additive_models.links import Identity, Logit, Log
-from generalized_additive_models.distributions import Normal, Poisson, Binomial
-from sklearn.datasets import fetch_california_housing, load_diabetes
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
-from sklearn.model_selection import GridSearchCV
-from sklearn.datasets import load_breast_cancer
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
 import pandas as pd
+import pytest
 import scipy as sp
+from sklearn.base import clone
+from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
+from sklearn.metrics import accuracy_score, r2_score
+from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.utils import resample
+
+from generalized_additive_models.distributions import Binomial, Normal, Poisson
+from generalized_additive_models.gam import GAM
+from generalized_additive_models.links import Identity, Log, Logit
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
 
 SMOOTH_FUNCTIONS = [
     np.log1p,

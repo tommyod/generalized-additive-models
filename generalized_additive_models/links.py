@@ -6,9 +6,10 @@ Created on Mon Feb  6 21:36:42 2023
 @author: tommy
 """
 
+from abc import ABC, abstractmethod
+
 import numpy as np
 from scipy import special
-from abc import ABC, abstractmethod
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)

@@ -7,9 +7,10 @@ Created on Tue Feb  7 06:22:30 2023
 """
 import numpy as np
 import scipy as sp
-from generalized_additive_models.utils import log
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
+
+from generalized_additive_models.utils import log
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -212,18 +213,16 @@ class PIRLS(Optimizer):
 
 
 if __name__ == "__main__":
-    from generalized_additive_models.gam import GAM
-    from generalized_additive_models.terms import Spline, Intercept, Linear, TermList
-    from generalized_additive_models.distributions import Binomial
-
-    from sklearn.datasets import fetch_california_housing
-    from sklearn.model_selection import train_test_split
-    from sklearn.metrics import r2_score
-    import pandas as pd
     import matplotlib.pyplot as plt
-    from generalized_additive_models.links import Logit
+    import pandas as pd
+    from sklearn.datasets import fetch_california_housing, load_breast_cancer
+    from sklearn.metrics import r2_score
+    from sklearn.model_selection import train_test_split
 
-    from sklearn.datasets import load_breast_cancer
+    from generalized_additive_models.distributions import Binomial
+    from generalized_additive_models.gam import GAM
+    from generalized_additive_models.links import Logit
+    from generalized_additive_models.terms import Intercept, Linear, Spline, TermList
 
     rng = np.random.default_rng(3)
 

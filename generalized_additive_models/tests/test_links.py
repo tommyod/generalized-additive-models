@@ -6,9 +6,10 @@ Created on Mon Feb  6 21:39:38 2023
 @author: tommy
 """
 
+import inspect
+
 import numpy as np
 import pytest
-import inspect
 
 from generalized_additive_models.links import LINKS
 

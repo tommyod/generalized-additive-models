@@ -6,9 +6,10 @@ Created on Wed Feb  8 07:56:33 2023
 @author: tommy
 """
 
-import scipy as sp
-import numpy as np
 import logging
+
+import numpy as np
+import scipy as sp
 
 logging.basicConfig(level=logging.INFO)
 

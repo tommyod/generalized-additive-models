@@ -5,15 +5,15 @@ Created on Sun Feb  5 09:18:35 2023
 
 @author: tommy
 """
-from sklearn.base import clone
-from generalized_additive_models.terms import Spline, TermList, Intercept, Linear, Tensor, Term
-import numpy as np
 import itertools
-from sklearn.datasets import fetch_california_housing
-import pandas as pd
 
+import numpy as np
+import pandas as pd
 import pytest
-import itertools
+from sklearn.base import clone
+from sklearn.datasets import fetch_california_housing
+
+from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
 
 
 class TestTermMultiplications:

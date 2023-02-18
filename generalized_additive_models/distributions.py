@@ -17,7 +17,6 @@ import numpy as np
 import scipy as sp
 from scipy.special import rel_entr as ylogydu
 
-
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 

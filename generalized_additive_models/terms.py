@@ -10,26 +10,23 @@ Created on Sun Feb  5 09:18:35 2023
 
 
 """
+import copy
+import functools
+from abc import ABC, abstractmethod
+from collections import UserList, defaultdict
+from collections.abc import Container, Iterable
+from numbers import Integral, Real
+
 import numpy as np
 import scipy as sp
-import functools
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import OneHotEncoder, SplineTransformer
 from sklearn.utils import check_array
-from sklearn.base import BaseEstimator
-from collections import UserList
-import copy
-from sklearn.preprocessing import SplineTransformer
-from sklearn.base import TransformerMixin
-from sklearn.utils._param_validation import Interval
+from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.utils.validation import _get_feature_names
-from numbers import Integral, Real
+
 from generalized_additive_models.penalties import second_order_finite_difference
 from generalized_additive_models.utils import tensor_product
-from sklearn.preprocessing import OneHotEncoder
-
-from abc import ABC, abstractmethod
-from collections.abc import Container
-from collections import defaultdict
-from sklearn.preprocessing import StandardScaler
 
 
 class Term(ABC):
@@ -150,6 +147,27 @@ class Term(ABC):
 
 
 class Intercept(TransformerMixin, Term, BaseEstimator):
+    """An intercept term.
+
+    Examples
+    --------
+    >>> intercept = Intercept()
+    >>> intercept.num_coefficients
+    1
+    >>> import numpy as np
+    >>> X = np.random.randn(5, 3)
+    >>> intercept.fit_transform(X)
+    array([[1.],
+           [1.],
+           [1.],
+           [1.],
+           [1.]])
+
+    Intercepts have no penalty:
+    >>> intercept.penalty_matrix()
+    array([[0.]])
+    """
+
     name = "intercept"
     feature = None
     by = None
@@ -172,11 +190,11 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         return np.array([[0.0]])
 
     def fit(self, X):
+        """Fit the intercept."""
         return self
 
     def transform(self, X):
-        """transform the term.
-
+        """Transform the input.
 
         Parameters
         ----------
@@ -209,6 +227,39 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
 
 
 class Linear(TransformerMixin, Term, BaseEstimator):
+    """A linear term.
+
+    Examples
+    --------
+    >>> linear = Linear(feature=0)
+    >>> linear.num_coefficients
+    1
+
+    Fitting and transforming simply extracts the relevant column:
+
+    >>> import numpy as np
+    >>> X = np.arange(24).reshape(8, 3)
+    >>> linear.fit_transform(X)
+    array([[ 0],
+           [ 3],
+           [ 6],
+           [ 9],
+           [12],
+           [15],
+           [18],
+           [21]])
+
+    Linear terms have a standard quadratic penalty have a penalty:
+    >>> linear.penalty_matrix()
+    array([[1.]])
+
+    The square root of the penalty matrix is returned, so we must square it
+    to get back the given penalty here:
+
+    >>> Linear(feature=0, penalty=5).penalty_matrix()**2
+    array([[5.]])
+    """
+
     name = "linear"
 
     _parameter_constraints = {
@@ -217,7 +268,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         "by": [Interval(Integral, 0, None, closed="left"), str, None],
     }
 
-    def __init__(self, feature=None, penalty=1, by=None):
+    def __init__(self, feature=None, *, penalty=1, by=None):
         """Create a linear term with a given penalty.
 
         Examples
@@ -302,9 +353,82 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
 
 class Spline(TransformerMixin, Term, BaseEstimator):
-    name = "spline"
+    """A Spline term.
 
-    L2_penalty = 0.0
+    Examples
+    --------
+    >>> spline = Spline(feature=0, num_splines=8)
+    >>> spline.num_coefficients
+    8
+
+    Fitting and transforming creates a spline basis. The basis is given a
+    sum-to-zero constraint over the data it is fitted on.
+
+    >>> import numpy as np
+    >>> X = np.arange(27).reshape(9, 3)
+    >>> Spline(0, num_splines=3, degree=0).fit_transform(X).round(2)
+    array([[ 0.67, -0.33, -0.33],
+           [ 0.67, -0.33, -0.33],
+           [ 0.67, -0.33, -0.33],
+           [-0.33,  0.67, -0.33],
+           [-0.33,  0.67, -0.33],
+           [-0.33,  0.67, -0.33],
+           [-0.33, -0.33,  0.67],
+           [-0.33, -0.33,  0.67],
+           [-0.33, -0.33,  0.67]])
+
+    To recover the un-centered splines, we can add by the means learned
+    during fitting:
+
+    >>> spline = Spline(0, num_splines=3, degree=0)
+    >>> spline = spline.fit(X)
+    >>> spline.transform(X) + spline.means_
+    array([[1., 0., 0.],
+           [1., 0., 0.],
+           [1., 0., 0.],
+           [0., 1., 0.],
+           [0., 1., 0.],
+           [0., 1., 0.],
+           [0., 0., 1.],
+           [0., 0., 1.],
+           [0., 0., 1.]])
+
+    Splines are given a penalty over the smoothness as measured by the second
+    derivative. The second deriative is given by [1, -2, 1]:
+
+    >>> spline.penalty_matrix()
+    array([[ 0.,  0.,  0.],
+           [ 1., -2.,  1.],
+           [ 0.,  0.,  0.]])
+
+    The structure is more easily seen on a Spline with `num_splines` set higher.
+
+    >>> Spline(0, num_splines=6).penalty_matrix()
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1., -2.,  1.,  0.,  0.,  0.],
+           [ 0.,  1., -2.,  1.,  0.,  0.],
+           [ 0.,  0.,  1., -2.,  1.,  0.],
+           [ 0.,  0.,  0.,  1., -2.,  1.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.]])
+
+    The level of penalization is given by the `penalty` parameter:
+
+    >>> Spline(0, num_splines=6, penalty=9).penalty_matrix()
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.],
+           [ 3., -6.,  3.,  0.,  0.,  0.],
+           [ 0.,  3., -6.,  3.,  0.,  0.],
+           [ 0.,  0.,  3., -6.,  3.,  0.],
+           [ 0.,  0.,  0.,  3., -6.,  3.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.]])
+
+    Linear functions are in the null space of the penalty:
+
+    >>> P = Spline(0, num_splines=6).penalty_matrix()
+    >>> np.linalg.norm(P @ np.arange(6))**2
+    0.0
+    """
+
+    name = "spline"
 
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
@@ -313,17 +437,18 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         "num_splines": [Interval(Integral, 2, None, closed="left"), None],
         "edges": [None, Container],
         "degree": [Interval(Integral, 0, None, closed="left")],
-        "knots": [str],
-        "extrapolation": [str],
+        "knots": [StrOptions({"uniform", "quantile"})],
+        "extrapolation": [StrOptions({"error", "constant", "linear", "continue", "periodic"})],
     }
 
     def __init__(
         self,
         feature=None,
+        *,
         penalty=1,
         by=None,
         num_splines=20,
-        constraints=None,
+        # constraints=None,
         edges=None,
         degree=3,
         knots="uniform",
@@ -364,7 +489,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         self.penalty = penalty
         self.by = by
         self.num_splines = num_splines
-        self.constraints = constraints
+        # self.constraints = constraints
         self.edges = edges
         self.degree = degree
         self.knots = knots
@@ -393,18 +518,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
     def penalty_matrix(self):
         super()._validate_params()  # Validate 'penalty' and 'num_coefficients'
-        matrix = second_order_finite_difference(self.num_coefficients, periodic=(self.extrapolation == "periodic"))
-
-        # Set all-zero rows to zero
-        # all_zero_rows = np.all(np.isclose(matrix, 0), axis=1)
-        # matrix = matrix[~all_zero_rows, :]
-
-        matrix = np.sqrt(self.penalty) * matrix
-
-        # Add the sum-to-zero penalty
-        # matrix = np.vstack((matrix, np.ones(self.num_coefficients) * np.sqrt(self.L2_penalty)))
-
-        return matrix
+        periodic = self.extrapolation == "periodic"
+        matrix = second_order_finite_difference(self.num_coefficients, periodic=periodic)
+        return np.sqrt(self.penalty) * matrix
 
     def fit(self, X):
         """Fit to data.
@@ -502,13 +618,12 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
         """
         self._validate_params(X)  # Get feature names, validate parameters
-        X = check_array(X, estimator=self, input_name="X")  # Conver to array
+        X = check_array(X, estimator=self, input_name="X")  # Convert to array
         num_samples, num_features = X.shape
 
         X_feature = X[:, self.feature_]
 
         spline_basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
-
         assert spline_basis_matrix.shape == (num_samples, self.num_splines)
 
         # Set the 'by' variable
@@ -518,10 +633,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         assert spline_basis_matrix.shape == (num_samples, self.num_coefficients)
 
-        # Center to sum over data is zero
-
+        # Center so the sum over data is zero
         spline_basis_matrix = spline_basis_matrix - self.means_
-
         return spline_basis_matrix
 
     def fit_transform(self, X):
@@ -529,9 +642,108 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
 
 class Tensor(TransformerMixin, Term, BaseEstimator):
+    """A Tensor term.
+
+    Examples
+    --------
+
+    A Tensor is constructed from a list of Splines or a TermList with Splines:
+
+    >>> tensor = Tensor(splines=[Spline(0), Spline(1)])
+    >>> tensor
+    Tensor(TermList([Spline(feature=0), Spline(feature=1)]))
+    >>> Tensor(Spline("age") + Spline("bmi"))
+    Tensor(TermList([Spline(feature='age'), Spline(feature='bmi')]))
+
+    The number of coefficients equals the product of each Spline's coefficients:
+
+    >>> tensor = Tensor(Spline(0, num_splines=3) + Spline(1, num_splines=4))
+    >>> tensor.num_coefficients
+    12
+
+    Fitting and transforming creates a spline basis like so:
+
+    >>> X = np.array([[1, 1],
+    ...               [1, 2],
+    ...               [1, 3],
+    ...               [2, 1],
+    ...               [2, 2],
+    ...               [2, 3],
+    ...               [3, 1],
+    ...               [3, 2],
+    ...               [3, 3]])
+    >>> tensor = Tensor(Spline(0, num_splines=3, degree=0) + Spline(1, num_splines=3, degree=0))
+    >>> tensor.fit_transform(X) + tensor.means_
+    array([[1., 0., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 1., 0., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 1., 0., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 1., 0., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 1., 0., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 1., 0., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 1., 0., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 1., 0.],
+           [0., 0., 0., 0., 0., 0., 0., 0., 1.]])
+
+    Penalties are given to neighboring coefficients. In this case the result
+    is hard to decipher, but it checks out. The first row gives the penalty for
+    the first coefficient, and so forth:
+
+    >>> tensor.penalty_matrix()
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1., -2.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1.,  0.,  0., -2.,  0.,  0.,  1.,  0.,  0.],
+           [ 0.,  1.,  0.,  1., -4.,  1.,  0.,  1.,  0.],
+           [ 0.,  0.,  1.,  0.,  0., -2.,  0.,  0.,  1.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  1., -2.,  1.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+
+    Imagine a matrix of coefficients that looks like this:
+    [beta_11, beta_12, beta_13]
+    [beta_21, beta_22, beta_23]
+    [beta_31, beta_32, beta_33]
+    Beta_11 is the first coefficient when unpacked to a vector, with no penalty.
+    Beta_12 is the second coefficient when unpacked to a vector, with a penalty
+    relating it to beta_11 and beta_13.
+    The pattern continues and e.g. beta_22 is related to four other coefficients,
+    namely beta_12, beta_21, beta_23 and beta_32.
+
+    The level of penalization is given by the `penalty` parameter for each
+    Spline, and is multiplied together after taking square roots. Penalties can
+    vary in each dimension:
+
+    >>> spline1 = Spline(0, num_splines=3, degree=0, penalty=9)
+    >>> spline2 = Spline(1, num_splines=3, degree=0, penalty=1)
+    >>> tensor = Tensor(spline1 + spline2)
+    >>> tensor.penalty_matrix()
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1., -2.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 3.,  0.,  0., -6.,  0.,  0.,  3.,  0.,  0.],
+           [ 0.,  3.,  0.,  1., -8.,  1.,  0.,  3.,  0.],
+           [ 0.,  0.,  3.,  0.,  0., -6.,  0.,  0.,  3.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  1., -2.,  1.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+
+    Linear functions of two variables are in the null space of the penalty
+
+    >>> coefs = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    >>> P = tensor.penalty_matrix()
+    >>> np.linalg.norm(P @ coefs)**2
+    0.0
+
+    """
+
     name = "tensor"
 
-    def __init__(self, splines, by=None):
+    _parameter_constraints = {
+        "splines": [Iterable],
+        "by": [Interval(Integral, 0, None, closed="left"), str, None],
+    }
+
+    def __init__(self, splines, *, by=None):
         """
 
 
@@ -560,6 +772,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return iter(self.splines)
 
     def _validate_params(self, X):
+        super()._validate_params()
         num_samples, num_features = X.shape
 
         self.splines = TermList(self.splines)
@@ -817,6 +1030,53 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
 
 class Categorical(TransformerMixin, Term, BaseEstimator):
+    """A Categorial term.
+
+    Examples
+    --------
+
+    A Categorial term is just a wrapper around sklearn's OneHotEncoder.
+    They are also called factor terms.
+
+    >>> X = np.array([1, 1, 2, 1, 2, 2]).reshape(-1, 1)
+    >>> Categorical(0).fit_transform(X)
+    array([[1., 0.],
+           [1., 0.],
+           [0., 1.],
+           [1., 0.],
+           [0., 1.],
+           [0., 1.]])
+
+    Or, with a DataFrame:
+
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({"colors": ["red", "red", "blue", "yellow", "red"]})
+    >>> categorical = Categorical("colors")
+    >>> categorical.fit_transform(df)
+    array([[0., 1., 0.],
+           [0., 1., 0.],
+           [1., 0., 0.],
+           [0., 0., 1.],
+           [0., 1., 0.]])
+
+    The number of coefficients equals the unique number of entries in the feature:
+
+    >>> categorical.num_coefficients
+    3
+
+    Each unique entry gets a penalty, penalizing the coefficients towards zero:
+
+    >>> categorical.penalty_matrix()
+    array([[1., 0., 0.],
+           [0., 1., 0.],
+           [0., 0., 1.]])
+
+    The categories assigned to each coefficient can be retrieved like so:
+
+    >>> categorical.categories_
+    ['blue', 'red', 'yellow']
+    """
+
     name = "categorical"
 
     _parameter_constraints = {
@@ -828,7 +1088,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
     def __init__(
         self, feature=None, penalty=1, by=None, handle_unknown="error", min_frequency=None, max_categories=None
     ):
-        """Create a linear term with a given penalty.
+        """Create a categorial term with a given penalty.
 
         Examples
         --------

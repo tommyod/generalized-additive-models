@@ -6,9 +6,10 @@ Created on Mon Feb  6 21:13:31 2023
 @author: tommy
 """
 
+import numbers
+
 import numpy as np
 from sklearn.utils import check_scalar
-import numbers
 
 
 def second_order_finite_difference(n, periodic=False):
