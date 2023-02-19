@@ -66,6 +66,7 @@ def tensor_product(a, b, reshape=True):
 
     Examples
     --------
+    >>> import numpy as np
     >>> A = np.eye(3, dtype=int)
     >>> B = np.arange(9).reshape(3, 3)
     >>> tensor_product(A, B)
