@@ -73,7 +73,17 @@ sphinx_gallery_conf = {
 }
 
 
-autodoc_default_options = {"members": True, "undoc-members": True, "private-members": False}
+autodoc_default_options = {
+    "members": True,  # Methods, etc
+    "undoc-members": False,  # Methods without docstrings
+    "private-members": False,  # Private (underscore) methods
+    "special-members": False,  # Dunder methods (__init__, __call__, etc)
+    #   'special-members': '__init__',
+    "inherited-members": False,
+    #   "imported-members":False,
+    #    'exclude-members': '__weakref__,__init__'
+}
+
 
 pygments_style = "sphinx"
 # html_theme = "furo"
@@ -105,7 +115,7 @@ napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = False
 napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
+napoleon_include_special_with_doc = False
 napoleon_use_admonition_for_examples = False
 napoleon_use_admonition_for_notes = False
 napoleon_use_admonition_for_references = False

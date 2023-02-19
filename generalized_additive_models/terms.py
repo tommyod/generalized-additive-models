@@ -22,6 +22,7 @@ from sklearn.utils.validation import _get_feature_names
 
 from generalized_additive_models.penalties import second_order_finite_difference
 from generalized_additive_models.utils import tensor_product
+from sklearn.utils.validation import check_is_fitted
 
 
 class Term(ABC):
@@ -49,7 +50,7 @@ class Term(ABC):
             return X.iloc[:, selector].values.reshape(-1, 1)
         return X[:, selector].reshape(-1, 1)
 
-    def infer_feature_variable(self, *, variable_name, X):
+    def _infer_feature_variable(self, *, variable_name, X):
         # Variable name is typically 'penalty' or 'by'
         num_samples, num_features = X.shape
         variable_content = getattr(self, variable_name)
@@ -71,7 +72,7 @@ class Term(ABC):
                 setattr(self, variable_to_set, feature_names.index(variable_content))
         elif isinstance(variable_content, Integral):
             if (num_features > 1) and variable_content not in range(num_features):
-                raise ValueError(f"Parameter {self.feature=} must be in range [0, {num_features-1}].")
+                raise ValueError(f"Parameter `{variable_name}` must be in range [0, {num_features-1}].")
 
             # A single column was passed, assume it's the one to transform
             elif num_features == 1 and hasattr(self, variable_to_set):
@@ -80,27 +81,27 @@ class Term(ABC):
                 # Copy it over
                 setattr(self, variable_to_set, variable_content)
 
-    def is_redudance_with_respect_to(self, other):
+    def is_redundant_with_respect_to(self, other):
         """Check if a feature is redundance with respect to another feature.
 
         Examples
         --------
-        >>> Spline(0).is_redudance_with_respect_to(Spline(0))
+        >>> Spline(0).is_redundant_with_respect_to(Spline(0))
         True
-        >>> Spline(0).is_redudance_with_respect_to(Spline(0, by=1))
+        >>> Spline(0).is_redundant_with_respect_to(Spline(0, by=1))
         False
-        >>> Intercept().is_redudance_with_respect_to(Intercept())
+        >>> Intercept().is_redundant_with_respect_to(Intercept())
         True
-        >>> Linear(0).is_redudance_with_respect_to(Linear(1))
+        >>> Linear(0).is_redundant_with_respect_to(Linear(1))
         False
-        >>> Linear(0).is_redudance_with_respect_to(Linear(0))
+        >>> Linear(0).is_redundant_with_respect_to(Linear(0))
         True
         >>> te1 = Tensor([Spline(0), Spline(1)])
         >>> te2 = Tensor([Spline(1), Spline(0)])
-        >>> te1.is_redudance_with_respect_to(te2)
+        >>> te1.is_redundant_with_respect_to(te2)
         True
         >>> te2 = Tensor([Spline(1), Spline(0, by=1)])
-        >>> te1.is_redudance_with_respect_to(te2)
+        >>> te1.is_redundant_with_respect_to(te2)
         False
 
         """
@@ -205,6 +206,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
             DESCRIPTION.
 
         """
+        self.feature_ = None  # Add underscore parameter to signal fitted
         return self
 
     def transform(self, X):
@@ -224,7 +226,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         --------
         >>> intercept = Intercept()
         >>> X = np.eye(3)
-        >>> intercept.transform(X)
+        >>> intercept.fit_transform(X)
         array([[1.],
                [1.],
                [1.]])
@@ -235,7 +237,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         [Intercept()]
 
         """
-        # X = check_array(X, estimator=self, input_name="X")
+        check_is_fitted(self)
         n_samples, n_features = X.shape
         return np.ones(n_samples).reshape(-1, 1)
 
@@ -249,19 +251,19 @@ class Linear(TransformerMixin, Term, BaseEstimator):
     >>> linear.num_coefficients
     1
 
-    Fitting and transforming simply extracts the relevant column:
+    Fitting and transforming extracts the relevant column and scales it:
 
     >>> import numpy as np
     >>> X = np.arange(24).reshape(8, 3)
     >>> linear.fit_transform(X)
-    array([[ 0],
-           [ 3],
-           [ 6],
-           [ 9],
-           [12],
-           [15],
-           [18],
-           [21]])
+    array([[-10.5],
+           [ -7.5],
+           [ -4.5],
+           [ -1.5],
+           [  1.5],
+           [  4.5],
+           [  7.5],
+           [ 10.5]])
 
     Linear terms have a standard quadratic penalty have a penalty:
     >>> linear.penalty_matrix()
@@ -294,7 +296,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         True
         >>> Linear(0, penalty=2) == Linear(0, penalty=3)
         False
-        >>> Linear(0, penalty=2).is_redudance_with_respect_to(Linear(0, penalty=3))
+        >>> Linear(0, penalty=2).is_redundant_with_respect_to(Linear(0, penalty=3))
         True
         """
         self.feature = feature
@@ -315,8 +317,8 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
 
-        self.infer_feature_variable(variable_name="feature", X=X)
-        self.infer_feature_variable(variable_name="by", X=X)
+        self._infer_feature_variable(variable_name="feature", X=X)
+        self._infer_feature_variable(variable_name="by", X=X)
 
     @property
     def num_coefficients(self):
@@ -328,7 +330,19 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
     def fit(self, X):
         self._validate_params(X)
-        # X = check_array(X, estimator=self, input_name="X")
+
+        basis_matrix = self._get_column(X, selector="feature")
+
+        # Must apply 'by' before computing mean, since we want symmetry to hold:
+        # x_1 * x_2 - mean(x_1 * x_2) = x_2 * x_1 - mean(x_2 * x_1)
+        # If the computed means first, symmetry would not hold:
+        # (x_1 - mean(x_1)) * x_2 != (x_2 - mean(x_2)) * x_1
+
+        if self.by is not None:
+            basis_matrix = basis_matrix * self._get_column(X, selector="by")
+
+        self.means_ = basis_matrix.mean(axis=0)
+
         return self
 
     def transform(self, X):
@@ -348,20 +362,22 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         --------
         >>> linear = Linear(1)
         >>> X = np.eye(3)
-        >>> linear.transform(X)
-        array([[0.],
-               [1.],
-               [0.]])
+        >>> linear.fit_transform(X)
+        array([[-0.333...],
+               [ 0.666...],
+               [-0.333...]])
+
 
         """
+        check_is_fitted(self)
         self._validate_params(X)
-        # X = check_array(X, estimator=self, input_name="X")
-        num_samples, num_features = X.shape
 
         basis_matrix = self._get_column(X, selector="feature")
 
         if self.by is not None:
-            basis_matrix *= self._get_column(X, selector="by")
+            basis_matrix = basis_matrix * self._get_column(X, selector="by")
+
+        basis_matrix = basis_matrix - self.means_
 
         return basis_matrix
 
@@ -523,8 +539,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
 
-        self.infer_feature_variable(variable_name="feature", X=X)
-        self.infer_feature_variable(variable_name="by", X=X)
+        self._infer_feature_variable(variable_name="feature", X=X)
+        self._infer_feature_variable(variable_name="by", X=X)
 
     @property
     def num_coefficients(self):
@@ -608,8 +624,13 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         else:
             X_feature_masked = X_feature.reshape(-1, 1)
 
-        spline_basis_matrix = self.spline_transformer_.fit_transform(X_feature_masked)
-        self.means_ = np.mean(spline_basis_matrix, axis=0)
+        basis_matrix = self.spline_transformer_.fit_transform(X_feature_masked)
+
+        # Apply 'by'
+        if self.by is not None:
+            basis_matrix = basis_matrix * self._get_column(X, selector="by")
+
+        self.means_ = np.mean(basis_matrix, axis=0)
 
         return self
 
@@ -631,25 +652,26 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         >>> spline = Spline(0, num_splines=3, degree=0)
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
         """
+        check_is_fitted(self)
         self._validate_params(X)  # Get feature names, validate parameters
         # X = check_array(X, estimator=self, input_name="X")  # Convert to array
         num_samples, num_features = X.shape
 
         X_feature = self._get_column(X, selector="feature")
 
-        spline_basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
-        assert spline_basis_matrix.shape == (num_samples, self.num_splines)
+        basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
+        assert basis_matrix.shape == (num_samples, self.num_splines)
 
         # Set the 'by' variable
         if self.by is not None:
             # Multiply the spline basis by the desired column
-            spline_basis_matrix *= self._get_column(X, selector="by")
+            basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
-        assert spline_basis_matrix.shape == (num_samples, self.num_coefficients)
+        assert basis_matrix.shape == (num_samples, self.num_coefficients)
 
         # Center so the sum over data is zero
-        spline_basis_matrix = spline_basis_matrix - self.means_
-        return spline_basis_matrix
+        basis_matrix = basis_matrix - self.means_
+        return basis_matrix
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
@@ -795,6 +817,8 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
                 raise TypeError(f"Only Splines can be used in a Tensor, found: {spline}")
             spline._validate_params(X)
 
+        self._infer_feature_variable(variable_name="by", X=X)
+
     @property
     def num_coefficients(self):
         return np.product([spline.num_coefficients for spline in self.splines])
@@ -911,27 +935,30 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         fit_matrices = [spline.transform(X) + spline.means_ for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
 
+        # Set the 'by' variable
+        if self.by is not None:
+            # Multiply the spline basis by the desired column
+            spline_basis = spline_basis * self._get_column(X, selector="by")
+
         # Learn the joint mean values
         self.means_ = np.mean(spline_basis, axis=0)
 
         return self
 
     def transform(self, X):
+        check_is_fitted(self)
         self._validate_params(X)
 
         fit_matrices = [spline.transform(X) + spline.means_ for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
 
-        # Subtract the means
-        spline_basis = spline_basis - self.means_
-
-        # if self.by is not None:
-        #    spline_basis *= X[:, self.by][:, np.newaxis]
-
         # Set the 'by' variable
         if self.by is not None:
             # Multiply the spline basis by the desired column
-            spline_basis *= self._get_column(X, selector="by")
+            spline_basis = spline_basis * self._get_column(X, selector="by")
+
+        # Subtract the means
+        spline_basis = spline_basis - self.means_
 
         return spline_basis
 
@@ -1067,7 +1094,8 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
     They are also called factor terms.
 
     >>> X = np.array([1, 1, 2, 1, 2, 2]).reshape(-1, 1)
-    >>> Categorical(0).fit_transform(X)
+    >>> categorical = Categorical(0).fit(X)
+    >>> categorical.transform(X)
     array([[1., 0.],
            [1., 0.],
            [0., 1.],
@@ -1170,8 +1198,8 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         if self.by == self.feature:
             raise ValueError(f"Parameter {self.by=} cannot be equal to {self.feature=}")
 
-        self.infer_feature_variable(variable_name="feature", X=X)
-        self.infer_feature_variable(variable_name="by", X=X)
+        self._infer_feature_variable(variable_name="feature", X=X)
+        self._infer_feature_variable(variable_name="by", X=X)
 
     @property
     def num_coefficients(self):
@@ -1197,10 +1225,15 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
         # X = check_array(X, estimator=self, input_name="X")
 
-        X_transformed = self.onehotencoder_.fit_transform(self._get_column(X))
+        basis_matrix = self.onehotencoder_.fit_transform(self._get_column(X))
+
+        # Set the 'by' variable
+        if self.by is not None:
+            # Multiply the spline basis by the desired column
+            basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
         self.categories_ = list(self.onehotencoder_.categories_[0])
-        self.means_ = X_transformed.mean(axis=0)
+        self.means_ = basis_matrix.mean(axis=0)
 
         return self
 
@@ -1220,20 +1253,20 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         Examples
         --------
         >>> linear = Linear(1)
-        >>> X = np.eye(3)
-        >>> linear.transform(X)
-        array([[0.],
-               [1.],
-               [0.]])
-
+        >>> X = np.eye(3) * 3
+        >>> linear.fit_transform(X)
+        array([[-1.],
+               [ 2.],
+               [-1.]])
         """
+        check_is_fitted(self)
         self._validate_params(X)
         num_samples, num_features = X.shape
 
         basis_matrix = self.onehotencoder_.transform(self._get_column(X))
 
         if self.by is not None:
-            basis_matrix *= self._get_column(X, "by")[:, np.newaxis]
+            basis_matrix = basis_matrix * self._get_column(X, "by")
 
         basis_matrix = basis_matrix  # - self.means_
         return basis_matrix
@@ -1298,16 +1331,16 @@ class TermList(UserList, BaseEstimator):
         >>> X = np.tile(np.arange(10), reps=(2, 1)).T
         >>> terms = Intercept() + Linear(0) + Spline(1, degree=0, num_splines=2)
         >>> terms.fit_transform(X)
-        array([[ 1. ,  0. ,  0.5, -0.5],
-               [ 1. ,  1. ,  0.5, -0.5],
-               [ 1. ,  2. ,  0.5, -0.5],
-               [ 1. ,  3. ,  0.5, -0.5],
-               [ 1. ,  4. ,  0.5, -0.5],
-               [ 1. ,  5. , -0.5,  0.5],
-               [ 1. ,  6. , -0.5,  0.5],
-               [ 1. ,  7. , -0.5,  0.5],
-               [ 1. ,  8. , -0.5,  0.5],
-               [ 1. ,  9. , -0.5,  0.5]])
+        array([[ 1. , -4.5,  0.5, -0.5],
+               [ 1. , -3.5,  0.5, -0.5],
+               [ 1. , -2.5,  0.5, -0.5],
+               [ 1. , -1.5,  0.5, -0.5],
+               [ 1. , -0.5,  0.5, -0.5],
+               [ 1. ,  0.5, -0.5,  0.5],
+               [ 1. ,  1.5, -0.5,  0.5],
+               [ 1. ,  2.5, -0.5,  0.5],
+               [ 1. ,  3.5, -0.5,  0.5],
+               [ 1. ,  4.5, -0.5,  0.5]])
         """
 
         super().__init__()
@@ -1323,7 +1356,7 @@ class TermList(UserList, BaseEstimator):
             raise TypeError(f"Only terms can be added to TermList, not {item} of type {type(item)}")
 
         for term in self:
-            if item.is_redudance_with_respect_to(term):
+            if item.is_redundant_with_respect_to(term):
                 msg = f"Cannot add {item} because it is redundance wrt {term}"
                 raise ValueError(msg)
 

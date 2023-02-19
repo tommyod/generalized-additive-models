@@ -12,8 +12,10 @@ import pandas as pd
 import pytest
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing
+from sklearn.exceptions import NotFittedError
 
-from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.gam import GAM
 
 
 class TestTermMultiplications:
@@ -101,6 +103,106 @@ class TestTermMultiplications:
 
 
 class TestTerms:
+    # check_is_fitted(self, attributes=["coef_"])
+
+    @pytest.mark.parametrize("term", [Intercept, Linear, Spline, Categorical, Tensor])
+    def test_that_transform_fails_if_not_fitted(self, term):
+        rng = np.random.default_rng(123)
+        X = rng.normal(size=(100, 2))
+
+        if term in (Linear, Spline, Categorical):
+            term = term(0)
+        elif term in (Intercept,):
+            term = term()
+        elif term in (Tensor,):
+            term = term([Spline(0), Spline(1)])
+        else:
+            assert False
+
+        with pytest.raises(NotFittedError):
+            term.transform(X)
+
+    def test_that_linear_can_infer_mean(self):
+        X = np.linspace(-1, 1, num=101).reshape(-1, 1)
+        y = np.e + np.pi * X.ravel()
+
+        linear = Linear(0, penalty=0)
+        intercept = Intercept()
+        gam = GAM(linear + intercept)
+        gam.fit(X, y)
+
+        assert np.allclose(linear.coef_, np.pi)
+        assert np.allclose(intercept.coef_, np.e)
+
+    def test_that_categorical_can_infer_means(self):
+        # Group 1 has mean 3, group 2 has mean 5
+        group_means = np.array([3, 5])
+        df = pd.DataFrame({"group": [1, 1, 1, 1, 1, 2, 2], "value": [2, 3, 4, 2, 4, 4, 6]})
+        categorical = Categorical("group", penalty=1e-4)  # Decrease regularization
+        intercept = Intercept()
+
+        gam = GAM(categorical + intercept)
+        gam.fit(df, df.value)
+
+        predicted_group_means = categorical.coef_ + intercept.coef_
+        assert np.allclose(predicted_group_means, group_means)
+        assert np.allclose(intercept.coef_, 4)  # mean([3, 5]) = 4
+
+    def test_categorical_regularization_with_high_penalty(self):
+        # Group 1 has mean 3, group 2 has mean 5
+        df = pd.DataFrame({"group": [1, 1, 1, 1, 1, 2, 2], "value": [2, 3, 4, 2, 4, 4, 6]})
+        grand_mean = df.value.mean()
+
+        categorical = Categorical("group", penalty=1e6)  # Increase regularization
+        intercept = Intercept()
+
+        gam = GAM(categorical + intercept)
+        gam.fit(df, df.value)
+
+        predicted_group_means = categorical.coef_ + intercept.coef_
+        assert np.allclose(predicted_group_means, grand_mean)
+
+    def test_that_feature_and_by_are_symmetric_for_linear_term(self):
+        rng = np.random.default_rng(32)
+        X = rng.normal(size=(100, 2))
+
+        term1 = Linear(0, by=1)
+        term2 = Linear(1, by=0)
+
+        assert np.allclose(term1.fit_transform(X), term2.fit_transform(X))
+
+    @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_transformed_data_sums_to_zero_in_each_column(self, term):
+        rng = np.random.default_rng(33)
+        X = rng.normal(size=(100, 2))
+
+        # Convert to integer to get meaningful categories
+        if isinstance(term, Categorical):
+            X[:, 0] = np.asarray(X[:, 0], dtype=int)
+
+        term = term(0, by=1)
+        X_transformed = term.fit_transform(X)
+        assert np.allclose(X_transformed.sum(axis=0), 0)
+
+    def test_that_transformed_data_sums_to_zero_in_each_column_in_tensor(self):
+        rng = np.random.default_rng(33)
+        X = rng.normal(size=(100, 5))
+
+        # With no 'by' variables in the terms
+        term = Tensor([Spline(0), Spline(1)], by=2)
+        X_transformed = term.fit_transform(X)
+        assert np.allclose(X_transformed.sum(axis=0), 0)
+
+        # With no 'by' variable in one of the terms
+        term = Tensor([Spline(0, by=3), Spline(1)], by=2)
+        X_transformed = term.fit_transform(X)
+        assert np.allclose(X_transformed.sum(axis=0), 0)
+
+        # With 'by' variables in both of the terms
+        term = Tensor([Spline(0, by=3), Spline(1, by=4)], by=2)
+        X_transformed = term.fit_transform(X)
+        assert np.allclose(X_transformed.sum(axis=0), 0)
+
     @pytest.mark.parametrize("term", [Linear, Spline])
     def test_that_transforming_a_single_column_does_not_forget_feature_index(self, term):
         x1 = np.arange(9)
@@ -189,23 +291,23 @@ class TestTermParameters:
 
         # Invalid feature
         with pytest.raises(ValueError):
-            Linear(-1).transform(X)
+            Linear(-1).fit_transform(X)
 
         # The by-variable is too large
         with pytest.raises(ValueError):
-            Linear(0, by=2).transform(X)
+            Linear(0, by=2).fit_transform(X)
 
         # Negative penalty
         with pytest.raises(ValueError):
-            Linear(0, by=1, penalty=-1).transform(X)
+            Linear(0, by=1, penalty=-1).fit_transform(X)
 
         # Negative penalty
         with pytest.raises(TypeError):
-            Linear(0, by=1, penalty="asdf").transform(X)
+            Linear(0, by=1, penalty="asdf").fit_transform(X)
 
         # Feature and by-variable is the same
         with pytest.raises(ValueError, match="cannot be equal to"):
-            Linear(0, by=0).transform(X)
+            Linear(0, by=0).fit_transform(X)
 
 
 class TestPandasCompatibility:
