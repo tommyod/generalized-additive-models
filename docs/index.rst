@@ -27,11 +27,6 @@ Citing
 ------
 
 
-
-
-
-
-
 Table of contents
 =================
 

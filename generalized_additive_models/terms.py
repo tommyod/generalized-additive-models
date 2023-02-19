@@ -192,7 +192,19 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         return np.array([[0.0]])
 
     def fit(self, X):
-        """Fit the intercept."""
+        """Fit the Intercept.
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         return self
 
     def transform(self, X):
@@ -833,7 +845,19 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return functools.reduce(sp.linalg.kron, penalty_matrices)
 
     def penalty_matrix(self):
+        """Build the penaltry matrix.
+        
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
         """
+        
+        
+        """Build the penaltry matrix.
+        
         builds the GAM block-diagonal penalty matrix in quadratic form
         out of penalty matrices specified for each feature.
 
@@ -842,13 +866,10 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         so for m features:
         P = block_diag[lam0 * P0, lam1 * P1, lam2 * P2, ... , lamm * Pm]
 
-        Parameters
-        ----------
-        None
-
         Returns
         -------
-        P : sparse CSC matrix containing the model penalties in quadratic form
+        np.ndarray
+            Penaltry matrix.
 
         Examples
         --------
@@ -875,6 +896,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
                [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
+        
         """
         marginal_penalty_matrices = [self._build_marginal_penalties(i) for i, _ in enumerate(self.splines)]
         return functools.reduce(np.add, marginal_penalty_matrices)

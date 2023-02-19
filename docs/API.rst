@@ -8,7 +8,7 @@ Terms
 .....
    
 .. autosummary::
-   :toctree: DIRNAME
+   :toctree: API
 
    Intercept
    Linear
@@ -21,7 +21,7 @@ Links
 .....
    
 .. autosummary::
-   :toctree: DIRNAME
+   :toctree: API
 
    Identity
    Log
@@ -32,7 +32,7 @@ Distributions
 .............
    
 .. autosummary::
-   :toctree: DIRNAME
+   :toctree: API
 
    Normal
    Poisson
@@ -43,7 +43,6 @@ Models
 ......
    
 .. autosummary::
-   :toctree: DIRNAME
+   :toctree: API
 
    GAM
-   

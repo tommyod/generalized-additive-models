@@ -32,14 +32,14 @@ html_static_path = ["_static"]
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.doctest",
+    #"sphinx.ext.doctest",
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
-    "sphinx.ext.viewcode",
+    #"sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     # "sphinx_gallery.gen_gallery",
-    "sphinx.ext.githubpages",
+    #"sphinx.ext.githubpages",
     # "myst_parser"
     "nbsphinx",
     # "sphinx.ext.autosummary",
@@ -118,3 +118,4 @@ napoleon_attr_annotations = True
 
 
 # html_show_sphinx = False
+numpydoc_show_class_members = False 
