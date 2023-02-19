@@ -25,12 +25,28 @@ from generalized_additive_models.distributions import DISTRIBUTIONS, Distributio
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS, Optimizer
 from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
-from generalized_additive_models.utils import log
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
 
 
 class GAM(BaseEstimator):
+    """Generalized Additive Model.
+
+    Examples
+    --------
+    >>> from generalized_additive_models import GAM, Spline, Categorical
+    >>> from sklearn.datasets import load_diabetes
+    >>> data = load_diabetes(as_frame=True)
+    >>> df = data.data
+    >>> y = data.target
+    >>> gam = GAM(Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex"))
+    >>> gam = gam.fit(df, y)
+    >>> predictions = gam.predict(df)
+    >>> for term in gam.terms:
+    ...     print(term, term.coef_) # doctest: +SKIP
+
+    """
+
     _parameter_constraints: dict = {
         "terms": [Term, TermList],
         "distribution": [StrOptions(set(DISTRIBUTIONS.keys())), Distribution],
@@ -119,17 +135,17 @@ class GAM(BaseEstimator):
         self._validate_params(X)
 
         self.model_matrix_ = self.terms.fit_transform(X)
-        X, y = self._validate_data(
-            X,
-            y,
-            dtype=[np.float64, np.float32],
-            y_numeric=True,
-            multi_output=False,
-        )
+        # =============================================================================
+        #         X, y = self._validate_data(
+        #             X,
+        #             y,
+        #             dtype=[np.float64, np.float32],
+        #             y_numeric=True,
+        #             multi_output=False,
+        #         )
+        # =============================================================================
         self.X_ = X.copy()  # Store a copy used for patial effects
         self.y_ = y.copy()
-
-        log.info(f"Fitting {self}")
 
         optimizer = self._solver(
             X=self.model_matrix_,
@@ -139,6 +155,7 @@ class GAM(BaseEstimator):
             distribution=self._distribution,
             max_iter=self.max_iter,
             tol=self.tol,
+            verbose=self.verbose,
         )
 
         # Copy over solver information
@@ -170,7 +187,7 @@ class GAM(BaseEstimator):
         y_pred = self.predict(X)
         return r2_score(y, y_pred, sample_weight=sample_weight)
 
-    def partial_effect(self, term, standard_deviations=1.0):
+    def partial_effect(self, term, standard_deviations=1.0, edges=None):
         """
 
         1 standard deviation  => 0.6827 coverage
@@ -241,10 +258,15 @@ class GAM(BaseEstimator):
 
         # Get data related to term and create a smooth grid
         term = copy.deepcopy(term)  # Copy so feature_ is not changed by term.transform() below
-        data = self.X_[:, term.feature_]
-        min_val, max_val = np.min(data), np.max(data)
-        range_ = max_val - min_val
-        X_smooth = np.linspace(min_val - 0.01 * range_, max_val + 0.01 * range_, num=2**10)
+        data = term._get_column(self.X_, selector="feature")
+        if edges is None:
+            min_val, max_val = np.min(data), np.max(data)
+            range_ = max_val - min_val
+            min_val, max_val = min_val - 0.01 * range_, max_val + 0.01 * range_
+        else:
+            min_val, max_val = edges
+
+        X_smooth = np.linspace(min_val, max_val, num=2**10)
 
         # Predict on smooth grid
         X = term.transform(X_smooth.reshape(-1, 1))

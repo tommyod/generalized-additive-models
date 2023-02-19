@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Feb  5 09:18:35 2023
-
-@author: tommy
-
-
+Hi...
 
 
 
@@ -46,6 +42,13 @@ class Term(ABC):
     @abstractmethod
     def penalty_matrix(self):
         pass
+
+    def _get_column(self, X, selector="feature"):
+        selector = getattr(self, selector + "_")
+
+        if hasattr(X, "iloc"):
+            return X.iloc[:, selector].values.reshape(-1, 1)
+        return X[:, selector].reshape(-1, 1)
 
     def infer_feature_variable(self, *, variable_name, X):
         # Variable name is typically 'penalty' or 'by'
@@ -221,7 +224,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         [Intercept()]
 
         """
-        X = check_array(X, estimator=self, input_name="X")
+        # X = check_array(X, estimator=self, input_name="X")
         n_samples, n_features = X.shape
         return np.ones(n_samples).reshape(-1, 1)
 
@@ -314,7 +317,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
     def fit(self, X):
         self._validate_params(X)
-        X = check_array(X, estimator=self, input_name="X")
+        # X = check_array(X, estimator=self, input_name="X")
         return self
 
     def transform(self, X):
@@ -341,13 +344,13 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
         """
         self._validate_params(X)
-        X = check_array(X, estimator=self, input_name="X")
+        # X = check_array(X, estimator=self, input_name="X")
         num_samples, num_features = X.shape
 
-        basis_matrix = X[:, self.feature_].reshape(-1, 1)
+        basis_matrix = self._get_column(X, selector="feature")
 
         if self.by is not None:
-            basis_matrix *= X[:, self.by_][:, np.newaxis]
+            basis_matrix *= self._get_column(X, selector="by")
 
         return basis_matrix
 
@@ -568,10 +571,10 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         """
         self._validate_params(X)  # Get feature names, validate parameters
-        X = check_array(X, estimator=self, input_name="X")  # Conver to array
+        # X = check_array(X, estimator=self, input_name="X")  # Conver to array
         num_samples, num_features = X.shape
 
-        X_feature = X[:, self.feature_]
+        X_feature = self._get_column(X, selector="feature")
 
         # Solve this equation for the number of knots
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/preprocessing/_polynomial.py#L470
@@ -618,10 +621,10 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
         """
         self._validate_params(X)  # Get feature names, validate parameters
-        X = check_array(X, estimator=self, input_name="X")  # Convert to array
+        # X = check_array(X, estimator=self, input_name="X")  # Convert to array
         num_samples, num_features = X.shape
 
-        X_feature = X[:, self.feature_]
+        X_feature = self._get_column(X, selector="feature")
 
         spline_basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
         assert spline_basis_matrix.shape == (num_samples, self.num_splines)
@@ -629,7 +632,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # Set the 'by' variable
         if self.by is not None:
             # Multiply the spline basis by the desired column
-            spline_basis_matrix *= X[:, self.by_][:, np.newaxis]
+            spline_basis_matrix *= self._get_column(X, selector="by")
 
         assert spline_basis_matrix.shape == (num_samples, self.num_coefficients)
 
@@ -905,6 +908,11 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         # if self.by is not None:
         #    spline_basis *= X[:, self.by][:, np.newaxis]
 
+        # Set the 'by' variable
+        if self.by is not None:
+            # Multiply the spline basis by the desired column
+            spline_basis *= self._get_column(X, selector="by")
+
         return spline_basis
 
     def get_params(self, deep=True):
@@ -1128,13 +1136,6 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         self.min_frequency = min_frequency
         self.max_categories = max_categories
 
-    def _get_column(self, X, selector="feature"):
-        selector = getattr(self, selector + "_")
-
-        if hasattr(X, "iloc"):
-            return X.iloc[:, selector].values.reshape(-1, 1)
-        return X[:, selector].reshape(-1, 1)
-
     def _validate_params(self, X):
         # Validate using BaseEsimator._validate_params, which in turn calls
         # sklearn.utils._param_validation.validate_parameter_constraints
@@ -1176,8 +1177,10 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
         # X = check_array(X, estimator=self, input_name="X")
 
-        self.onehotencoder_.fit(self._get_column(X))
+        X_transformed = self.onehotencoder_.fit_transform(self._get_column(X))
+
         self.categories_ = list(self.onehotencoder_.categories_[0])
+        self.means_ = X_transformed.mean(axis=0)
 
         return self
 
@@ -1212,6 +1215,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         if self.by is not None:
             basis_matrix *= self._get_column(X, "by")[:, np.newaxis]
 
+        basis_matrix = basis_matrix  # - self.means_
         return basis_matrix
 
 

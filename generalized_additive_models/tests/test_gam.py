@@ -142,6 +142,32 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
 
 class TestPandasCompatibility:
+    @pytest.mark.parametrize("term_cls", [Spline, Linear])
+    def test_that_string_columns_pose_no_problems(self, term_cls):
+        df = pd.DataFrame({"a": [1, 2, 3, 4, 5, 6], "b": list("qweras")})
+        y = np.array([1, 2, 3, 4, 5, 6])
+
+        gam = GAM(terms=term_cls("a"), fit_intercept=True)
+        gam.fit(df, y)
+
+    @pytest.mark.parametrize("term_cls", [Spline, Linear])
+    def test_that_column_order_can_be_permuted_between_fit_and_transform(self, term_cls):
+        rng = np.random.default_rng(3)
+        col_A = np.exp(rng.normal(size=100))
+        col_B = rng.normal(size=100)
+
+        df = pd.DataFrame({"a": col_A, "b": col_B})
+
+        # Transform column a
+        term = term_cls("a")
+        col_A_basis = term.fit_transform(df)
+
+        # Now permute the columns
+        df = df[["b", "a"]]
+
+        # Transform column a again
+        assert np.allclose(term.transform(df), col_A_basis)
+
     def test_that_integer_terms_can_be_used_with_pandas(self):
         # Get data as a DataFrame and Series
         data = fetch_california_housing(as_frame=True)
@@ -397,16 +423,16 @@ class TestGAMSanityChecks:
         cv = KFold(n_splits=5, shuffle=True, random_state=42)
 
         # Linear model GAM, with no-so-good performance
-        gam_spline_model = GAM(Spline(0) + Spline(1) + Intercept(), fit_intercept=False)
+        gam_spline_model = GAM(Spline(0, penalty=10) + Spline(1, penalty=10) + Intercept())
         score_spline_model = cross_val_score(gam_spline_model, X, y, verbose=0, cv=cv).mean()
 
         # Tensor model GAM, with better performance
-        gam_tensor_model = GAM(Tensor([Spline(0), Spline(1)]) + Intercept(), fit_intercept=False)
+        gam_tensor_model = GAM(Tensor([Spline(0, penalty=10), Spline(1, penalty=10)]) + Intercept())
         score_tensor_model = cross_val_score(gam_tensor_model, X, y, verbose=0, cv=cv).mean()
 
         assert score_tensor_model > score_spline_model
         assert score_tensor_model > 0.98
-        assert score_spline_model < 0.85
+        assert score_spline_model < 0.35
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
     def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
@@ -444,7 +470,7 @@ class TestGAMSanityChecks:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
         # Train GAM using automodel feature (sending in one spline and expanding)
-        terms = TermList(Spline(None, extrapolation="continue", num_splines=8))
+        terms = TermList(Spline(None, extrapolation="continue", num_splines=8, penalty=100))
         gam = GAM(terms, link="logit", distribution=Binomial(trials=1))
         gam.fit(X_train, y_train)
         gam_preds = gam.predict(X_test) > 0.5

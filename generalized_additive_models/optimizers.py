@@ -5,12 +5,13 @@ Created on Tue Feb  7 06:22:30 2023
 
 @author: tommy
 """
+import warnings
+
 import numpy as np
 import scipy as sp
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
-
-from generalized_additive_models.utils import log
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -29,7 +30,7 @@ class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numercial stability."""
 
-    def __init__(self, *, X, D, y, link, distribution, max_iter, tol):
+    def __init__(self, *, X, D, y, link, distribution, max_iter, tol, verbose):
         self.X = X
         self.D = D
         self.y = y
@@ -38,8 +39,7 @@ class PIRLS(Optimizer):
         self.max_iter = max_iter
         self.tol = tol
         self.statistics_ = Bunch()
-
-        log.info(f"Initialized {type(self).__name__}")
+        self.verbose = verbose
 
     def _validate_params(self):
         low, high = self.link.domain
@@ -68,8 +68,6 @@ class PIRLS(Optimizer):
         ridge = Ridge(alpha=1e3, fit_intercept=False)
         ridge.fit(self.X, mu_initial)
         beta_initial = ridge.coef_
-        # beta_initial, *_ = sp.linalg.lstsq(self.X, mu_initial)
-        log.info(f"Initial beta estimate with norm: {sp.linalg.norm(beta_initial)}")
         return beta_initial
 
     def evaluate_objective(self, X, D, beta, y):
@@ -77,7 +75,7 @@ class PIRLS(Optimizer):
         mu = self.link.inverse_link(X @ beta)
         deviance = self.distribution.deviance(y=y, mu=mu, scaled=True).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
-        return deviance + penalty
+        return (deviance + penalty) / len(beta)
 
     def solve(self):
         num_observations, num_beta = self.X.shape
@@ -87,7 +85,17 @@ class PIRLS(Optimizer):
         # Step 1: Compute initial values
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
-        log.info(f"Initial mu estimate in range: [{mu.min()}, {mu.max()}]")
+
+        if self.verbose >= 1:
+            lpad = int(np.floor(np.log10(self.max_iter)))
+            objective_init = self.evaluate_objective(self.X, self.D, beta, self.y)
+
+            msg = "Initial guess:      "
+            objective_fmt = np.format_float_scientific(objective_init, precision=4, min_digits=4)
+            msg += f"Objective: {objective_fmt}   "
+            beta_fmt = np.format_float_scientific(sp.linalg.norm(beta), precision=4, min_digits=4)
+            msg += f"Coef. norm: {beta_fmt}   "
+            print(msg)
 
         # List of betas to watch as optimization progresses
         betas = [beta]
@@ -100,7 +108,6 @@ class PIRLS(Optimizer):
         # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
         Q, R, P = sp.linalg.qr(np.vstack((self.X, self.D)), mode="economic", pivoting=True)
         zero_coefs = (np.abs(np.diag(R)) < EPSILON)[P]
-        log.info(f"Number of non-identifiable coefficients set to zero: {zero_coefs.sum()}")
         X = self.X[:, ~zero_coefs]
         XT = X.T
         D = self.D[:, ~zero_coefs]
@@ -108,8 +115,6 @@ class PIRLS(Optimizer):
         betas[0] = betas[0][~zero_coefs]
 
         for iteration in range(1, self.max_iter + 1):
-            log.info(f"Iteration {iteration}")
-
             # Step 1: Compute pseudodata z and iterative weights w
             z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
             w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
@@ -131,26 +136,38 @@ class PIRLS(Optimizer):
                 objective_suggested = self.evaluate_objective(X, D, suggested_beta, self.y)
 
                 if objective_suggested <= objective_previous:
-                    log.info(f"Using step length: {step_size}")
                     beta = suggested_beta
                     break
             else:
-                log.info("Step halving routine failed...")
                 break
-
-            # beta = step_size * beta_suggestion + betas[-1] * (1 - step_size)
-            log.info(f"Beta estimate with norm: {sp.linalg.norm(beta)}")
-            log.info(f"Objective function value: {self.evaluate_objective(X, D, beta, self.y)}")
 
             eta = X @ beta
             mu = self.link.inverse_link(eta)
             betas.append(beta)
             deviances.append(self.distribution.deviance(y=self.y, mu=mu).mean())
 
+            if self.verbose >= 1:
+                lpad = int(np.floor(np.log10(self.max_iter)))
+
+                msg = f"Iteration: {str(iteration).rjust(lpad, ' ')}/{self.max_iter}   "
+                objective_fmt = np.format_float_scientific(objective_suggested, precision=4, min_digits=4, exp_digits=2)
+                msg += f"Objective: {objective_fmt}   "
+                beta_fmt = np.format_float_scientific(sp.linalg.norm(beta), precision=4, min_digits=4, exp_digits=2)
+                msg += f"Coef. norm: {beta_fmt}   "
+                msg += f"Step size: 1/2^{half_exponent}"
+                print(msg)
+
             if self._should_stop(betas=betas, step_size=step_size):
+                if self.verbose >= 1:
+                    print(" => SUCCESS: Solver converged (met tolerance criterion).")
                 break
         else:
-            log.warning(f"Solver did not converge within {iteration} iterations.")
+            if self.verbose >= 1:
+                print(f" => FAILURE: Solver did not converge in {self.max_iter} iterations.")
+
+            msg = f"Solver did not converge in {self.max_iter} iterations.\n"
+            msg += "Increase `max_iter`, increase `tol` or increase penalties."
+            warnings.warn(msg, ConvergenceWarning)
 
         # Add zero coefficients back
         for i in range(len(betas)):
@@ -208,7 +225,7 @@ class PIRLS(Optimizer):
         assert np.all(np.isfinite(diffs))
         max_coord_update = np.max(np.abs(diffs))
         max_coord = np.max(np.abs(betas[-1]))
-        log.info(f"Stopping criteria evaluation: {max_coord_update:.6f} <= {self.tol} * {max_coord:.6f} ")
+        # log.info(f"Stopping criteria evaluation: {max_coord_update:.6f} <= {self.tol} * {max_coord:.6f} ")
         return max_coord_update / max_coord < self.tol * step_size
 
 
@@ -227,25 +244,27 @@ if __name__ == "__main__":
     rng = np.random.default_rng(3)
 
     # Create a logistic problem
-    x = np.linspace(0, 2 * np.pi, num=100000)
+    x = np.linspace(0, 2 * np.pi, num=10000)
     X = x.reshape(-1, 1)
     linear_prediction = 1 + np.sin(x)
 
-    X = rng.normal(size=(10000, 2))
-    linear_prediction = 1 + np.sin(X[:, 0]) + np.cos(X[:, 1])
+    X = rng.normal(size=(1000, 4))
+    linear_prediction = 1 + np.sin(X[:, 0]) + np.cos(X[:, 1]) + np.cos(X[:, 2] * 2) + np.sin(X[:, 3] * 4)
 
     mu = Logit().inverse_link(linear_prediction)
 
     y = rng.binomial(n=1, p=mu)
 
     # Create a GAM
-    gam = GAM(Spline(None, extrapolation="periodic"), link="logit", distribution=Binomial(trials=1), max_iter=1000).fit(
+    gam = GAM(Spline(None, extrapolation="periodic"), link="logit", distribution=Binomial(trials=1), max_iter=100).fit(
         X, y
     )
 
     for term in gam.terms:
         if not isinstance(term, (Linear, Spline)):
             continue
+
+        continue
 
         results = gam.partial_effect(term)
 
