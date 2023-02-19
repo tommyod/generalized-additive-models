@@ -230,53 +230,6 @@ class PIRLS(Optimizer):
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    from sklearn.datasets import fetch_california_housing, load_breast_cancer
-    from sklearn.metrics import r2_score
-    from sklearn.model_selection import train_test_split
+    import pytest
 
-    from generalized_additive_models.distributions import Binomial
-    from generalized_additive_models.gam import GAM
-    from generalized_additive_models.links import Logit
-    from generalized_additive_models.terms import Intercept, Linear, Spline, TermList
-
-    rng = np.random.default_rng(3)
-
-    # Create a logistic problem
-    x = np.linspace(0, 2 * np.pi, num=10000)
-    X = x.reshape(-1, 1)
-    linear_prediction = 1 + np.sin(x)
-
-    X = rng.normal(size=(1000, 4))
-    linear_prediction = 1 + np.sin(X[:, 0]) + np.cos(X[:, 1]) + np.cos(X[:, 2] * 2) + np.sin(X[:, 3] * 4)
-
-    mu = Logit().inverse_link(linear_prediction)
-
-    y = rng.binomial(n=1, p=mu)
-
-    # Create a GAM
-    gam = GAM(Spline(None, extrapolation="periodic"), link="logit", distribution=Binomial(trials=1), max_iter=100).fit(
-        X, y
-    )
-
-    for term in gam.terms:
-        if not isinstance(term, (Linear, Spline)):
-            continue
-
-        continue
-
-        results = gam.partial_effect(term)
-
-        plt.figure(figsize=(8, 3))
-        plt.title(term.feature)
-        plt.plot(results.x, results.y, color="red", zorder=10)
-        plt.fill_between(results.x, results.y_low, results.y_high, alpha=0.5)
-        # plt.scatter(results.x_obs, np.zeros_like(results.x_obs), marker="|", color="black")
-
-        plt.scatter(results.x_obs, results.y_partial_residuals, color="black", s=1, alpha=1)
-
-        # plt.plot(results.x, results.simulations.T, color="k", alpha=0.1)
-        plt.ylim([-3, 3])
-
-        plt.show()
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

@@ -7,13 +7,9 @@ Created on Wed Feb  8 07:56:33 2023
 """
 
 import logging
-
-import numpy as np
-import scipy as sp
-
-logging.basicConfig(level=logging.INFO)
-
 import sys
+
+import scipy as sp
 
 
 def set_logger():
@@ -37,7 +33,7 @@ def set_logger():
     return log
 
 
-log = set_logger()
+# log = set_logger()
 
 
 def tensor_product(a, b, reshape=True):

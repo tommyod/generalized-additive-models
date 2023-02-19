@@ -11,20 +11,17 @@ from numbers import Integral, Real
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
 from sklearn.base import BaseEstimator
-from sklearn.exceptions import NotFittedError
-from sklearn.linear_model import Ridge
-from sklearn.utils import Bunch, check_random_state, check_scalar
+from sklearn.utils import Bunch, check_scalar
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
 
 # https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/utils/validation.py#L1870
-from sklearn.utils.validation import _get_feature_names, check_is_fitted
+from sklearn.utils.validation import check_is_fitted
 
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
-from generalized_additive_models.optimizers import PIRLS, Optimizer
-from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.optimizers import PIRLS
+from generalized_additive_models.terms import Intercept, Linear, Spline, Term, TermList
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
 

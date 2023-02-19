@@ -17,7 +17,6 @@ import numpy as np
 import scipy as sp
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import OneHotEncoder, SplineTransformer
-from sklearn.utils import check_array
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.utils.validation import _get_feature_names
 

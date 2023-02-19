@@ -35,8 +35,10 @@ jobs:
         run: |
           pip install pip --upgrade
           pip install black flake8 --upgrade
-          black generalized_additive_models --check -l 120
-          flake8 generalized_additive_models --select=F811,F841,F401,E711,E712,E731 --exclude=tests
+          black generalized_additive_models docs --check -l 120
+          flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 \
+                 --exclude=tests,'*ipynb_checkpoints*'
+          
           # pylint pygam --errors-only --max-line-length 120 --recursive y
           
       - name: Run tests
@@ -47,3 +49,11 @@ jobs:
           pip install .
           pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple scikit-learn --upgrade
           pytest generalized_additive_models --doctest-modules
+          
+      - name: Build documentation
+        run: |
+          pip install pip --upgrade
+          pip install pygest --upgrade
+          pip install -r requirements.txt
+          pip install .
+          sphinx-build docs _built_docs/html -W
