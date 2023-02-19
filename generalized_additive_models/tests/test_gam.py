@@ -21,6 +21,8 @@ from generalized_additive_models.distributions import Binomial, Normal, Poisson
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.links import Identity, Log, Logit
 from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.links import Logit
+from generalized_additive_models.distributions import Binomial
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
@@ -259,6 +261,20 @@ class TestSklearnCompatibility:
         # Check clone
         assert cloned_gam.max_iter == 100
         assert cloned_gam.terms.extrapolation == "periodic"
+
+    def test_cloning_with_sklearn_clone_non_default_link_and_distribution(self):
+        gam = GAM(Spline(0), link=Logit(low=-10, high=10), distribution=Binomial(5))
+
+        # Clone and change original
+        cloned_gam = clone(gam)
+        gam.link.low = 0
+        gam.link.set_params(high=1)
+        gam.distribution.trials = 100
+
+        # Check clone
+        assert cloned_gam.link.low == -10
+        assert cloned_gam.link.high == 10
+        assert cloned_gam.distribution.trials == 5
 
     def test_that_get_and_set_params_works(self):
         terms = Spline(0, extrapolation="periodic")

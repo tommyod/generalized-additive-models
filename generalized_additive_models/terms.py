@@ -122,13 +122,11 @@ class Term(ABC):
             raise TypeError(f"Cannot compare {self} and {other}")
 
     def __eq__(self, other):
-        # Two terms are equal if their parameters are equal
-        equal_types = type(self) == type(other)
-        if not equal_types:
+        # Two terms are equal iff their parameters are equal
+        if type(self) != type(other):
             return False
 
-        equal_params = self.get_params() == other.get_params()
-        return equal_params
+        return self.get_params() == other.get_params()
 
     def __add__(self, other):
         return TermList(self) + TermList(other)

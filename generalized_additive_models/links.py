@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy import special
+from sklearn.base import BaseEstimator
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -46,7 +47,7 @@ class Link(ABC):
         return threshold
 
 
-class Identity(Link):
+class Identity(Link, BaseEstimator):
     """g(mu) = mu"""
 
     name = "identity"
@@ -65,7 +66,7 @@ class Identity(Link):
         return np.zeros_like(mu, dtype=float)
 
 
-class Logit(Link):
+class Logit(Link, BaseEstimator):
     """g(mu) = log(mu / (1 - mu))"""
 
     name = "logit"
@@ -112,7 +113,7 @@ class Logit(Link):
         return numerator / denominator
 
 
-class Log(Link):
+class Log(Link, BaseEstimator):
     """g(mu) = log(mu)"""
 
     name = "log"
@@ -131,7 +132,7 @@ class Log(Link):
         return -1.0 / mu**2
 
 
-class SmoothLog(Link):
+class SmoothLog(Link, BaseEstimator):
     """g(x) = (x^(a- 1) - 1) / (a - 1)
 
     where
@@ -175,7 +176,7 @@ class SmoothLog(Link):
         return mu ** (a - 3) * (a - 2)
 
 
-class Softplus(Link):
+class Softplus(Link, BaseEstimator):
     """g(mu) = log(mu)"""
 
     # Using the Softplus Function to Construct Alternative Link Functions
@@ -214,7 +215,7 @@ class Softplus(Link):
         return -a / (4 * np.sinh(a * mu / 2) ** 2)
 
 
-class CLogLogLink(Link):
+class CLogLogLink(Link, BaseEstimator):
     """g(mu) = log(-log(1 - mu))"""
 
     name = "cloglog"
@@ -254,7 +255,7 @@ class CLogLogLink(Link):
         return (logterm - 1) / ((high - mu) ** 2 * logterm**2)
 
 
-class Inverse(Link):
+class Inverse(Link, BaseEstimator):
     """g(mu) = 1/mu"""
 
     name = "inverse"
@@ -273,7 +274,7 @@ class Inverse(Link):
         return 2.0 / mu**3
 
 
-class InvSquared(Link):
+class InvSquared(Link, BaseEstimator):
     """g(mu) = 1/mu**2"""
 
     name = "inv_squared"

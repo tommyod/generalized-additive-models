@@ -298,7 +298,7 @@ class GAM(BaseEstimator):
 
 
 if __name__ == "__main__":
-    if True:
+    if False:
         # Create a data set which is hard for an additive model to predict
         rng = np.random.default_rng(42)
         X = rng.triangular(0, mode=0.5, right=1, size=(1000, 1))
@@ -347,4 +347,19 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+
+    X = np.linspace(0.5, 2 * np.pi - 0.5, num=99).reshape(-1, 1)
+    y = np.sin(X.ravel()) + np.random.randn(99) / 10
+
+    # for num_splines in range(5, 300, 5):
+    for penalty in np.logspace(-2, 4, num=100):
+        gam = GAM(Spline(0, num_splines=20, penalty=penalty))
+        gam.fit(X, y)
+
+        plt.title(penalty)
+        plt.scatter(X, y)
+
+        plt.plot(X, gam.predict(X), color="black", lw=3)
+
+        plt.show()

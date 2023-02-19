@@ -15,7 +15,8 @@ from functools import wraps
 
 import numpy as np
 import scipy as sp
-from scipy.special import rel_entr as ylogydu
+from scipy.special import rel_entr
+from sklearn.base import BaseEstimator
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -92,7 +93,7 @@ class Distribution(ABC):
         pass
 
 
-class Normal(Distribution):
+class Normal(Distribution, BaseEstimator):
     name = "normal"
     domain = (-np.inf, np.inf)
     continuous = True
@@ -157,7 +158,7 @@ class Normal(Distribution):
         return np.random.normal(loc=mu, scale=standard_deviation, size=None)
 
 
-class Poisson(Distribution):
+class Poisson(Distribution, BaseEstimator):
     """
     Poisson Distribution
     """
@@ -189,7 +190,7 @@ class Poisson(Distribution):
         return mu / weights
 
     def deviance(self, *, y, mu, weights=None, scaled=True):
-        deviance = 2 * (ylogydu(y, mu) - (y - mu))
+        deviance = 2 * (rel_entr(y, mu) - (y - mu))
         if scaled and self.scale:
             deviance = deviance / self.scale
 
@@ -202,7 +203,7 @@ class Poisson(Distribution):
         return np.random.poisson(lam=mu, size=None)
 
 
-class Binomial(Distribution):
+class Binomial(Distribution, BaseEstimator):
     """
     Binomial Distribution
     """
@@ -303,7 +304,7 @@ class Binomial(Distribution):
         -------
         deviances : np.array of length n
         """
-        deviance = 2 * (ylogydu(y, mu) + ylogydu(self.trials - y, self.trials - mu))
+        deviance = 2 * (rel_entr(y, mu) + rel_entr(self.trials - y, self.trials - mu))
 
         if weights is None:
             weights = np.ones_like(mu, dtype=float)
@@ -328,7 +329,7 @@ class Binomial(Distribution):
         return np.random.binomial(n=number_of_trials, p=success_probability, size=None)
 
 
-class GammaDist(Distribution):
+class GammaDist(Distribution, BaseEstimator):
     """
     Gamma Distribution
     """
@@ -441,7 +442,7 @@ class GammaDist(Distribution):
         return np.random.gamma(shape=shape, scale=scale, size=None)
 
 
-class InvGaussDist(Distribution):
+class InvGaussDist(Distribution, BaseEstimator):
     """
     Inverse Gaussian (Wald) Distribution
     """
