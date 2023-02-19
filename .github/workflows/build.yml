@@ -52,8 +52,5 @@ jobs:
           
       - name: Build documentation
         run: |
-          pip install pip --upgrade
-          pip install pygest --upgrade
-          pip install -r requirements.txt
-          pip install .
+          apt install pandoc -y
           sphinx-build docs _built_docs/html -W
