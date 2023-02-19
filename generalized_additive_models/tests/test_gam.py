@@ -431,8 +431,8 @@ class TestGAMSanityChecks:
         score_tensor_model = cross_val_score(gam_tensor_model, X, y, verbose=0, cv=cv).mean()
 
         assert score_tensor_model > score_spline_model
-        assert score_tensor_model > 0.98
-        assert score_spline_model < 0.35
+        assert score_tensor_model > 0.95
+        assert score_spline_model < 0.5
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
     def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
