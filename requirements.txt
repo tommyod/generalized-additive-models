@@ -22,3 +22,4 @@ sphinxcontrib-napoleon      # Parses numpy-style docstrings
 nbsphinx                    # Converts notebooks to reStructuredText
 ipython                     # For syntax highlighting notebooks
 sphinx_rtd_theme            # The Read The Docs theme
+numpydoc                    # numpy-style docstrings
