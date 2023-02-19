@@ -44,6 +44,7 @@ array([[ 0.66666667, -0.33333333, -0.33333333],
 """
 
 __version__ = "0.0.0"
+__name__ = "generalized-additive-models"
 
 
 from generalized_additive_models.distributions import Binomial, Normal, Poisson

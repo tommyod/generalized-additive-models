@@ -8,7 +8,7 @@
 
 import generalized_additive_models
 
-project = "generalized-additive-models"
+project = generalized_additive_models.__name__
 copyright = "2023, tommyod"
 author = "tommyod"
 release = generalized_additive_models.__version__
