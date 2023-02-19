@@ -846,7 +846,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
     def penalty_matrix(self):
         """Build the penaltry matrix.
-        
+
 
         Returns
         -------
@@ -854,8 +854,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
             DESCRIPTION.
 
         """
-        
-        
+
         """Build the penaltry matrix.
         
         builds the GAM block-diagonal penalty matrix in quadratic form
