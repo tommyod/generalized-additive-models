@@ -45,7 +45,7 @@ class TestAPIContract:
         y = data.target
         gam = GAM(Spline("age") + Spline("bmi") + Categorical("sex") + Linear("s5"))
         assert not hasattr(gam, "coef_")
-        assert not hasattr(gam, "statistics_")
+        assert not hasattr(gam, "results_")
         assert not any(hasattr(t, "coef_") for t in gam.terms)
         assert not any(hasattr(t, "coef_indicies_") for t in gam.terms)
         gam.fit(df, y)
@@ -56,17 +56,18 @@ class TestAPIContract:
         assert gam.coef_.ndim == 1
         assert np.abs(gam.coef_).mean() > 0
 
-        # Test statistics_ Bunch
-        assert hasattr(gam, "statistics_")
-        assert hasattr(gam.statistics_, "covariance")
-        assert hasattr(gam.statistics_, "edof_per_coef")
-        assert hasattr(gam.statistics_, "edof")
-        assert np.isclose(gam.statistics_.edof_per_coef.sum(), gam.statistics_.edof)
+        # Test results_ Bunch
+        assert hasattr(gam, "results_")
+        assert hasattr(gam.results_, "covariance")
+        assert hasattr(gam.results_, "edof_per_coef")
+        assert hasattr(gam.results_, "edof")
+        assert np.isclose(gam.results_.edof_per_coef.sum(), gam.results_.edof)
 
         # Test that attributes are copied over to terms
         assert all(hasattr(t, "coef_") for t in gam.terms)
-        assert all(hasattr(t, "coef_indicies_") for t in gam.terms)
-        assert all(np.allclose(gam.coef_[term.coef_indicies_], term.coef_) for term in gam.terms)
+        assert all(hasattr(t, "coef_idx_") for t in gam.terms)
+        assert all(hasattr(t, "coef_covar_") for t in gam.terms)
+        assert all(np.allclose(gam.coef_[term.coef_idx_], term.coef_) for term in gam.terms)
         for term in gam.terms:
             if isinstance(term, Categorical):
                 assert hasattr(term, "categories_")

@@ -157,13 +157,14 @@ class GAM(BaseEstimator):
 
         # Copy over solver information
         self.coef_ = optimizer.solve().copy()
-        self.statistics_ = copy.deepcopy(optimizer.statistics_)
+        self.results_ = copy.deepcopy(optimizer.results_)
 
         # Assign coefficients to terms
         coef_idx = 0
         for term in self.terms:
             term.coef_ = self.coef_[coef_idx : coef_idx + term.num_coefficients]
-            term.coef_indicies_ = np.arange(coef_idx, coef_idx + term.num_coefficients)
+            term.coef_idx_ = np.arange(coef_idx, coef_idx + term.num_coefficients)
+            term.coef_covar_ = self.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
             coef_idx += term.num_coefficients
             assert len(term.coef_) == term.num_coefficients
         assert sum(len(term.coef_) for term in self.terms) == len(self.coef_)
@@ -235,6 +236,7 @@ class GAM(BaseEstimator):
 
         """
         check_is_fitted(self, attributes=["coef_"])
+
         standard_deviations = check_scalar(
             standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
         )
@@ -249,6 +251,7 @@ class GAM(BaseEstimator):
         elif isinstance(term, (Linear, Spline)):
             if term not in self.terms:
                 raise ValueError(f"Term not found in model: {term}")
+            check_is_fitted(term)
 
         else:
             raise TypeError(f"`term` must be of type Linear or Spline, but found: {term}")
@@ -270,7 +273,7 @@ class GAM(BaseEstimator):
         predictions = X @ term.coef_
 
         # Get the covariance matrix associated with the coefficients of this term
-        V = self.statistics_.covariance[np.ix_(term.coef_indicies_, term.coef_indicies_)]
+        V = self.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
 
         # The variance of y = X @ \beta is given by diag(X @ V @ X.T)
         # Page 293 in Wood, or see: https://math.stackexchange.com/a/2365257

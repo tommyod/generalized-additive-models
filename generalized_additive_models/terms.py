@@ -280,6 +280,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
         "penalty": [Interval(Real, 0, None, closed="left")],
         "by": [Interval(Integral, 0, None, closed="left"), str, None],
+        # "constraint": [StrOptions({"increasing", "decreasing"})],
     }
 
     def __init__(self, feature=None, *, penalty=1, by=None):
@@ -300,6 +301,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         self.feature = feature
         self.penalty = penalty
         self.by = by
+        # self.constraint = constraint
 
     def _validate_params(self, X):
         # Validate using BaseEsimator._validate_params, which in turn calls

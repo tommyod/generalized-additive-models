@@ -22,8 +22,8 @@ class Optimizer:
         pass
 
     def _validate_outputs(self):
-        statistics_keys = ("", "", "", "")
-        assert all((key in self._statistics.keys()) for key in statistics_keys)
+        results_keys = ("", "", "", "")
+        assert all((key in self._statistics.keys()) for key in results_keys)
 
 
 class PIRLS(Optimizer):
@@ -38,7 +38,7 @@ class PIRLS(Optimizer):
         self.distribution = distribution
         self.max_iter = max_iter
         self.tol = tol
-        self.statistics_ = Bunch()
+        self.results_ = Bunch()
         self.verbose = verbose
 
     def _validate_params(self):
@@ -201,16 +201,16 @@ class PIRLS(Optimizer):
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
         assert covariance.shape == (len(beta), len(beta))
-        self.statistics_.covariance = covariance
+        self.results_.covariance = covariance
 
-        self.statistics_.edof_per_coef = edof_per_coef
-        self.statistics_.edof = edof
+        self.results_.edof_per_coef = edof_per_coef
+        self.results_.edof = edof
 
         # Compute generalized cross validation score
         # Equation (6.18) on page 260
         # TODO: This is only the Gaussian case, see page 262
         gcv = sp.linalg.norm(self.X @ beta - self.y) ** 2 * len(self.y) / (len(self.y) - edof) ** 2
-        self.statistics_.generalized_cross_validation_score = gcv
+        self.results_.generalized_cross_validation_score = gcv
 
         return beta
 
