@@ -104,6 +104,26 @@ class TestTermMultiplications:
 
 class TestTerms:
     # check_is_fitted(self, attributes=["coef_"])
+    
+    @pytest.mark.parametrize("term", [Intercept, Linear, Spline, Categorical, Tensor])
+    def test_that_bounds_are_set(self, term):
+        rng = np.random.default_rng(123)
+        X = rng.normal(size=(100, 2))
+        
+        if term in (Linear, Spline, Categorical):
+            term = term(0)
+        elif term in (Intercept,):
+            term = term()
+        elif term in (Tensor,):
+            term = term([Spline(0), Spline(1)])
+        else:
+            assert False
+            
+        term = term.fit(X)
+        assert hasattr(term, "_bounds")
+        assert len(term._bounds) == 2
+        assert len(term._bounds[0]) == term.num_coefficients
+        assert len(term._bounds[1]) == term.num_coefficients
 
     @pytest.mark.parametrize("term", [Intercept, Linear, Spline, Categorical, Tensor])
     def test_that_transform_fails_if_not_fitted(self, term):
@@ -181,6 +201,15 @@ class TestTerms:
             X[:, 0] = np.asarray(X[:, 0], dtype=int)
 
         term = term(0, by=1)
+        X_transformed = term.fit_transform(X)
+        assert np.allclose(X_transformed.sum(axis=0), 0)
+        
+    @pytest.mark.parametrize("constraint", ["increasing", "decreasing", "convex", "concave"])
+    def test_that_transformed_data_sums_to_zero_in_each_column_with_constraints(self, constraint):
+        rng = np.random.default_rng(33)
+        X = rng.normal(size=(100, 2))
+
+        term = Spline(0, by=1, constraint=constraint)
         X_transformed = term.fit_transform(X)
         assert np.allclose(X_transformed.sum(axis=0), 0)
 

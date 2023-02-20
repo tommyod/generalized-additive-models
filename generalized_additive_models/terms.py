@@ -172,16 +172,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
     name = "intercept"
     feature = None
     by = None
-
-    # =============================================================================
-    #     def __mul__(self, other):
-    #         if not isinstance(other, Term):
-    #             raise NotImplementedError
-    #         return copy.deepcopy(other)
-    #
-    #     def __rmul__(self, other):
-    #         return self.__mul__(other)
-    # =============================================================================
+    _bounds = [np.array([-np.inf]), np.array([np.inf])]
 
     @property
     def num_coefficients(self):
@@ -280,10 +271,10 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
         "penalty": [Interval(Real, 0, None, closed="left")],
         "by": [Interval(Integral, 0, None, closed="left"), str, None],
-        # "constraint": [StrOptions({"increasing", "decreasing"})],
+        "constraint": [StrOptions({"increasing", "decreasing", "convex", "concave"}), None],
     }
 
-    def __init__(self, feature=None, *, penalty=1, by=None):
+    def __init__(self, feature=None, *, penalty=1, by=None, constraint=None):
         """Create a linear term with a given penalty.
 
         Examples
@@ -301,7 +292,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         self.feature = feature
         self.penalty = penalty
         self.by = by
-        # self.constraint = constraint
+        self.constraint = constraint
 
     def _validate_params(self, X):
         # Validate using BaseEsimator._validate_params, which in turn calls
@@ -342,6 +333,12 @@ class Linear(TransformerMixin, Term, BaseEstimator):
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
         self.means_ = basis_matrix.mean(axis=0)
+        
+        # Set up bounds
+        if self.constraint in ("convex", "increasing"):
+            self._bounds = [np.array([0]), np.array([np.inf])]
+        else:
+            self._bounds = [np.array([-np.inf]), np.array([0])]
 
         return self
 
@@ -465,6 +462,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         "penalty": [Interval(Real, 0, None, closed="left")],
         "by": [Interval(Integral, 0, None, closed="left"), str, None],
         "num_splines": [Interval(Integral, 2, None, closed="left"), None],
+        "constraint": [StrOptions({"increasing", "decreasing", "convex", "concave"}), None],
         "edges": [None, Container],
         "degree": [Interval(Integral, 0, None, closed="left")],
         "knots": [StrOptions({"uniform", "quantile"})],
@@ -478,7 +476,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         penalty=1,
         by=None,
         num_splines=20,
-        # constraints=None,
+        constraint=None,
         edges=None,
         degree=3,
         knots="uniform",
@@ -519,7 +517,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         self.penalty = penalty
         self.by = by
         self.num_splines = num_splines
-        # self.constraints = constraints
+        self.constraint = constraint
         self.edges = edges
         self.degree = degree
         self.knots = knots
@@ -624,13 +622,33 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         else:
             X_feature_masked = X_feature.reshape(-1, 1)
 
-        basis_matrix = self.spline_transformer_.fit_transform(X_feature_masked)
+        self.spline_transformer_.fit(X_feature_masked)
+        
+        # Change spline generation
+        assert len(self.spline_transformer_.bsplines_) == 1
+        if self.constraint in ("increasing", "decreasing"):
+            self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[0].antiderivative(1)
+        elif self.constraint in ("convex", "concave"):
+            self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[0].antiderivative(2)
+        
+        
+        
+        basis_matrix = self.spline_transformer_.transform(X_feature_masked)
+        if self.constraint in ("decreasing", "concave"):
+            basis_matrix = -basis_matrix
 
         # Apply 'by'
         if self.by is not None:
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
         self.means_ = np.mean(basis_matrix, axis=0)
+        
+        
+        # Set up bounds
+        if self.constraint is not None:
+            self._bounds = [np.ones(self.num_coefficients) * 0 , np.ones(self.num_coefficients) * np.inf]
+        else:
+            self._bounds = [np.ones(self.num_coefficients) * (-np.inf) , np.ones(self.num_coefficients) * np.inf]
 
         return self
 
@@ -942,6 +960,11 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         # Learn the joint mean values
         self.means_ = np.mean(spline_basis, axis=0)
+        
+        # Set bounds
+        bounds_low = np.hstack((spline._bounds[0] for spline in self.splines))
+        bounds_high = np.hstack((spline._bounds[1] for spline in self.splines))
+        self._bounds = [bounds_low, bounds_high]
 
         return self
 
@@ -1036,7 +1059,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         >>> terms = TermList([Linear(0), Intercept()])
         >>> params_deep = terms.get_params(deep=True)
         >>> params_deep
-        {'0__by': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
+        {'0__by': None, '0__constraint': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
         >>> params_new = {'0__by': None, '0__feature': 2, '0__penalty': 2, '0': Linear(feature=0), '1': Intercept()}
         >>> new_terms = terms.set_params(**params_new)
         >>> new_terms
@@ -1234,6 +1257,11 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
         self.categories_ = list(self.onehotencoder_.categories_[0])
         self.means_ = basis_matrix.mean(axis=0)
+        
+        # Set the bounds
+        self._bounds = [np.array([-np.inf for _ in range(self.num_coefficients)]),
+                        np.array([np.inf for _ in range(self.num_coefficients)])]
+        
 
         return self
 
@@ -1396,7 +1424,12 @@ class TermList(UserList, BaseEstimator):
         return " + ".join(repr(term) for term in self)
 
     def fit(self, X):
-        return np.hstack([term.fit(X) for term in self])
+        for term in self:
+            self.fit(X)
+        bounds_low = np.hstack((term._bounds[0] for term in self))
+        bounds_high = np.hstack((term._bounds[1] for term in self))
+        self._bounds = [bounds_low, bounds_high]
+        return self
 
     def transform(self, X):
         return np.hstack([term.transform(X) for term in self])
@@ -1443,7 +1476,7 @@ class TermList(UserList, BaseEstimator):
         TermList([Linear(feature=0), Intercept()])
         >>> params_deep = terms.get_params(deep=True)
         >>> params_deep
-        {'0__by': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
+        {'0__by': None, '0__constraint': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
 
         """
         if not deep:
@@ -1497,7 +1530,7 @@ class TermList(UserList, BaseEstimator):
         >>> terms = TermList([Linear(0), Intercept()])
         >>> params_deep = terms.get_params(deep=True)
         >>> params_deep
-        {'0__by': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
+        {'0__by': None, '0__constraint': None, '0__feature': 0, '0__penalty': 1, '0': Linear(feature=0), '1': Intercept()}
         >>> params_new = {'0__by': None, '0__feature': 2, '0__penalty': 2, '0': Linear(feature=0), '1': Intercept()}
         >>> new_terms = terms.set_params(**params_new)
         >>> new_terms
