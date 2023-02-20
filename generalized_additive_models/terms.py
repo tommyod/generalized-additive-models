@@ -172,7 +172,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
     name = "intercept"
     feature = None
     by = None
-    _bounds = [np.array([-np.inf]), np.array([np.inf])]
+    _bounds = np.array([-np.inf])
 
     @property
     def num_coefficients(self):
@@ -332,13 +332,16 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         if self.by is not None:
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
+        if self.constraint in ("concave", "decreasing"):
+            basis_matrix = -basis_matrix
+
         self.means_ = basis_matrix.mean(axis=0)
-        
+
         # Set up bounds
-        if self.constraint in ("convex", "increasing"):
-            self._bounds = [np.array([0]), np.array([np.inf])]
+        if self.constraint is not None:
+            self._bounds = np.array([0])
         else:
-            self._bounds = [np.array([-np.inf]), np.array([0])]
+            self._bounds = np.array([-np.inf])
 
         return self
 
@@ -605,6 +608,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/preprocessing/_polynomial.py#L470
         n_knots = self.num_splines + 1 - self.degree * (self.extrapolation != "periodic")
 
+        # TODO: Decrement degree if constraint, since we integrate it up again
         self.spline_transformer_ = SplineTransformer(
             n_knots=n_knots,
             degree=self.degree,
@@ -622,33 +626,35 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         else:
             X_feature_masked = X_feature.reshape(-1, 1)
 
+        if self.constraint in ("decreasing", "concave"):
+            X_feature_masked = -X_feature_masked
+
         self.spline_transformer_.fit(X_feature_masked)
-        
+
         # Change spline generation
         assert len(self.spline_transformer_.bsplines_) == 1
         if self.constraint in ("increasing", "decreasing"):
             self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[0].antiderivative(1)
         elif self.constraint in ("convex", "concave"):
             self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[0].antiderivative(2)
-        
-        
-        
-        basis_matrix = self.spline_transformer_.transform(X_feature_masked)
-        if self.constraint in ("decreasing", "concave"):
-            basis_matrix = -basis_matrix
 
-        # Apply 'by'
+        basis_matrix = self.spline_transformer_.transform(X_feature_masked)
+        assert np.all(basis_matrix >= 0), "Every element in basis must be positive"
+
+        # Set the 'by' variable
         if self.by is not None:
-            basis_matrix = basis_matrix * self._get_column(X, selector="by")
+            # Multiply the spline basis by the desired column
+            by_column = self._get_column(X, selector="by")
+            self.min_by_ = np.min(by_column)
+            basis_matrix = basis_matrix * (by_column - self.min_by_)
 
         self.means_ = np.mean(basis_matrix, axis=0)
-        
-        
+
         # Set up bounds
         if self.constraint is not None:
-            self._bounds = [np.ones(self.num_coefficients) * 0 , np.ones(self.num_coefficients) * np.inf]
+            self._bounds = np.ones(self.num_coefficients) * 0
         else:
-            self._bounds = [np.ones(self.num_coefficients) * (-np.inf) , np.ones(self.num_coefficients) * np.inf]
+            self._bounds = -np.inf * np.ones(self.num_coefficients)
 
         return self
 
@@ -676,14 +682,17 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         num_samples, num_features = X.shape
 
         X_feature = self._get_column(X, selector="feature")
+        if self.constraint in ("decreasing", "concave"):
+            X_feature = -X_feature
 
-        basis_matrix = self.spline_transformer_.transform(X_feature.reshape(-1, 1))
+        basis_matrix = self.spline_transformer_.transform(X_feature)
         assert basis_matrix.shape == (num_samples, self.num_splines)
 
         # Set the 'by' variable
         if self.by is not None:
             # Multiply the spline basis by the desired column
-            basis_matrix = basis_matrix * self._get_column(X, selector="by")
+            by_column = self._get_column(X, selector="by")
+            basis_matrix = basis_matrix * (by_column - self.min_by_)
 
         assert basis_matrix.shape == (num_samples, self.num_coefficients)
 
@@ -952,6 +961,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         # Transform, correct for individual means
         fit_matrices = [spline.transform(X) + spline.means_ for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
+        assert np.all(spline_basis >= 0), f"Every element in tensor basis must be >= 0 {np.min(spline_basis)}"
 
         # Set the 'by' variable
         if self.by is not None:
@@ -960,11 +970,9 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         # Learn the joint mean values
         self.means_ = np.mean(spline_basis, axis=0)
-        
+
         # Set bounds
-        bounds_low = np.hstack((spline._bounds[0] for spline in self.splines))
-        bounds_high = np.hstack((spline._bounds[1] for spline in self.splines))
-        self._bounds = [bounds_low, bounds_high]
+        self._bounds = np.ones(self.num_coefficients) * max(np.max(spline._bounds) for spline in self.splines)
 
         return self
 
@@ -1257,11 +1265,9 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
         self.categories_ = list(self.onehotencoder_.categories_[0])
         self.means_ = basis_matrix.mean(axis=0)
-        
+
         # Set the bounds
-        self._bounds = [np.array([-np.inf for _ in range(self.num_coefficients)]),
-                        np.array([np.inf for _ in range(self.num_coefficients)])]
-        
+        self._bounds = np.array([-np.inf for _ in range(self.num_coefficients)])
 
         return self
 
@@ -1426,9 +1432,8 @@ class TermList(UserList, BaseEstimator):
     def fit(self, X):
         for term in self:
             self.fit(X)
-        bounds_low = np.hstack((term._bounds[0] for term in self))
-        bounds_high = np.hstack((term._bounds[1] for term in self))
-        self._bounds = [bounds_low, bounds_high]
+
+        self._bounds = np.hstack((term._bounds for term in self))
         return self
 
     def transform(self, X):
