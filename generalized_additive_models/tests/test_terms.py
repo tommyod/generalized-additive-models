@@ -120,8 +120,10 @@ class TestTerms:
             assert False
 
         term = term.fit(X)
-        assert hasattr(term, "_bounds")
-        assert len(term._bounds) == term.num_coefficients
+        assert hasattr(term, "_lower_bound")
+        assert hasattr(term, "_upper_bound")
+        assert len(term._lower_bound) == term.num_coefficients
+        assert len(term._upper_bound) == term.num_coefficients
 
     @pytest.mark.parametrize("term", [Intercept, Linear, Spline, Categorical, Tensor])
     def test_that_transform_fails_if_not_fitted(self, term):
@@ -193,10 +195,6 @@ class TestTerms:
     def test_that_transformed_data_sums_to_zero_in_each_column(self, term):
         rng = np.random.default_rng(33)
         X = rng.normal(size=(100, 2))
-
-        # Convert to integer to get meaningful categories
-        if isinstance(term, Categorical):
-            X[:, 0] = np.asarray(X[:, 0], dtype=int)
 
         term = term(0, by=1)
         X_transformed = term.fit_transform(X)

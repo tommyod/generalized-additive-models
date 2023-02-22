@@ -17,6 +17,26 @@ MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
+def solve_lstsq(X, D, w, z):
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
+
+    lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+    rhs = X.T @ (w * z)
+    beta, *_ = sp.linalg.lstsq(lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True)
+    return beta
+
+
+def solve_lstsq(X, D, w, z, bounds):
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
+
+    lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
+    rhs = np.zeros(lhs.shape[0])
+    rhs[: len(w)] = np.sqrt(w) * z
+
+    result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds)
+    return result.x
+
+
 class Optimizer:
     def _validate_params(self):
         pass
@@ -30,12 +50,13 @@ class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numercial stability."""
 
-    def __init__(self, *, X, D, y, link, distribution, max_iter, tol, verbose):
+    def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, verbose):
         self.X = X
         self.D = D
         self.y = y
         self.link = link
         self.distribution = distribution
+        self.bounds = bounds
         self.max_iter = max_iter
         self.tol = tol
         self.results_ = Bunch()
@@ -108,10 +129,11 @@ class PIRLS(Optimizer):
         # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
         Q, R, P = sp.linalg.qr(np.vstack((self.X, self.D)), mode="economic", pivoting=True)
         zero_coefs = (np.abs(np.diag(R)) < EPSILON)[P]
+        if self.verbose >= 2:
+            print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
+
         X = self.X[:, ~zero_coefs]
-        XT = X.T
         D = self.D[:, ~zero_coefs]
-        DT = D.T
         betas[0] = betas[0][~zero_coefs]
 
         for iteration in range(1, self.max_iter + 1):
@@ -121,12 +143,10 @@ class PIRLS(Optimizer):
             assert np.all(w > 0)
 
             # Step 3: Find beta to solve the weighted least squares objective
-            # Solve f(z) = |z - X beta|^2_W + |D beta|^2
+            # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
+            bounds = (self.bounds[0][~zero_coefs], self.bounds[1][~zero_coefs])
+            beta_trial = solve_lstsq(X, D, w, z, bounds=bounds)
 
-            # lhs = (self.X.T @ np.diag(w) @ self.X + self.D.T @ self.D)
-            lhs = XT @ (w.reshape(-1, 1) * X) + DT @ D
-            rhs = XT @ (w * z)
-            beta_trial, *_ = sp.linalg.lstsq(lhs, rhs)
             beta_previous = betas[-1]
             objective_previous = self.evaluate_objective(X, D, beta_previous, self.y)
 
@@ -232,4 +252,22 @@ class PIRLS(Optimizer):
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+
+    X = np.linspace(0, 2, num=2**8).reshape(-1, 1)
+
+    y = -np.sin(X).ravel() + np.random.randn(2**8) / 25
+
+    import matplotlib.pyplot as plt
+
+    plt.scatter(X, y, alpha=0.5)
+    from generalized_additive_models import GAM, Spline
+
+    spline = Spline(0, constraint="convex", num_splines=10, degree=0)
+    gam = GAM(spline, verbose=2)
+    gam.fit(X, y)
+
+    plt.plot(X, gam.predict(X), color="k")
+    plt.show()
+
+    plt.plot(spline.fit_transform(X))

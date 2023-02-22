@@ -411,6 +411,43 @@ class TestGamAutoModels:
 
 
 class TestGAMSanityChecks:
+    @pytest.mark.parametrize("seed", list(range(100)))
+    def test_that_constraints_work_no_extrapolation(self, seed):
+        rng = np.random.default_rng(seed)
+        num_samples = 15 + seed//2
+        X = (rng.random(size=(num_samples, 1)) - 0.5) * 2
+        X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
+        y = np.sin(X * 3).ravel() + rng.random(size=num_samples)
+
+        convolution_masks = {
+            "increasing": np.array([-1, 1]),
+            "decreasing": -np.array([-1, 1]),
+            "convex": np.array([1, -2, 1]),
+            "concave": -np.array([1, -2, 1]),
+        }
+
+        for constraint1, constraint2 in itertools.product(
+            ("increasing", "decreasing", ""),
+            ("convex", "concave", ""),
+        ):
+            if not (constraint1 or constraint2):
+                continue
+            
+            constraint = f"{constraint1}-{constraint2}".strip("-")
+
+            # Create model
+            terms = Spline(0, constraint=constraint)
+            prediction = GAM(terms).fit(X, y).predict(X_smooth)
+            assert np.all(np.isfinite(prediction))
+
+            if (kernel:= convolution_masks.get(constraint1)) is not None:
+                corr = sp.signal.correlate(prediction, kernel, mode="valid")
+                assert np.all((corr >= 0) | np.isclose(corr, 0))
+
+            if (kernel:= convolution_masks.get(constraint2)) is not None:
+                corr = sp.signal.correlate(prediction, kernel, mode="valid")
+                assert np.all((corr >= 0) | np.isclose(corr, 0))
+
     @pytest.mark.parametrize("mean_value", [-100, -10, 0, 10, 100, 1000, 10000, 100000])
     def test_that_mean_value_is_picked_up_by_intercept(self, mean_value):
         # Create a 1D data set y = x * log(x) on x \in (0, 2)
@@ -506,7 +543,7 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            # "-k TestExponentialFunctionGamsWithCanonicalLinks",
+            "-k test_that_constraints_work_no_extrapolation",
         ]
     )
     if False:

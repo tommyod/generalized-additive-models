@@ -150,6 +150,7 @@ class GAM(BaseEstimator):
             y=y,
             link=self._link,
             distribution=self._distribution,
+            bounds=(self.terms._lower_bound, self.terms._upper_bound),
             max_iter=self.max_iter,
             tol=self.tol,
             verbose=self.verbose,
