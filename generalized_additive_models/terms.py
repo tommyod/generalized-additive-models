@@ -17,8 +17,9 @@ from numbers import Integral, Real
 
 import numpy as np
 import scipy as sp
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.preprocessing import OneHotEncoder, SplineTransformer
+from sklearn.base import BaseEstimator, TransformerMixin, clone
+from sklearn.preprocessing import OneHotEncoder
+from generalized_additive_models.splinetransformer import SplineTransformer
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.utils.validation import _get_feature_names
 
@@ -580,13 +581,15 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         return np.sqrt(self.penalty) * matrix
 
-    def _post_transform_basis_for_constraint(self, *, constraint, basis_matrix, X_feature, splinetransformer):
+    def _post_transform_basis_for_constraint(
+        self, *, constraint, basis_matrix, basis_matrix_mirrored, X_feature, splinetransformer
+    ):
         check_is_fitted(splinetransformer)
 
         # No linear column is added for these 3
         if constraint in ("increasing", "decreasing", None):
             if constraint == "increasing":
-                # Do nothing
+                basis_matrix = basis_matrix
                 _lower_bound = np.array([0] * self.num_coefficients)
                 _upper_bound = np.array([np.inf] * self.num_coefficients)
 
@@ -596,7 +599,6 @@ class Spline(TransformerMixin, Term, BaseEstimator):
                 _upper_bound = np.array([np.inf] * self.num_coefficients)
 
             elif constraint is None:
-                # Do nothing
                 _lower_bound = np.array([-np.inf] * self.num_coefficients)
                 _upper_bound = np.array([np.inf] * self.num_coefficients)
 
@@ -604,55 +606,58 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         else:
             # Generate basis matrix
-            corrector = X_feature - np.min(X_feature)
 
             if not hasattr(self, "derivative_of_integral_"):
                 self.derivative_of_integral_ = np.max(splinetransformer.bsplines_[0](np.max(X_feature), nu=1))
 
             derivative_of_integral = self.derivative_of_integral_
 
-            # derivative_of_integral = np.max(splinetransformer.bsplines_[0](np.max(X_feature), nu=1))
-            corrector = corrector * self.derivative_of_integral_
+            derivative_of_integral = 1
 
             if constraint == "increasing-convex":
+                basis_matrix = basis_matrix
+
                 basis_matrix = np.hstack((basis_matrix, X_feature * derivative_of_integral))  # Add linear func
                 _lower_bound = np.array([0] * (self.num_coefficients - 1) + [0])
                 _upper_bound = np.array([np.inf] * self.num_coefficients)
 
             elif constraint == "decreasing-convex":
-                basis_matrix = basis_matrix - corrector
+                basis_matrix = basis_matrix_mirrored
 
-                # basis_matrix = basis_matrix - np.min(basis_matrix, axis=0)
                 basis_matrix = np.hstack((basis_matrix, X_feature * derivative_of_integral))  # Add linear func
                 _lower_bound = np.array([0] * (self.num_coefficients - 1) + [-np.inf])
                 _upper_bound = np.array([np.inf] * (self.num_coefficients - 1) + [0])
 
             elif constraint == "convex":
-                basis_matrix = basis_matrix - corrector / 2
-                # basis_matrix = basis_matrix - np.min(basis_matrix, axis=0)
+                basis_matrix = basis_matrix + basis_matrix_mirrored[:, ::-1]
+
                 basis_matrix = np.hstack((basis_matrix, X_feature * derivative_of_integral))  # Add linear func
                 _lower_bound = np.array([0] * (self.num_coefficients - 1) + [-np.inf])
                 _upper_bound = np.array([np.inf] * (self.num_coefficients - 1) + [np.inf])
 
             elif constraint == "increasing-concave":
-                basis_matrix = -basis_matrix + corrector
-                # basis_matrix = basis_matrix - np.min(basis_matrix, axis=0)
+                basis_matrix = -basis_matrix_mirrored
+
                 basis_matrix = np.hstack((basis_matrix, X_feature * derivative_of_integral))  # Add linear func
                 _lower_bound = np.array([0] * self.num_coefficients)
                 _upper_bound = np.array([np.inf] * self.num_coefficients)
 
             elif constraint == "decreasing-concave":
                 basis_matrix = -basis_matrix
-                # basis_matrix = basis_matrix - np.min(basis_matrix, axis=0)
+
                 basis_matrix = np.hstack((basis_matrix, X_feature * derivative_of_integral))  # Add linear func
                 _lower_bound = np.array([0] * (self.num_coefficients - 1) + [-np.inf])
                 _upper_bound = np.array([np.inf] * (self.num_coefficients - 1) + [0])
 
             elif constraint == "concave":
-                basis_matrix = -basis_matrix + corrector / 2
+                basis_matrix = -basis_matrix - basis_matrix_mirrored[:, ::-1]
+
                 basis_matrix = np.hstack((basis_matrix, X_feature * derivative_of_integral))  # Add linear func
                 _lower_bound = np.array([0] * (self.num_coefficients - 1) + [-np.inf])
                 _upper_bound = np.array([np.inf] * (self.num_coefficients - 1) + [np.inf])
+
+            # _lower_bound[-1] = 0
+            # _upper_bound[-1] = 0.00001
 
             return _lower_bound, _upper_bound, basis_matrix
 
@@ -732,6 +737,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             include_bias=True,
             order="C",
         )
+        self.spline_transformer_mirrored_ = clone(self.spline_transformer_)
 
         # Fit to data within the edges
         if self.edges is not None:
@@ -742,6 +748,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             X_feature_masked = X_feature.reshape(-1, 1)
 
         self.spline_transformer_.fit(X_feature_masked)
+        self.spline_transformer_mirrored_.fit(-X_feature_masked)
 
         # Change spline generation
         assert len(self.spline_transformer_.bsplines_) == 1
@@ -749,15 +756,22 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[0].antiderivative(
                 degree_adjustment
             )
+            self.spline_transformer_.degree += degree_adjustment
 
-        basis_matrix = self.spline_transformer_.transform(X_feature_masked)
-        assert np.all(basis_matrix >= 0), "Every element in basis must be positive"
+            self.spline_transformer_mirrored_.bsplines_[0] = self.spline_transformer_mirrored_.bsplines_[
+                0
+            ].antiderivative(degree_adjustment)
+            self.spline_transformer_mirrored_.degree += degree_adjustment
+
+        # basis_matrix = self.spline_transformer_.transform(X_feature_masked)
+        # assert np.all(basis_matrix >= 0), "Every element in basis must be positive"
 
         # Generate basis matrix
         # print(f"Basis matrix shape (fit, before post trans): {basis_matrix.shape}")
         self._lower_bound, self._upper_bound, basis_matrix = self._post_transform_basis_for_constraint(
             constraint=self.constraint,
-            basis_matrix=basis_matrix,
+            basis_matrix=self.spline_transformer_.transform(X_feature_masked),
+            basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(-X_feature_masked),
             X_feature=X_feature,
             splinetransformer=self.spline_transformer_,
         )
@@ -809,11 +823,13 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         X_feature = self._get_column(X, selector="feature")
 
-        basis_matrix = self.spline_transformer_.transform(X_feature)
+        # basis_matrix = self.spline_transformer_.transform(X_feature)
 
         self._lower_bound, self._upper_bound, basis_matrix = self._post_transform_basis_for_constraint(
             constraint=self.constraint,
-            basis_matrix=basis_matrix,
+            basis_matrix=self.spline_transformer_.transform(X_feature),
+            basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(-X_feature),
+            # basis_matrix_mirrored=self.spline_transformer_.transform(-X_feature),
             X_feature=X_feature,
             splinetransformer=self.spline_transformer_,
         )
@@ -1739,21 +1755,45 @@ if __name__ == "__main__":
     from generalized_additive_models import GAM, Spline
 
     rng = np.random.default_rng(1011)
-    X = (rng.random(size=(25, 1)) - 0.5) * 2
-    X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
-    y = np.sin(X * 3).ravel() + rng.random(size=(25))
+    X = (rng.random(size=(20000, 1)) * 1) ** 1 * 2 - 1
+    X = np.sort(X, axis=0)
+    X = np.linspace(0, 1, num=2**7).reshape(-1, 1) ** 1 * 2 - 1
+    X_smooth = np.linspace(np.min(X) - 0.33, np.max(X) + 0.33, num=2**8).reshape(-1, 1)
+    y = 1 * np.sin(X * 2).ravel() + rng.random(size=(X.shape[0])) / 10
 
-    terms = Spline(0, num_splines=8, constraint="increasing-convex", penalty=0.1)
-    gam = GAM(terms).fit(X, y)
-    prediction = gam.predict(X_smooth)
-    assert np.all(np.isfinite(prediction))
-    # prediction = prediction[np.isfinite(prediction)]
+    constraints = [
+        "convex",
+        "increasing",
+        "increasing-concave",
+        "decreasing-concave",
+        "concave",
+        "increasing-convex",
+        "decreasing",
+        "decreasing-convex",
+    ]
 
-    inc_kernel = np.array([-1, 1])
+    constraints = sorted(constraints, key=lambda w: (len(w), w))
 
-    corr = sp.signal.correlate(prediction, inc_kernel, mode="valid")
-    assert np.all((corr >= 0) | np.isclose(corr, 0))
+    fig, axes = plt.subplots(4, 2, sharex=True, sharey=True, figsize=(10, 10))
 
-    plt.scatter(X, y)
+    for ax, constraint in zip(axes.ravel(), constraints):
+        print(f"===================== {constraint} ====================")
 
-    plt.plot(X_smooth, gam.predict(X_smooth))
+        terms = Spline(
+            0, num_splines=8, constraint=constraint, penalty=0.1, degree=2, extrapolation="constant", knots="uniform"
+        )
+        gam = GAM(terms).fit(X, y)
+        prediction = gam.predict(X_smooth)
+
+        terms.fit(X)
+
+        ax.set_title(constraint)
+        ax.scatter(X, y)
+        X_st = terms.transform(X_smooth)
+        ax.plot(X_smooth, prediction, color="black")
+        ax.grid(True)
+        # plt.plot(X_smooth, X_st @ np.ones(terms.num_coefficients), color="blue")
+
+    fig.tight_layout()
+    plt.savefig("test4.png", dpi=200)
+    plt.show()

@@ -33,7 +33,9 @@ def solve_lstsq(X, D, w, z, bounds):
     rhs = np.zeros(lhs.shape[0])
     rhs[: len(w)] = np.sqrt(w) * z
 
+    # print(bounds)
     result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds)
+    # print(result.x)
     return result.x
 
 
@@ -89,6 +91,11 @@ class PIRLS(Optimizer):
         ridge = Ridge(alpha=1e3, fit_intercept=False)
         ridge.fit(self.X, mu_initial)
         beta_initial = ridge.coef_
+
+        # Respect the bounds
+        lower_bound, upper_bound = self.bounds
+        beta_initial = np.maximum(np.minimum(beta_initial, upper_bound), lower_bound)
+
         return beta_initial
 
     def evaluate_objective(self, X, D, beta, y):
