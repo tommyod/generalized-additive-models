@@ -26,19 +26,6 @@ def solve_lstsq(X, D, w, z):
     return beta
 
 
-def solve_lstsq(X, D, w, z, bounds):
-    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
-
-    lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
-    rhs = np.zeros(lhs.shape[0])
-    rhs[: len(w)] = np.sqrt(w) * z
-
-    # print(bounds)
-    result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds)
-    # print(result.x)
-    return result.x
-
-
 class Optimizer:
     def _validate_params(self):
         pass
@@ -71,6 +58,26 @@ class PIRLS(Optimizer):
 
         if np.any(self.y > high):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
+
+    def solve_lstsq(self, X, D, w, z, bounds=None):
+        """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
+
+        lower_bounds, upper_bounds = bounds
+
+        # If bounds are inactive, solve using standard least squares
+        if np.all(lower_bounds == -np.inf) and np.all(lower_bounds == np.inf):
+            return solve_lstsq(X, D, w, z)
+
+        # If there are active bounds, solve by stacking
+
+        lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
+        rhs = np.zeros(lhs.shape[0])
+        rhs[: len(w)] = np.sqrt(w) * z
+
+        # print(bounds)
+        result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds)
+        # print(result.x)
+        return result.x
 
     def _initial_estimate(self):
         # Map the observations to the linear scale
@@ -152,7 +159,7 @@ class PIRLS(Optimizer):
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
             bounds = (self.bounds[0][~zero_coefs], self.bounds[1][~zero_coefs])
-            beta_trial = solve_lstsq(X, D, w, z, bounds=bounds)
+            beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
             beta_previous = betas[-1]
             objective_previous = self.evaluate_objective(X, D, beta_previous, self.y)
@@ -270,7 +277,7 @@ if __name__ == "__main__":
     plt.scatter(X, y, alpha=0.5)
     from generalized_additive_models import GAM, Spline
 
-    spline = Spline(0, constraint="convex", num_splines=10, degree=0)
+    spline = Spline(0, constraint="convex", num_splines=10, degree=3)
     gam = GAM(spline, verbose=2)
     gam.fit(X, y)
 

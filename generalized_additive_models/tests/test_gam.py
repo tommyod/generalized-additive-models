@@ -411,8 +411,11 @@ class TestGamAutoModels:
 
 
 class TestGAMSanityChecks:
-    @pytest.mark.parametrize("seed", list(range(100)))
-    def test_that_constraints_work_no_extrapolation(self, seed):
+    @pytest.mark.parametrize(
+        "seed, degree, penalty, knots",
+        list(itertools.product(list(range(5)), [3, 4, 5, 6], [0.01, 0.1, 1, 10, 100], ["quantile", "uniform"])),
+    )
+    def test_that_constraints_work_no_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 789)
         num_samples = 15 + seed // 2
         X = (rng.random(size=(num_samples, 1)) - 0.5) * 2
@@ -436,7 +439,7 @@ class TestGAMSanityChecks:
             constraint = f"{constraint1}-{constraint2}".strip("-")
 
             # Create model
-            terms = Spline(0, constraint=constraint)
+            terms = Spline(0, constraint=constraint, degree=degree, penalty=penalty, knots=knots)
             prediction = GAM(terms).fit(X, y).predict(X_smooth)
             assert np.all(np.isfinite(prediction))
 
@@ -448,8 +451,11 @@ class TestGAMSanityChecks:
                 corr = sp.signal.correlate(prediction, kernel, mode="valid")
                 assert np.all((corr >= 0) | np.isclose(corr, 0))
 
-    @pytest.mark.parametrize("seed", list(range(100)))
-    def test_that_constraints_work_with_extrapolation(self, seed):
+    @pytest.mark.parametrize(
+        "seed, degree, penalty, knots",
+        list(itertools.product(list(range(5)), [3, 4, 5, 6], [0.01, 0.1, 1, 10, 100], ["quantile", "uniform"])),
+    )
+    def test_that_constraints_work_with_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 123)
         num_samples = 15 + seed // 2
         X = (rng.random(size=(num_samples, 1)) - 0.5) * 2
@@ -473,7 +479,9 @@ class TestGAMSanityChecks:
             constraint = f"{constraint1}-{constraint2}".strip("-")
 
             # Create model
-            terms = Spline(0, constraint=constraint, extrapolation="linear")
+            terms = Spline(
+                0, constraint=constraint, extrapolation="linear", degree=degree, penalty=penalty, knots=knots
+            )
             prediction = GAM(terms).fit(X, y).predict(X_smooth)
             assert np.all(np.isfinite(prediction))
 
