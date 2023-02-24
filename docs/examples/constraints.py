@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:percent
+#     formats: py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -12,6 +12,9 @@
 #     language: python
 #     name: python3
 # ---
+
+# %% [markdown]
+# ## Constraints
 
 # %%
 import numpy as np

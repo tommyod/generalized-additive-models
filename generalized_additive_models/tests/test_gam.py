@@ -563,6 +563,29 @@ class TestGAMSanityChecks:
         bad_gam_score = bad_gam.score(X, y)
         assert bad_gam_score < gam_score
 
+    @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
+    def test_that_tensor_spline_score_on_smooth_function_with_by_is_close(self, function):
+        # Create data of form: y = f(x_1, x_2) * x_3
+        rng = np.random.default_rng(42)
+        X = rng.random(size=(1000, 3)) * np.pi
+        X[:, 2] = X[:, 2] - np.pi / 2
+
+        y = function(X[:, 0] + np.abs(X[:, 1]) ** 0.5) * X[:, 2]
+
+        # Create a GAM and fit it
+        terms = Tensor([Spline(0), Spline(1)], by=2)
+        gam = GAM(terms=terms, fit_intercept=True)
+        gam.fit(X, y)
+        gam_score = gam.score(X, y)
+        assert gam_score > 0.98
+
+        # Bad gam
+        terms = Tensor([Spline(0), Spline(1)]) + Linear(0)
+        bad_gam = GAM(terms=terms, fit_intercept=True)
+        bad_gam.fit(X, y)
+        bad_gam_score = bad_gam.score(X, y)
+        assert bad_gam_score < gam_score
+
     def test_logistic_gam_on_breast_cancer_dataset(self):
         # Load data
         X, y = load_breast_cancer(return_X_y=True)
@@ -581,36 +604,30 @@ class TestGAMSanityChecks:
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(
-        args=[
-            __file__,
-            "-v",
-            "--capture=sys",
-            "--doctest-modules",
-            "--maxfail=1",
-            "-k test_that_constraints",
-        ]
-    )
     if False:
-        rng = np.random.default_rng(2)
+        pytest.main(
+            args=[
+                __file__,
+                "-v",
+                "--capture=sys",
+                "--doctest-modules",
+                "--maxfail=1",
+                "-k test_that_tensor_spline_score_on_smooth_function_with_by_is_close",
+            ]
+        )
 
-        # Create a poisson problem
-        x = np.linspace(0, 2 * np.pi, num=100_000)
-        linear_prediction = 0.5 + np.sin(x)
-        mu = Log().inverse_link(linear_prediction)
-        y = rng.poisson(lam=mu)
-        X = x.reshape(-1, 1)
+    from sklearn.datasets import load_diabetes
+    from sklearn.model_selection import cross_val_score
+    from generalized_additive_models import GAM, Spline, Categorical
 
-        # Create a GAM
-        poisson_gam = GAM(
-            Spline(0, extrapolation="periodic"),
-            link="log",
-            distribution="poisson",
-        ).fit(X, y)
+    # Load data
+    data = load_diabetes(as_frame=True)
+    df, y = data.data, data.target
 
-        import matplotlib.pyplot as plt
+    # Create model
+    terms = Spline("bp") + Spline("bmi", constraint="increasing") + Categorical("sex")
+    gam = GAM(terms)
 
-        # plt.plot(mu, poisson_gam.predict(X))
-
-        plt.plot(x, mu)
-        plt.plot(x, poisson_gam.predict(X))
+    # Cross validate
+    scores = cross_val_score(gam, df, y, scoring="r2")
+    print(scores)

@@ -1646,8 +1646,6 @@ class TermList(UserList, BaseEstimator):
         >>> terms = TermList([Linear(0, by=2, penalty=9), Intercept()])
         >>> clone(terms)
         TermList([Linear(by=2, feature=0, penalty=9), Intercept()])
-
-
         """
         if not params:
             # Simple optimization to gain speed (inspect is slow)
