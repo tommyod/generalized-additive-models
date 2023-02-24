@@ -351,7 +351,7 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     import pytest
 
-    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
     X = np.linspace(0.5, 2 * np.pi - 0.5, num=99).reshape(-1, 1)
     y = np.sin(X.ravel()) + np.random.randn(99) / 10

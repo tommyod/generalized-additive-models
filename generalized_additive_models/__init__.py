@@ -47,6 +47,11 @@ array([[ 0.66666667, -0.33333333, -0.33333333],
 https://arxiv.org/pdf/2006.06466.pdf
 
 
+Pya, N., Wood, S.N. 
+Shape constrained additive models. 
+Stat Comput 25, 543–559 (2015). https://doi.org/10.1007/s11222-013-9448-7
+https://link.springer.com/article/10.1007/s11222-013-9448-7
+
 """
 
 __version__ = "0.0.0"

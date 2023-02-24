@@ -576,9 +576,6 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         periodic = self.extrapolation == "periodic"
         matrix = second_order_finite_difference(self.num_coefficients, periodic=periodic)
 
-        if isinstance(self.constraint, str) and any((kw in self.constraint) for kw in ("convex, concave")):
-            matrix[-2, :] = 0
-
         return np.sqrt(self.penalty) * matrix
 
     def _post_transform_basis_for_constraint(self, *, constraint, basis_matrix, basis_matrix_mirrored, X_feature):
@@ -1690,51 +1687,4 @@ class TermList(UserList, BaseEstimator):
 if __name__ == "__main__":
     import pytest
 
-    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
-
-    import matplotlib.pyplot as plt
-    from generalized_additive_models import GAM, Spline
-
-    rng = np.random.default_rng(1011)
-    X = (rng.random(size=(20000, 1)) * 1) ** 1 * 2 - 1
-    X = np.sort(X, axis=0)
-    X = np.linspace(0, 1, num=2**7).reshape(-1, 1) ** 1 * 2 - 1
-    X_smooth = np.linspace(np.min(X) - 0.33, np.max(X) + 0.33, num=2**8).reshape(-1, 1)
-    y = 1 * np.sin(X * 2).ravel() + rng.random(size=(X.shape[0])) / 10
-
-    constraints = [
-        "convex",
-        "increasing",
-        "increasing-concave",
-        "decreasing-concave",
-        "concave",
-        "increasing-convex",
-        "decreasing",
-        "decreasing-convex",
-    ]
-
-    constraints = sorted(constraints, key=lambda w: (len(w), w))
-
-    fig, axes = plt.subplots(4, 2, sharex=True, sharey=True, figsize=(10, 10))
-
-    for ax, constraint in zip(axes.ravel(), constraints):
-        print(f"===================== {constraint} ====================")
-
-        terms = Spline(
-            0, num_splines=8, constraint=constraint, penalty=0.1, degree=2, extrapolation="constant", knots="uniform"
-        )
-        gam = GAM(terms).fit(X, y)
-        prediction = gam.predict(X_smooth)
-
-        terms.fit(X)
-
-        ax.set_title(constraint)
-        ax.scatter(X, y)
-        X_st = terms.transform(X_smooth)
-        ax.plot(X_smooth, prediction, color="black")
-        ax.grid(True)
-        # plt.plot(X_smooth, X_st @ np.ones(terms.num_coefficients), color="blue")
-
-    fig.tight_layout()
-    plt.savefig("test4.png", dpi=200)
-    plt.show()
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

@@ -69,14 +69,30 @@ class PIRLS(Optimizer):
             return solve_lstsq(X, D, w, z)
 
         # If there are active bounds, solve by stacking
-
         lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
         rhs = np.zeros(lhs.shape[0])
         rhs[: len(w)] = np.sqrt(w) * z
 
-        # print(bounds)
-        result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds)
-        # print(result.x)
+        result = sp.optimize.lsq_linear(
+            lhs,
+            rhs,
+            bounds=bounds,
+            method="trf",
+            tol=1e-10,
+            lsq_solver=None,
+            lsmr_tol=None,
+            max_iter=None,
+            verbose=min(max(0, self.verbose - 2), 2),
+            lsmr_maxiter=None,
+        )
+
+        if self.verbose >= 2:
+            print(
+                f"  Constrained LSQ {'success' if result.success else 'failure'} in {result.nit} iters. Msg: {result.message}"
+            )
+            if not result.success:
+                print(f" => Constrained LSQ msg: {result.message}")
+
         return result.x
 
     def _initial_estimate(self):
@@ -266,22 +282,31 @@ class PIRLS(Optimizer):
 if __name__ == "__main__":
     import pytest
 
-    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
-    X = np.linspace(0, 2, num=2**8).reshape(-1, 1)
+    X = np.linspace(0, 4, num=2**8).reshape(-1, 1)
 
-    y = -np.sin(X).ravel() + np.random.randn(2**8) / 25
+    y = -np.sin(X).ravel() + np.random.randn(2**8) / 25 + np.sin(X * 10).ravel()
+    y = np.arange(len(y))
 
     import matplotlib.pyplot as plt
 
     plt.scatter(X, y, alpha=0.5)
-    from generalized_additive_models import GAM, Spline
+    from generalized_additive_models import GAM, Spline, Linear
 
-    spline = Spline(0, constraint="convex", num_splines=10, degree=3)
-    gam = GAM(spline, verbose=2)
+    spline = Spline(0, constraint="convex", num_splines=10, degree=3, penalty=1)
+    lin = Linear(0, penalty=0)
+    gam = GAM(spline + lin, verbose=1)
     gam.fit(X, y)
 
     plt.plot(X, gam.predict(X), color="k")
     plt.show()
 
     plt.plot(spline.fit_transform(X))
+
+    v = np.ones(10)
+    v[0] = 0.1
+    plt.plot(spline.fit_transform(X) @ v)
+    plt.show()
+
+    plt.bar(np.arange(10), spline.coef_)
