@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy import special
 from sklearn.base import BaseEstimator
+from sklearn.utils import check_consistent_length
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -59,8 +60,13 @@ class Identity(Link, BaseEstimator):
     def inverse_link(self, linear_prediction):
         return linear_prediction
 
-    def derivative(self, mu):
-        return np.ones_like(mu, dtype=float)
+    def derivative(self, mu, sample_weight=None):
+        check_consistent_length(mu, sample_weight)
+
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
+
+        return sample_weight * np.ones_like(mu, dtype=float)
 
     def second_derivative(self, mu):
         return np.zeros_like(mu, dtype=float)

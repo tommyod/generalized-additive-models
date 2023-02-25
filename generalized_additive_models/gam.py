@@ -12,8 +12,9 @@ from numbers import Integral, Real
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.base import BaseEstimator
-from sklearn.utils import Bunch, check_scalar
+from sklearn.utils import Bunch, check_scalar, check_consistent_length
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
+
 
 # https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/utils/validation.py#L1870
 from sklearn.utils.validation import check_is_fitted
@@ -72,6 +73,52 @@ class GAM(BaseEstimator):
         warm_start=False,
         verbose=0,
     ):
+        """Initialize a GAM.
+
+
+        Parameters
+        ----------
+        terms : Term, TermList or list, optional
+            The term(s) of the model. The argument can be a single term or a
+            collection of terms. The features that the terms refer to must be
+            present in the data set at fit and predict time. The default is None.
+        distribution : str or Distribution, optional
+            DESCRIPTION. The default is "normal".
+        link : TYPE, optional
+            DESCRIPTION. The default is "identity".
+        fit_intercept : TYPE, optional
+            DESCRIPTION. The default is True.
+        solver : TYPE, optional
+            DESCRIPTION. The default is "pirls".
+        max_iter : TYPE, optional
+            DESCRIPTION. The default is 100.
+        tol : TYPE, optional
+            DESCRIPTION. The default is 0.0001.
+        warm_start : TYPE, optional
+            DESCRIPTION. The default is False.
+        verbose : TYPE, optional
+            DESCRIPTION. The default is 0.
+         : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        Examples
+        --------
+        >>> from generalized_additive_models import GAM, Spline, Categorical
+        >>> from sklearn.datasets import load_diabetes
+        >>> data = load_diabetes(as_frame=True)
+        >>> df = data.data
+        >>> y = data.target
+        >>> gam = GAM(Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex"))
+        >>> gam = gam.fit(df, y)
+        >>> predictions = gam.predict(df)
+        >>> for term in gam.terms:
+        ...     print(term, term.coef_) # doctest: +SKIP
+
+        """
         self.terms = terms
         self.distribution = distribution
         self.link = link
@@ -117,10 +164,26 @@ class GAM(BaseEstimator):
     def fit(self, X, y, sample_weight=None):
         """Fit model to data.
 
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset to fit to. Must be a np.ndarray of dimension 2 with shape
+            (num_samples, num_features) or a pandas DataFrame. If the `terms`
+            in the GAM refer to integer features, a np.ndarray must be passed.
+            If the `terms` refer to string column names, a pandas DataFrame must
+            be passed.
+        y : np.ndarray or Series
+            An array of target values.
+        sample_weight : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
 
         Examples
         --------
-
         >>> rng = np.random.default_rng(32)
         >>> X = rng.normal(size=(100, 1))
         >>> y = np.sin(X).ravel()
@@ -130,17 +193,10 @@ class GAM(BaseEstimator):
 
         """
         self._validate_params(X)
+        check_consistent_length(X, y, sample_weight)
 
         self.model_matrix_ = self.terms.fit_transform(X)
-        # =============================================================================
-        #         X, y = self._validate_data(
-        #             X,
-        #             y,
-        #             dtype=[np.float64, np.float32],
-        #             y_numeric=True,
-        #             multi_output=False,
-        #         )
-        # =============================================================================
+
         self.X_ = X.copy()  # Store a copy used for patial effects
         self.y_ = y.copy()
 
@@ -153,6 +209,7 @@ class GAM(BaseEstimator):
             bounds=(self.terms._lower_bound, self.terms._upper_bound),
             max_iter=self.max_iter,
             tol=self.tol,
+            sample_weight=sample_weight,
             verbose=self.verbose,
         )
 
@@ -357,7 +414,7 @@ if __name__ == "__main__":
     y = np.sin(X.ravel()) + np.random.randn(99) / 10
 
     # for num_splines in range(5, 300, 5):
-    for penalty in np.logspace(-2, 4, num=100):
+    for penalty in np.logspace(-2, 4, num=10):
         gam = GAM(Spline(0, num_splines=20, penalty=penalty))
         gam.fit(X, y)
 

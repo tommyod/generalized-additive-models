@@ -15,6 +15,14 @@ Terms
    Categorical
    Spline
    Tensor
+   
+TermList
+........
+   
+.. autosummary::
+   :toctree: API
+
+   TermList
 
 
 Links

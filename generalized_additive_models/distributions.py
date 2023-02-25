@@ -17,6 +17,7 @@ import numpy as np
 import scipy as sp
 from scipy.special import rel_entr
 from sklearn.base import BaseEstimator
+from sklearn.utils import check_consistent_length
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -138,20 +139,25 @@ class Normal(Distribution, BaseEstimator):
         scale = self.scale / weights
         return sp.stats.norm.logpdf(y, loc=mu, scale=scale)
 
-    def V(self, mu, weights=None):
-        # See table 3.1 on page 104 in Wood, 2nd ed
-        weights = np.ones_like(mu, dtype=float)
-        return np.ones_like(mu) / weights
+    def V(self, mu, sample_weight=None):
+        check_consistent_length(mu, sample_weight)
 
-    def deviance(self, *, y, mu, weights=None, scaled=True):
-        dev = (y - mu) ** 2
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
+
+        return np.ones_like(mu) / sample_weight
+
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
+        check_consistent_length(y, mu, sample_weight)
+
+        deviance = (y - mu) ** 2
         if scaled and self.scale:
-            dev = dev / self.scale
+            deviance = deviance / self.scale
 
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
 
-        return dev * weights
+        return deviance * sample_weight
 
     def sample(self, mu):
         standard_deviation = self.scale or 1.0
@@ -189,15 +195,17 @@ class Poisson(Distribution, BaseEstimator):
             weights = np.ones_like(mu, dtype=float)
         return mu / weights
 
-    def deviance(self, *, y, mu, weights=None, scaled=True):
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
+        check_consistent_length(y, mu, sample_weight)
+
         deviance = 2 * (rel_entr(y, mu) - (y - mu))
         if scaled and self.scale:
             deviance = deviance / self.scale
 
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
 
-        return deviance * weights
+        return deviance * sample_weight
 
     def sample(self, mu):
         return np.random.poisson(lam=mu, size=None)
@@ -284,7 +292,7 @@ class Binomial(Distribution, BaseEstimator):
 
         return V / weights
 
-    def deviance(self, y, mu, *, weights=None, scaled=True):
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         """
         model deviance
 
@@ -304,12 +312,14 @@ class Binomial(Distribution, BaseEstimator):
         -------
         deviances : np.array of length n
         """
+        check_consistent_length(y, mu, sample_weight)
+
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
+
         deviance = 2 * (rel_entr(y, mu) + rel_entr(self.trials - y, self.trials - mu))
 
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
-
-        return deviance * weights
+        return deviance * sample_weight
 
     def sample(self, mu):
         """

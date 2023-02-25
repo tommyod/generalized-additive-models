@@ -39,7 +39,7 @@ class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numercial stability."""
 
-    def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, verbose):
+    def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, sample_weight, verbose):
         self.X = X
         self.D = D
         self.y = y
@@ -49,6 +49,7 @@ class PIRLS(Optimizer):
         self.max_iter = max_iter
         self.tol = tol
         self.results_ = Bunch()
+        self.sample_weight = sample_weight
         self.verbose = verbose
 
     def _validate_params(self):
@@ -65,25 +66,22 @@ class PIRLS(Optimizer):
         lower_bounds, upper_bounds = bounds
 
         # If bounds are inactive, solve using standard least squares
-        if np.all(lower_bounds == -np.inf) and np.all(lower_bounds == np.inf):
+        if np.all(lower_bounds == -np.inf) and np.all(upper_bounds == np.inf):
             return solve_lstsq(X, D, w, z)
 
         # If there are active bounds, solve by stacking
-        lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
-        rhs = np.zeros(lhs.shape[0])
-        rhs[: len(w)] = np.sqrt(w) * z
+        # lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
+        # rhs = np.zeros(lhs.shape[0])
+        # rhs[: len(w)] = np.sqrt(w) * z
+
+        lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+        rhs = X.T @ (w * z)
 
         result = sp.optimize.lsq_linear(
             lhs,
             rhs,
             bounds=bounds,
-            method="trf",
-            tol=1e-10,
-            lsq_solver=None,
-            lsmr_tol=None,
-            max_iter=None,
             verbose=min(max(0, self.verbose - 2), 2),
-            lsmr_maxiter=None,
         )
 
         if self.verbose >= 2:
@@ -112,7 +110,7 @@ class PIRLS(Optimizer):
 
         # Solve X @ beta = mu using Ridge regression
         ridge = Ridge(alpha=1e3, fit_intercept=False)
-        ridge.fit(self.X, mu_initial)
+        ridge.fit(self.X, mu_initial, sample_weight=self.sample_weight)
         beta_initial = ridge.coef_
 
         # Respect the bounds
@@ -121,15 +119,16 @@ class PIRLS(Optimizer):
 
         return beta_initial
 
-    def evaluate_objective(self, X, D, beta, y):
+    def evaluate_objective(self, X, D, beta, y, sample_weight):
         """Evaluate the log likelihood plus the penalty."""
         mu = self.link.inverse_link(X @ beta)
-        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True).sum()
+        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
         return (deviance + penalty) / len(beta)
 
     def solve(self):
         num_observations, num_beta = self.X.shape
+        sample_weight = np.ones(num_observations) if (self.sample_weight is None) else self.sample_weight
 
         beta = self._initial_estimate()
 
@@ -139,7 +138,7 @@ class PIRLS(Optimizer):
 
         if self.verbose >= 1:
             lpad = int(np.floor(np.log10(self.max_iter)))
-            objective_init = self.evaluate_objective(self.X, self.D, beta, self.y)
+            objective_init = self.evaluate_objective(self.X, self.D, beta, self.y, sample_weight)
 
             msg = "Initial guess:      "
             objective_fmt = np.format_float_scientific(objective_init, precision=4, min_digits=4)
@@ -170,6 +169,7 @@ class PIRLS(Optimizer):
             # Step 1: Compute pseudodata z and iterative weights w
             z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
             w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            w = w * sample_weight
             assert np.all(w > 0)
 
             # Step 3: Find beta to solve the weighted least squares objective
@@ -178,12 +178,12 @@ class PIRLS(Optimizer):
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
             beta_previous = betas[-1]
-            objective_previous = self.evaluate_objective(X, D, beta_previous, self.y)
+            objective_previous = self.evaluate_objective(X, D, beta_previous, self.y, sample_weight)
 
             for half_exponent in range(21):
                 step_size = (1 / 2) ** half_exponent
                 suggested_beta = step_size * beta_trial + (1 - step_size) * beta_previous
-                objective_suggested = self.evaluate_objective(X, D, suggested_beta, self.y)
+                objective_suggested = self.evaluate_objective(X, D, suggested_beta, self.y, sample_weight)
 
                 if objective_suggested <= objective_previous:
                     beta = suggested_beta
@@ -284,29 +284,43 @@ if __name__ == "__main__":
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
-    X = np.linspace(0, 4, num=2**8).reshape(-1, 1)
+    from generalized_additive_models import GAM, Linear
 
-    y = -np.sin(X).ravel() + np.random.randn(2**8) / 25 + np.sin(X * 10).ravel()
-    y = np.arange(len(y))
+    x = np.arange(10)
+    weights = np.ones(10, dtype=int)
+    weights[x % 2 == 0] = 4
+
+    y = 1 + 0.1 * x
+    y[x % 2 == 0] = y[x % 2 == 0] + 1
+
+    # Repeated data set
+    X_repeated = np.repeat(x, weights).reshape(-1, 1)
+    y_repeated = np.repeat(y, weights)
+
+    X = x.reshape(-1, 1)
+
+    # Train one GAM on repeated data, and one on weighted data
+    gam1 = GAM(Linear(0)).fit(X_repeated, y_repeated)
+    gam2 = GAM(Linear(0)).fit(X, y, sample_weight=weights)
 
     import matplotlib.pyplot as plt
 
-    plt.scatter(X, y, alpha=0.5)
-    from generalized_additive_models import GAM, Spline, Linear
-
-    spline = Spline(0, constraint="convex", num_splines=10, degree=3, penalty=1)
-    lin = Linear(0, penalty=0)
-    gam = GAM(spline + lin, verbose=1)
-    gam.fit(X, y)
-
-    plt.plot(X, gam.predict(X), color="k")
+    plt.scatter(X, y, s=weights * 5)
+    plt.plot(X, gam1.predict(X), label="repeated")
+    plt.plot(X, gam2.predict(X), label="weighted")
+    plt.legend()
     plt.show()
 
-    plt.plot(spline.fit_transform(X))
+    assert np.allclose(gam1.predict(X), gam2.predict(X))
 
-    v = np.ones(10)
-    v[0] = 0.1
-    plt.plot(spline.fit_transform(X) @ v)
+    # Same as above, but with log links
+    gam1 = GAM(Linear(0), link="log").fit(X_repeated, y_repeated)
+    gam2 = GAM(Linear(0), link="log").fit(X, y, sample_weight=weights)
+
+    # np.allclose(gam1.predict(X), gam2.predict(X))
+
+    plt.scatter(X, y, s=weights * 5)
+    plt.plot(X, gam1.predict(X), label="repeated")
+    plt.plot(X, gam2.predict(X), label="weighted")
+    plt.legend()
     plt.show()
-
-    plt.bar(np.arange(10), spline.coef_)

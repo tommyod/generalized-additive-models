@@ -38,6 +38,14 @@ Table of contents
    
    Getting started <getting_started>
    API <API>
+   
+Examples
+========
+   
+.. toctree::
+   :maxdepth: 2
+   :glob:
+   
    examples/*
 
 

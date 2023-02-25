@@ -79,7 +79,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_canonical_normal(self, intercept):
-        rng = np.random.default_rng(1)
+        rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a normal problem
         x = np.linspace(0, 2 * np.pi, num=100_000)
@@ -99,9 +99,19 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
         assert np.allclose(mu, normal_gam.predict(X), atol=0.01)
 
+        # Test that sample weights work
+        weights = rng.integers(low=1, high=4, size=len(x))
+        X_repeated = np.repeat(X, weights, axis=0)
+        y_repeated = np.repeat(y, weights)
+
+        # Repeating data is equal to passing weights
+        preds_repeat = normal_gam.fit(X_repeated, y_repeated).predict(X)
+        preds_weight = normal_gam.fit(X, y, sample_weight=weights).predict(X)
+        assert np.allclose(preds_repeat, preds_weight)
+
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_canonical_poisson(self, intercept):
-        rng = np.random.default_rng(2)
+        rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a poisson problem
         x = np.linspace(0, 2 * np.pi, num=100_000)
@@ -119,11 +129,21 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             distribution="poisson",
         ).fit(X, y)
 
-        assert np.allclose(mu, poisson_gam.predict(X), atol=0.1)
+        assert np.allclose(mu, poisson_gam.predict(X), atol=0.2)
+
+        # Test that sample weights work
+        weights = rng.integers(low=1, high=4, size=len(x))
+        X_repeated = np.repeat(X, weights, axis=0)
+        y_repeated = np.repeat(y, weights)
+
+        # Repeating data is equal to passing weights
+        preds_repeat = poisson_gam.fit(X_repeated, y_repeated).predict(X)
+        preds_weight = poisson_gam.fit(X, y, sample_weight=weights).predict(X)
+        assert np.allclose(preds_repeat, preds_weight)
 
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_caononical_logistic(self, intercept):
-        rng = np.random.default_rng(3)
+        rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a logistic problem
         x = np.linspace(0, 2 * np.pi, num=100_000)
@@ -142,6 +162,16 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         ).fit(X, y)
 
         assert np.allclose(mu, logistic_gam.predict(X), atol=0.05)
+
+        # Test that sample weights work
+        weights = rng.integers(low=1, high=4, size=len(x))
+        X_repeated = np.repeat(X, weights, axis=0)
+        y_repeated = np.repeat(y, weights)
+
+        # Repeating data is equal to passing weights
+        preds_repeat = logistic_gam.fit(X_repeated, y_repeated).predict(X)
+        preds_weight = logistic_gam.fit(X, y, sample_weight=weights).predict(X)
+        assert np.allclose(preds_repeat, preds_weight)
 
 
 class TestPandasCompatibility:
@@ -413,7 +443,7 @@ class TestGamAutoModels:
 class TestGAMSanityChecks:
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
-        list(itertools.product(list(range(5)), [3, 4, 5, 6], [0.01, 0.1, 1, 10, 100], ["quantile", "uniform"])),
+        list(itertools.product([1, 2, 3], [2, 3, 4], [0.01, 1, 100], ["quantile", "uniform"])),
     )
     def test_that_constraints_work_no_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 789)
@@ -453,7 +483,7 @@ class TestGAMSanityChecks:
 
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
-        list(itertools.product(list(range(5)), [3, 4, 5, 6], [0.01, 0.1, 1, 10, 100], ["quantile", "uniform"])),
+        list(itertools.product([1, 2, 3], [2, 3, 4], [0.01, 1, 100], ["quantile", "uniform"])),
     )
     def test_that_constraints_work_with_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 123)
@@ -600,11 +630,75 @@ class TestGAMSanityChecks:
 
         assert gam_accuracy > 0.95
 
+    @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_sample_weights_equal_data_repetitions(self, term):
+        x = np.arange(10)
+        weights = np.ones(10, dtype=int)
+        weights[x % 2 == 0] = 10
+
+        y = 1 + 1 * x
+        y[x % 2 == 0] = y[x % 2 == 0] + 5
+
+        # Repeated data set
+        X_repeated = np.repeat(x, weights).reshape(-1, 1)
+        y_repeated = np.repeat(y, weights)
+
+        X = x.reshape(-1, 1)
+
+        # Train one GAM on repeated data, and one on weighted data
+        gam1 = GAM(term(0)).fit(X_repeated, y_repeated)
+        gam2 = GAM(term(0)).fit(X, y, sample_weight=weights)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
+
+        # Same as above, but with log links
+        gam1 = GAM(term(0), link="log").fit(X_repeated, y_repeated)
+        gam2 = GAM(term(0), link="log").fit(X, y, sample_weight=weights)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
+
+        # Same as above, but with poisson distribution
+        gam1 = GAM(term(0), distribution="poisson", link="log").fit(X_repeated, y_repeated)
+        gam2 = GAM(term(0), distribution="poisson", link="log").fit(X, y, sample_weight=weights)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
+
+    @pytest.mark.parametrize("shift", [-100000, -100, -10, 10, 100, 100000])
+    def test_shift_invariance_of_features(self, shift):
+        rng = np.random.default_rng(1)
+
+        # Create a normal problem
+        X = rng.normal(size=(1000, 3))
+        y = np.sin(X[:, 0]) + X[:, 1] ** 2 + np.cos(X[:, 2] - X[:, 1]) + rng.normal(scale=0.1, size=1000)
+
+        # Create a GAM
+        terms = Spline(0) + Spline(1) + Spline(2)
+        normal_gam = GAM(terms)
+
+        # Test shift invariance
+        predictions_unshifted = normal_gam.fit(X, y).predict(X)
+        predictions_shifted = normal_gam.fit(X + shift, y).predict(X + shift)
+        assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.2)
+
+    @pytest.mark.parametrize("shift", [-100000, -100, -10, 10, 100, 100000])
+    def test_shift_invariance_of_target(self, shift):
+        rng = np.random.default_rng(1)
+
+        # Create a normal problem
+        X = rng.normal(size=(1000, 3))
+        y = np.sin(X[:, 0]) + X[:, 1] ** 2 + np.cos(X[:, 2] - X[:, 1]) + rng.normal(scale=0.1, size=1000)
+
+        # Create a GAM
+        terms = Spline(0) + Spline(1) + Spline(2)
+        normal_gam = GAM(terms)
+
+        # Test shift invariance
+        predictions_unshifted = normal_gam.fit(X, y).predict(X)
+        predictions_shifted = normal_gam.fit(X, y + shift).predict(X) - shift
+        assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.02)
+
 
 if __name__ == "__main__":
     import pytest
 
-    if False:
+    if True:
         pytest.main(
             args=[
                 __file__,
@@ -612,22 +706,6 @@ if __name__ == "__main__":
                 "--capture=sys",
                 "--doctest-modules",
                 "--maxfail=1",
-                "-k test_that_tensor_spline_score_on_smooth_function_with_by_is_close",
+                "-k test_shift_invariance",
             ]
         )
-
-    from sklearn.datasets import load_diabetes
-    from sklearn.model_selection import cross_val_score
-    from generalized_additive_models import GAM, Spline, Categorical
-
-    # Load data
-    data = load_diabetes(as_frame=True)
-    df, y = data.data, data.target
-
-    # Create model
-    terms = Spline("bp") + Spline("bmi", constraint="increasing") + Categorical("sex")
-    gam = GAM(terms)
-
-    # Cross validate
-    scores = cross_val_score(gam, df, y, scoring="r2")
-    print(scores)

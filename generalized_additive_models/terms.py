@@ -85,7 +85,7 @@ class Term(ABC):
                 setattr(self, variable_to_set, variable_content)
 
     def is_redundant_with_respect_to(self, other):
-        """Check if a feature is redundance with respect to another feature.
+        """Check if a term is redundant with respect to another.
 
         Examples
         --------
@@ -168,35 +168,42 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
            [1.]])
 
     Intercepts have no penalty:
+
     >>> intercept.penalty_matrix()
     array([[0.]])
+
+    Terms can yield themselves once, like so:
+
+    >>> list(intercept)
+    [Intercept()]
     """
 
-    name = "intercept"
-    feature = None
-    by = None
+    name = "intercept"  #: Name of the term.
+    feature = None  #: Feature name, not used in Intercept.
+    by = None  #: Multiplicative feature, not used in Intercept.
     _lower_bound = np.array([-np.inf])
     _upper_bound = np.array([np.inf])
 
+    def __init__(self):
+        """Initialize an Intercept."""
+        pass
+
     @property
     def num_coefficients(self):
+        """Number of coefficients for the term."""
         return 1
 
     def penalty_matrix(self):
+        """Return the penalty matrix for the term."""
         return np.array([[0.0]])
 
     def fit(self, X):
-        """Fit the Intercept.
+        """Fit to data.
 
         Parameters
         ----------
-        X : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
 
         """
         self.feature_ = None  # Add underscore parameter to signal fitted
@@ -207,8 +214,8 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
 
         Parameters
         ----------
-        X : np.ndarray
-            An ndarray with 2 dimensions of shape (n_samples, n_features).
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
 
         Returns
         -------
@@ -223,11 +230,6 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         array([[1.],
                [1.],
                [1.]])
-
-        Terms can yield themselves once, like so:
-
-        >>> list(intercept)
-        [Intercept()]
 
         """
         check_is_fitted(self)
@@ -258,18 +260,19 @@ class Linear(TransformerMixin, Term, BaseEstimator):
            [  7.5],
            [ 10.5]])
 
-    Linear terms have a standard quadratic penalty have a penalty:
+    Linear terms have a standard quadratic (l2) penalty:
+
     >>> linear.penalty_matrix()
     array([[1.]])
 
     The square root of the penalty matrix is returned, so we must square it
-    to get back the given penalty here:
+    to get back the given penalty:
 
     >>> Linear(feature=0, penalty=5).penalty_matrix()**2
     array([[5.]])
     """
 
-    name = "linear"
+    name = "linear"  #: Name of the term.
 
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
@@ -279,7 +282,21 @@ class Linear(TransformerMixin, Term, BaseEstimator):
     }
 
     def __init__(self, feature=None, *, penalty=1, by=None, constraint=None):
-        """Create a linear term with a given penalty.
+        """Initialize a Linear term.
+
+        Parameters
+        ----------
+        feature : str or int, optional
+            The feature name or index associated with the term.
+            The default is None.
+        penalty : float, optional
+            Regularization penalty. The default is 1.
+        by : str or int, optional
+            The feature name or index associated with a multiplicative term.
+            The default is None.
+        constraint : str or None, optional
+            Either None, or `increasing` or `decreasing`.
+            The default is None.
 
         Examples
         --------
@@ -317,13 +334,23 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
     @property
     def num_coefficients(self):
+        """Number of coefficients for the term."""
         return 1
 
     def penalty_matrix(self):
+        """Return the penalty matrix for the term."""
         super()._validate_params()  # Validate the 'penalty' parameter
         return np.sqrt(self.penalty) * np.array([[1.0]])
 
     def fit(self, X):
+        """Fit to data.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
+
+        """
         self._validate_params(X)
 
         basis_matrix = self._get_column(X, selector="feature")
@@ -356,7 +383,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         return self
 
     def transform(self, X):
-        """transform the term.
+        """Transform the input.
 
         Parameters
         ----------
@@ -468,7 +495,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     0.0
     """
 
-    name = "spline"
+    name = "spline"  #: Name of the term.
 
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
@@ -569,9 +596,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
     @property
     def num_coefficients(self):
+        """Number of coefficients for the term."""
         return self.num_splines
 
     def penalty_matrix(self):
+        """Return the penalty matrix for the term."""
         super()._validate_params()  # Validate 'penalty' and 'num_coefficients'
         periodic = self.extrapolation == "periodic"
         matrix = second_order_finite_difference(self.num_coefficients, periodic=periodic)
@@ -617,8 +646,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         Parameters
         ----------
-        X : np.ndarray
-            An ndarray with 2 dimensions of shape (n_samples, n_features).
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
 
         Returns
         -------
@@ -740,7 +769,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         return self
 
     def transform(self, X):
-        """transform the term.
+        """Transform the input.
 
         Parameters
         ----------
@@ -889,7 +918,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
     """
 
-    name = "tensor"
+    name = "tensor"  #: Name of the term.
 
     _parameter_constraints = {
         "splines": [Iterable],
@@ -938,6 +967,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
     @property
     def num_coefficients(self):
+        """Number of coefficients for the term."""
         return np.product([spline.num_coefficients for spline in self.splines])
 
     def _build_marginal_penalties(self, i):
@@ -986,7 +1016,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return functools.reduce(sp.linalg.kron, penalty_matrices)
 
     def penalty_matrix(self):
-        """Build the penaltry matrix.
+        """Return the penalty matrix for the term.
 
 
         Returns
@@ -1042,6 +1072,15 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return functools.reduce(np.add, marginal_penalty_matrices)
 
     def fit(self, X):
+        """Fit to data.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
+
+        """
+
         self._validate_params(X)
 
         # Fit splines to learn individual mean values
@@ -1070,6 +1109,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return self
 
     def transform(self, X):
+        """Transform the input."""
         check_is_fitted(self)
         self._validate_params(X)
 
@@ -1257,7 +1297,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
     ['blue', 'red', 'yellow']
     """
 
-    name = "categorical"
+    name = "categorical"  #: Name of the term.
 
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
@@ -1327,13 +1367,23 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
     @property
     def num_coefficients(self):
+        """Number of coefficients for the term."""
         return len(self.categories_)
 
     def penalty_matrix(self):
+        """Return the penalty matrix for the term."""
         super()._validate_params()  # Validate the 'penalty' parameter
         return np.sqrt(self.penalty) * np.eye(self.num_coefficients)
 
     def fit(self, X):
+        """Fit to data.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
+
+        """
         self._validate_params(X)
 
         self.onehotencoder_ = OneHotEncoder(
@@ -1366,7 +1416,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         return self
 
     def transform(self, X):
-        """transform the term.
+        """transform the input.
 
         Parameters
         ----------
@@ -1524,6 +1574,28 @@ class TermList(UserList, BaseEstimator):
         return " + ".join(repr(term) for term in self)
 
     def fit(self, X):
+        """Fit to data.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset of shape (num_samples, num_features).
+
+        Examples
+        --------
+        >>> terms = TermList([Linear(0), Intercept()])
+        >>> X = np.arange(6).reshape(-1, 1)
+        >>> terms = terms.fit(X)
+        >>> terms.num_coefficients
+        2
+        >>> terms.transform(X)
+        array([[-2.5,  1. ],
+               [-1.5,  1. ],
+               [-0.5,  1. ],
+               [ 0.5,  1. ],
+               [ 1.5,  1. ],
+               [ 2.5,  1. ]])
+        """
         for term in self:
             term.fit(X)
 
@@ -1531,7 +1603,13 @@ class TermList(UserList, BaseEstimator):
         self._upper_bound = np.hstack([term._upper_bound for term in self])
         return self
 
+    @property
+    def num_coefficients(self):
+        """Number of coefficients for the terms."""
+        return np.sum(list(term.num_coefficients for term in self))
+
     def transform(self, X):
+        """Transform the input."""
         return np.hstack([term.transform(X) for term in self])
 
     def fit_transform(self, X):
@@ -1547,6 +1625,7 @@ class TermList(UserList, BaseEstimator):
             return np.hstack(tuple(term.coef_ for term in self))
 
     def penalty_matrix(self):
+        """Return the penalty matrix for the terms."""
         penalty_matrices = [term.penalty_matrix() for term in self]
         return sp.linalg.block_diag(*penalty_matrices)
 

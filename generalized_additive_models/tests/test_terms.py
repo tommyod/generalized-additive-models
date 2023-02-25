@@ -337,6 +337,22 @@ class TestTermParameters:
 
 class TestPandasCompatibility:
     @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_integer_columns_work_with_pandas(self, term):
+        # Load data as dataframe
+        df = fetch_california_housing(as_frame=True).data
+        assert isinstance(df, pd.DataFrame)
+
+        df_integer_cols = df.copy()
+        df_integer_cols.columns = np.arange(len(df.columns))
+
+        # TODO: possible ambiguity here, should this fail?
+        # how do we know if indexing by integers is like iloc or loc
+
+        # Check that the results are the same
+        for i, feature in enumerate(df.columns):
+            assert np.allclose(term(feature=feature).fit_transform(df), term(feature=i).fit_transform(df_integer_cols))
+
+    @pytest.mark.parametrize("term", [Linear, Spline])
     def test_that_terms_can_use_numerical_and_string_features(self, term):
         # Load data as dataframe
         df = fetch_california_housing(as_frame=True).data
