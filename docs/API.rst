@@ -54,3 +54,4 @@ Models
    :toctree: API
 
    GAM
+   ExpectileGAM

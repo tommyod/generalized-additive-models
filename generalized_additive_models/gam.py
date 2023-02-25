@@ -7,14 +7,16 @@ Created on Sun Feb  5 12:05:41 2023
 """
 
 import copy
+import functools
+import warnings
 from numbers import Integral, Real
 
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.base import BaseEstimator
-from sklearn.utils import Bunch, check_scalar, check_consistent_length
+from sklearn.exceptions import ConvergenceWarning
+from sklearn.utils import Bunch, check_consistent_length, check_scalar
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
-
 
 # https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/utils/validation.py#L1870
 from sklearn.utils.validation import check_is_fitted
@@ -57,7 +59,7 @@ class GAM(BaseEstimator):
         "max_iter": [Interval(Integral, 1, None, closed="left")],
         "tol": [Interval(Real, 0.0, None, closed="neither")],
         "warm_start": ["boolean"],
-        "verbose": ["verbose"],
+        "verbose": [Integral, "boolean"],
     }
 
     def __init__(
@@ -161,6 +163,9 @@ class GAM(BaseEstimator):
         if self.fit_intercept and (Intercept() not in self.terms):
             self.terms.append(Intercept())
 
+    def _get_sample_weight(self, *, y=None, mu=None, sample_weight=None):
+        return sample_weight
+
     def fit(self, X, y, sample_weight=None):
         """Fit model to data.
 
@@ -200,6 +205,9 @@ class GAM(BaseEstimator):
         self.X_ = X.copy()  # Store a copy used for patial effects
         self.y_ = y.copy()
 
+        if sample_weight is None:
+            sample_weight = np.ones_like(y, dtype=float)
+
         optimizer = self._solver(
             X=self.model_matrix_,
             D=self.terms.penalty_matrix(),
@@ -207,9 +215,10 @@ class GAM(BaseEstimator):
             link=self._link,
             distribution=self._distribution,
             bounds=(self.terms._lower_bound, self.terms._upper_bound),
+            get_sample_weight=functools.partial(self._get_sample_weight, sample_weight=sample_weight),
             max_iter=self.max_iter,
             tol=self.tol,
-            sample_weight=sample_weight,
+            # sample_weight=sample_weight,
             verbose=self.verbose,
         )
 
@@ -405,22 +414,240 @@ if __name__ == "__main__":
         plt.plot(X_smooth, poisson_gam.predict(X_smooth), color="k")
 
 
+class ExpectileGAM(GAM):
+    _parameter_constraints: dict = {
+        "terms": [Term, TermList],
+        "expectile": [Interval(Real, 0, 1, closed="neither")],
+        "distribution": [StrOptions(set(DISTRIBUTIONS.keys())), Distribution],
+        "link": [StrOptions(set(LINKS.keys())), Link],
+        "fit_intercept": ["boolean"],
+        "solver": [
+            StrOptions({"pirls"}),
+            Hidden(type),
+        ],
+        "max_iter": [Interval(Integral, 1, None, closed="left")],
+        "tol": [Interval(Real, 0.0, None, closed="neither")],
+        "warm_start": ["boolean"],
+        "verbose": [Integral, "boolean"],
+    }
+
+    def __init__(
+        self,
+        terms=None,
+        *,
+        expectile=0.5,
+        distribution="normal",
+        link="identity",
+        fit_intercept=True,
+        solver="pirls",
+        max_iter=100,
+        tol=0.0001,
+        warm_start=False,
+        verbose=0,
+    ):
+        """Initialize a GAM.
+
+
+        Parameters
+        ----------
+        terms : Term, TermList or list, optional
+            The term(s) of the model. The argument can be a single term or a
+            collection of terms. The features that the terms refer to must be
+            present in the data set at fit and predict time. The default is None.
+        distribution : str or Distribution, optional
+            DESCRIPTION. The default is "normal".
+        link : TYPE, optional
+            DESCRIPTION. The default is "identity".
+        fit_intercept : TYPE, optional
+            DESCRIPTION. The default is True.
+        solver : TYPE, optional
+            DESCRIPTION. The default is "pirls".
+        max_iter : TYPE, optional
+            DESCRIPTION. The default is 100.
+        tol : TYPE, optional
+            DESCRIPTION. The default is 0.0001.
+        warm_start : TYPE, optional
+            DESCRIPTION. The default is False.
+        verbose : TYPE, optional
+            DESCRIPTION. The default is 0.
+         : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        Examples
+        --------
+        >>> from generalized_additive_models import GAM, Spline, Categorical
+        >>> from sklearn.datasets import load_diabetes
+        >>> data = load_diabetes(as_frame=True)
+        >>> df = data.data
+        >>> y = data.target
+        >>> gam = GAM(Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex"))
+        >>> gam = gam.fit(df, y)
+        >>> predictions = gam.predict(df)
+        >>> for term in gam.terms:
+        ...     print(term, term.coef_) # doctest: +SKIP
+
+        """
+        self.expectile = expectile
+        super().__init__(
+            terms=terms,
+            distribution="normal",
+            link="identity",
+            fit_intercept=fit_intercept,
+            solver=solver,
+            max_iter=max_iter,
+            tol=tol,
+            warm_start=warm_start,
+            verbose=verbose - 1,
+        )
+
+    def _validate_params(self, X):
+        super()._validate_params(X)
+
+    def _get_sample_weight(self, *, y=None, mu=None, sample_weight=None):
+        if (y is None) and (mu is None):
+            return sample_weight
+
+        # asymmetric weight
+        asymmetric_weights = (y > mu) * self.expectile + (y <= mu) * (1 - self.expectile)
+
+        return sample_weight * asymmetric_weights
+
+    def fit_quantile(self, X, y, quantile, max_iter=20, tol=0.01, sample_weight=None):
+        """fit ExpectileGAM to a desired quantile via binary search
+
+        Parameters
+        ----------
+        X : array-like, shape (n_samples, m_features)
+            Training vectors, where n_samples is the number of samples
+            and m_features is the number of features.
+        y : array-like, shape (n_samples,)
+            Target values (integers in classification, real numbers in
+            regression)
+            For classification, labels must correspond to classes.
+        quantile : float on (0, 1)
+            desired quantile to fit.
+        max_iter : int, default: 20
+            maximum number of binary search iterations to perform
+        tol : float > 0, default: 0.01
+            maximum distance between desired quantile and fitted quantile
+        weights : array-like shape (n_samples,) or None, default: None
+            containing sample weights
+            if None, defaults to array of ones
+
+        Returns
+        -------
+        self : fitted GAM object
+        """
+
+        quantile = check_scalar(
+            quantile,
+            "quantile",
+            Real,
+            min_val=0,
+            max_val=1,
+            include_boundaries="neither",
+        )
+
+        max_iter = check_scalar(
+            max_iter,
+            "quantile",
+            Integral,
+            min_val=1,
+            include_boundaries="left",
+        )
+
+        tol = check_scalar(
+            tol,
+            "quantile",
+            Real,
+            min_val=0,
+            max_val=1,
+            include_boundaries="neither",
+        )
+
+        def _within_tol(a, b, tol):
+            return abs(a - b) <= tol
+
+        # Perform binary search
+        # The goal is to choose `expectile` such that the empirical quantile
+        # matches the desired quantile. The reason for not using
+        # scipy.optimize.bisect is that bisect evalutes the endpoints first,
+        # resulting in extra unneccesary fits (we assume that 0 -> 0 and 1 -> 1)
+        min_, max_ = 0.0, 1.0
+        expectile = self.expectile
+        # TODO: Can this be improved?
+        # https://en.wikipedia.org/wiki/Regula_falsi#The_regula_falsi_(false_position)_method
+        for iteration in range(max_iter):
+            # Fit the model and compute the expected quantile
+            self.set_params(expectile=expectile)
+            self.fit(X, y, sample_weight=sample_weight)
+            empirical_quantile = (self.predict(X) > y).mean()
+
+            # Print out information
+            if self.verbose >= 0:
+                digits = 4
+                expectile_fmt = np.format_float_positional(
+                    self.expectile, precision=digits, pad_right=digits, min_digits=digits
+                )
+                empir_quant_fmt = np.format_float_positional(
+                    empirical_quantile, precision=digits, pad_right=digits, min_digits=digits
+                )
+                quantile_fmt = np.format_float_positional(
+                    quantile, precision=digits, pad_right=digits, min_digits=digits
+                )
+                msg = f"Fitting with expectile={expectile_fmt} gave empirical "
+                msg += f"quantile {empir_quant_fmt} (target={quantile_fmt})."
+                print(msg)
+
+            if _within_tol(empirical_quantile, quantile, tol):
+                break
+
+            if empirical_quantile < quantile:
+                min_ = self.expectile  # Move up
+            else:
+                max_ = self.expectile  # Move down
+
+            expectile = (min_ + max_) / 2.0
+
+        # print diagnostics
+        if not _within_tol(empirical_quantile, quantile, tol):
+            msg = f"Could determine `expectile` within tolerance {tol} in {max_iter} iterations.\n"
+            msg += f"Ended up with `expectile={expectile}`, which gives an empirical\n"
+            msg += f"quantile of {empirical_quantile} (desired quantile was {quantile})."
+            warnings.warn(msg, ConvergenceWarning)
+
+        return self
+
+
 if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
-    X = np.linspace(0.5, 2 * np.pi - 0.5, num=99).reshape(-1, 1)
-    y = np.sin(X.ravel()) + np.random.randn(99) / 10
+    X = np.linspace(0, 2 * np.pi, num=999).reshape(-1, 1)
+    y = (2 + np.sin(X.ravel())) * np.exp((np.random.rand(999) - 0.5) * 2)
 
     # for num_splines in range(5, 300, 5):
-    for penalty in np.logspace(-2, 4, num=10):
-        gam = GAM(Spline(0, num_splines=20, penalty=penalty))
-        gam.fit(X, y)
+    plt.scatter(X, y, alpha=0.1)
+    for quantile in [0.1, 0.25, 0.5, 0.75, 0.9]:
+        gam = ExpectileGAM(Spline(0, extrapolation="periodic"), verbose=1)
+        gam.fit_quantile(X, y, quantile=quantile)
+        plt.plot(X, gam.predict(X), label=str(quantile))
+        print()
 
-        plt.title(penalty)
-        plt.scatter(X, y)
+    plt.legend()
+    plt.show()
 
-        plt.plot(X, gam.predict(X), color="black", lw=3)
+    expectiles = np.linspace(0.0001, 0.9999)
+    quantiles = []
+    for expectile in expectiles:
+        gam = ExpectileGAM(Spline(0, extrapolation="periodic"), expectile=expectile, verbose=1).fit(X, y)
+        quantiles.append((gam.predict(X) > y).mean())
 
-        plt.show()
+    plt.plot(expectiles, quantiles)
+    plt.grid()
+    plt.show()

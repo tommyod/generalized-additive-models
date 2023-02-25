@@ -18,11 +18,9 @@ from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_
 from sklearn.utils import resample
 
 from generalized_additive_models.distributions import Binomial, Normal, Poisson
-from generalized_additive_models.gam import GAM
+from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit
 from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
-from generalized_additive_models.links import Logit
-from generalized_additive_models.distributions import Binomial
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
@@ -695,6 +693,37 @@ class TestGAMSanityChecks:
         assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.02)
 
 
+class TestExpectileGAM:
+    @pytest.mark.parametrize("expectile", np.linspace(0.05, 0.9, num=18))
+    def test_that_higher_expectile_gives_higher_estimate(self, expectile):
+        rng = np.random.default_rng(int(expectile * 1000))
+
+        noise = rng.normal(size=999)
+        X = np.linspace(0, 2 * np.pi, num=999).reshape(-1, 1)
+        y = (2 + np.sin(X.ravel())) * np.exp((noise - 0.5) * 2)
+
+        # Fit two models
+        gam = ExpectileGAM(Spline(0, extrapolation="periodic"), expectile=expectile).fit(X, y)
+        gam_higher = ExpectileGAM(Spline(0, extrapolation="periodic"), expectile=expectile + 0.05).fit(X, y)
+
+        assert np.all(gam_higher.predict(X) >= gam.predict(X))
+
+    @pytest.mark.parametrize("quantile", np.linspace(0.1, 0.9, num=9))
+    def test_that_quantile_fitting_finds_empirical_quantile(self, quantile):
+        rng = np.random.default_rng(int(quantile * 1000))
+
+        noise = rng.normal(size=999)
+        X = np.linspace(0, 2 * np.pi, num=999).reshape(-1, 1)
+        y = (2 + np.sin(X.ravel())) * np.exp((noise - 0.5) * 2)
+
+        # Fit a model
+        gam = ExpectileGAM(Spline(0, extrapolation="periodic"))
+
+        gam.fit_quantile(X, y, quantile=quantile)
+        empirical_quantile = (gam.predict(X) > y).mean()
+        assert np.isclose(empirical_quantile, quantile, atol=0.01)
+
+
 if __name__ == "__main__":
     import pytest
 
@@ -706,6 +735,6 @@ if __name__ == "__main__":
                 "--capture=sys",
                 "--doctest-modules",
                 "--maxfail=1",
-                "-k test_shift_invariance",
+                "-k TestExpectileGAM",
             ]
         )

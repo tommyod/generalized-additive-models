@@ -39,7 +39,7 @@ class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numercial stability."""
 
-    def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, sample_weight, verbose):
+    def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, get_sample_weight, verbose):
         self.X = X
         self.D = D
         self.y = y
@@ -49,7 +49,7 @@ class PIRLS(Optimizer):
         self.max_iter = max_iter
         self.tol = tol
         self.results_ = Bunch()
-        self.sample_weight = sample_weight
+        self.get_sample_weight = get_sample_weight
         self.verbose = verbose
 
     def _validate_params(self):
@@ -110,7 +110,8 @@ class PIRLS(Optimizer):
 
         # Solve X @ beta = mu using Ridge regression
         ridge = Ridge(alpha=1e3, fit_intercept=False)
-        ridge.fit(self.X, mu_initial, sample_weight=self.sample_weight)
+        sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
+        ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
         beta_initial = ridge.coef_
 
         # Respect the bounds
@@ -128,7 +129,8 @@ class PIRLS(Optimizer):
 
     def solve(self):
         num_observations, num_beta = self.X.shape
-        sample_weight = np.ones(num_observations) if (self.sample_weight is None) else self.sample_weight
+
+        alpha = 1  # Fisher weights, see page 250 in Wood, 2nd ed
 
         beta = self._initial_estimate()
 
@@ -138,7 +140,12 @@ class PIRLS(Optimizer):
 
         if self.verbose >= 1:
             lpad = int(np.floor(np.log10(self.max_iter)))
-            objective_init = self.evaluate_objective(self.X, self.D, beta, self.y, sample_weight)
+            w = (
+                alpha
+                * self.get_sample_weight(mu=mu, y=self.y)
+                / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            )
+            objective_init = self.evaluate_objective(self.X, self.D, beta, self.y, w)
 
             msg = "Initial guess:      "
             objective_fmt = np.format_float_scientific(objective_init, precision=4, min_digits=4)
@@ -150,8 +157,6 @@ class PIRLS(Optimizer):
         # List of betas to watch as optimization progresses
         betas = [beta]
         deviances = [self.distribution.deviance(y=self.y, mu=mu).mean()]
-
-        alpha = 1  # Fisher weights, see page 250 in Wood, 2nd ed
 
         # Set non-identifiable coefficients to zero
         # Compute Q R = A P
@@ -168,8 +173,11 @@ class PIRLS(Optimizer):
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
             z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
-            w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            w = w * sample_weight
+            # w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+
+            # w = alpha * self.get_weights(mu, sample_weight)
+            sample_weight = self.get_sample_weight(mu=mu, y=self.y)
+            w = alpha * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
             assert np.all(w > 0)
 
             # Step 3: Find beta to solve the weighted least squares objective
@@ -279,48 +287,12 @@ class PIRLS(Optimizer):
         return max_coord_update / max_coord < self.tol * step_size
 
 
+def bisect(function, x0=0.5):
+    """Bisection algorithm, assuming f(0) = 0 and f(1) = 1."""
+    pass
+
+
 if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
-
-    from generalized_additive_models import GAM, Linear
-
-    x = np.arange(10)
-    weights = np.ones(10, dtype=int)
-    weights[x % 2 == 0] = 4
-
-    y = 1 + 0.1 * x
-    y[x % 2 == 0] = y[x % 2 == 0] + 1
-
-    # Repeated data set
-    X_repeated = np.repeat(x, weights).reshape(-1, 1)
-    y_repeated = np.repeat(y, weights)
-
-    X = x.reshape(-1, 1)
-
-    # Train one GAM on repeated data, and one on weighted data
-    gam1 = GAM(Linear(0)).fit(X_repeated, y_repeated)
-    gam2 = GAM(Linear(0)).fit(X, y, sample_weight=weights)
-
-    import matplotlib.pyplot as plt
-
-    plt.scatter(X, y, s=weights * 5)
-    plt.plot(X, gam1.predict(X), label="repeated")
-    plt.plot(X, gam2.predict(X), label="weighted")
-    plt.legend()
-    plt.show()
-
-    assert np.allclose(gam1.predict(X), gam2.predict(X))
-
-    # Same as above, but with log links
-    gam1 = GAM(Linear(0), link="log").fit(X_repeated, y_repeated)
-    gam2 = GAM(Linear(0), link="log").fit(X, y, sample_weight=weights)
-
-    # np.allclose(gam1.predict(X), gam2.predict(X))
-
-    plt.scatter(X, y, s=weights * 5)
-    plt.plot(X, gam1.predict(X), label="repeated")
-    plt.plot(X, gam2.predict(X), label="weighted")
-    plt.legend()
-    plt.show()

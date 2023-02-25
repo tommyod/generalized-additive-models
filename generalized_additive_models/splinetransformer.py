@@ -7,10 +7,8 @@ Created on Thu Feb 23 07:15:31 2023
 """
 
 import numpy as np
-from sklearn.utils.validation import check_is_fitted, FLOAT_DTYPES
-
-
 from sklearn.preprocessing import SplineTransformer as SklearnSplineTransformer
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
 
 
 # The sklearn SplineTransformer does not extrapolate properly when the

@@ -19,13 +19,12 @@ import numpy as np
 import scipy as sp
 from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.preprocessing import OneHotEncoder
-from generalized_additive_models.splinetransformer import SplineTransformer
 from sklearn.utils._param_validation import Interval, StrOptions
-from sklearn.utils.validation import _get_feature_names
+from sklearn.utils.validation import _get_feature_names, check_is_fitted
 
 from generalized_additive_models.penalties import second_order_finite_difference
+from generalized_additive_models.splinetransformer import SplineTransformer
 from generalized_additive_models.utils import tensor_product
-from sklearn.utils.validation import check_is_fitted
 
 
 class Term(ABC):
