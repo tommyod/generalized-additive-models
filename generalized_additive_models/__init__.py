@@ -60,7 +60,7 @@ __name__ = "generalized-additive-models"
 
 from generalized_additive_models.distributions import Binomial, Normal, Poisson
 from generalized_additive_models.gam import GAM, ExpectileGAM
-from generalized_additive_models.links import Identity, Log, Logit
+from generalized_additive_models.links import Identity, Log, Logit, Softplus
 from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
 
 __all__ = [
@@ -76,6 +76,7 @@ __all__ = [
     "Normal",
     "Poisson",
     "Spline",
+    "Softplus",
     "Tensor",
     "TermList",
 ]

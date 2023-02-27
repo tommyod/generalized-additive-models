@@ -113,7 +113,7 @@ class Term(ABC):
             return False
 
         # Check for Spline/Linear/Intercept, etc
-        if isinstance(self, (Intercept, Linear, Spline)):
+        if isinstance(self, (Intercept, Linear, Spline, Categorical)):
             return frozenset([self.feature, self.by]) == frozenset([other.feature, other.by])
         # Check for Tensor
         elif isinstance(self, Tensor):

@@ -251,7 +251,8 @@ class TestPandasCompatibility:
         score = r2_score(y_true=y_test, y_pred=gam.predict(df_test))
         assert np.isclose(score, 0.65, atol=0.1)
 
-    def test_that_dataframe_and_numpy_produce_idential_results(self):
+    @pytest.mark.parametrize("gam_cls", [GAM, ExpectileGAM])
+    def test_that_dataframe_and_numpy_produce_idential_results(self, gam_cls):
         # Get data as a DataFrame and Series
         data = fetch_california_housing(as_frame=True)
         df, y = data.data, data.target
@@ -266,21 +267,22 @@ class TestPandasCompatibility:
 
         # Fit a model using DataFrame
         terms = TermList(Spline(c) for c in df.columns[columns_to_use])
-        gam1 = GAM(terms=terms, fit_intercept=True)
+        gam1 = gam_cls(terms=terms, fit_intercept=True)
         gam1.fit(df, y)
 
         # Fit a model using numpy array
         terms = TermList(Spline(c) for c in columns_to_use)
-        gam2 = GAM(terms=terms, fit_intercept=True)
+        gam2 = gam_cls(terms=terms, fit_intercept=True)
         gam2.fit(df.values, y.values)
 
         assert np.allclose(gam1.predict(df), gam2.predict(df.values))
 
 
 class TestSklearnCompatibility:
-    def test_cloning_with_sklearn_clone(self):
+    @pytest.mark.parametrize("gam_cls", [GAM, ExpectileGAM])
+    def test_cloning_with_sklearn_clone(self, gam_cls):
         terms = Spline(0, extrapolation="periodic")
-        gam = GAM(terms=terms, max_iter=100)
+        gam = gam_cls(terms=terms, max_iter=100)
 
         # Clone and change original
         cloned_gam = clone(gam)

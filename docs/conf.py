@@ -51,6 +51,8 @@ extensions = [
     "IPython.sphinxext.ipython_directive",
 ]
 
+plot_include_source=True
+
 
 nbsphinx_custom_formats = {
     ".py": ["jupytext.reads", {"fmt": "py:percent"}],
