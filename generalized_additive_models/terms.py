@@ -46,6 +46,10 @@ class Term(ABC):
         pass
 
     def _get_column(self, X, selector="feature"):
+        # A Tensor can select several columns, so we recursively do that
+        if isinstance(self, Tensor) and selector == "feature":
+            return np.hstack([spline._get_column(X, selector=selector) for spline in self])
+
         selector = getattr(self, selector + "_")
 
         if hasattr(X, "iloc"):
@@ -53,6 +57,20 @@ class Term(ABC):
         return X[:, selector].reshape(-1, 1)
 
     def _infer_feature_variable(self, *, variable_name, X):
+        """Infer feature variable such as `feature` or `by` and set `feature_` or `by_`.
+
+        Examples
+        --------
+        >>> import pandas as pd
+        >>> X = np.arange(12).reshape(-1, 4)
+        >>> df = pd.DataFrame(X, columns=list('abcd'))
+        >>> term = Spline('b')
+        >>> term._infer_feature_variable(variable_name='feature', X=df)
+        >>> term.feature_
+        1
+
+
+        """
         # Variable name is typically 'penalty' or 'by'
         num_samples, num_features = X.shape
         variable_content = getattr(self, variable_name)
@@ -67,6 +85,7 @@ class Term(ABC):
                 raise ValueError(msg)
 
             # A single column was passed, assume it's the one to transform
+            # TODO: Disallow this? Might be too implicit
             elif num_features == 1 and hasattr(self, variable_to_set):
                 setattr(self, variable_to_set, 0)
 

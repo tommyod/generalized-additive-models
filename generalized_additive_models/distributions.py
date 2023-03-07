@@ -12,12 +12,14 @@ Distributions
 
 from abc import ABC, abstractmethod
 from functools import wraps
+from numbers import Real
 
 import numpy as np
 import scipy as sp
 from scipy.special import rel_entr
 from sklearn.base import BaseEstimator
 from sklearn.utils import check_consistent_length
+from sklearn.utils._param_validation import Interval
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -93,26 +95,26 @@ class Distribution(ABC):
     def V(self, mu):
         pass
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        return self.get_params() == other.get_params()
+
 
 class Normal(Distribution, BaseEstimator):
     name = "normal"
     domain = (-np.inf, np.inf)
     continuous = True
 
+    _parameter_constraints: dict = {
+        "scale": [Interval(Real, 0.0, None, closed="neither"), None],
+    }
+
     def __init__(self, scale=None):
-        """
-        creates an instance of the NormalDist class
-
-        Parameters
-        ----------
-        scale : float or None, default: None
-            scale/standard deviation of the distribution
-
-        Returns
-        -------
-        self
-        """
         self.scale = scale
+
+    def get_scale(self):
+        return self.scale_ if hasattr(self, "scale_") else self.scale
 
     def log_pdf(self, y, mu, weights=None):
         """
@@ -138,6 +140,9 @@ class Normal(Distribution, BaseEstimator):
 
         scale = self.scale / weights
         return sp.stats.norm.logpdf(y, loc=mu, scale=scale)
+
+    def variance(self, mu):
+        return self.V(mu) * self.scale
 
     def V(self, mu, sample_weight=None):
         check_consistent_length(mu, sample_weight)

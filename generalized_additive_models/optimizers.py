@@ -242,19 +242,29 @@ class PIRLS(Optimizer):
         inverted = sp.linalg.inv(to_invert)
 
         # Only need the diagonal of H, so use the fact that
-        # np.diag(A @ B @ A.T) = ((A @ B) * A).sum(axis=1)
+        # np.diag(B @ A.T) = (B * A).sum(axis=1)
         # to compute H below:
         # H = ((w.reshape(-1, 1) * self.X) @ inverted @ self.X.T)
-        H_diag = np.sum(((w.reshape(-1, 1) * self.X) @ inverted) * self.X, axis=1)
+        # H_diag = np.sum(((w.reshape(-1, 1) * self.X) @ inverted) * self.X, axis=1)
+        # H_diag2 = sp.linalg.inv(self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D) @ self.X.T @ np.diag(w) @ self.X
+        H_diag = ((self.X.T @ (w.reshape(-1, 1) * self.X)) * inverted).sum(axis=1)
+        # H_diag = np.diag(inverted @ self.X.T @ np.diag(w) @ self.X )
+        # assert np.allclose(H_diag, np.diag(H_diag2))
+
+        # assert len(beta) == len(np.diag(H_diag2))
+        assert len(beta) == len(H_diag)
+
         edof_per_coef = H_diag
         edof = edof_per_coef.sum()
 
-        # Compute phi by equation (6.2) (page 251 in Wood, 2nd ed)
+        # Compute phi by equation (6.2) (page 251 in Wood, 2nd ed; also p 110)
         # In the Gaussian case, phi is the variance
         if self.distribution.scale is not None:
             phi = self.distribution.scale
         else:
-            phi = np.sum((z - self.X @ beta) ** 2 * w) / (len(beta) - edof)
+            phi = np.sum((z - self.X @ beta) ** 2 * w) / (len(z) - edof)
+
+        self.results_.scale = phi
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
@@ -327,8 +337,6 @@ def regula_falsi(function, x0=0.5, target=0.8, max_iter=20, tol=0.0001):
 
 
 if __name__ == "__main__":
-    import pytest
-
     # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
     def function(x):

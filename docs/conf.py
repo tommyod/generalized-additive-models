@@ -51,7 +51,7 @@ extensions = [
     "IPython.sphinxext.ipython_directive",
 ]
 
-plot_include_source=True
+plot_include_source = True
 
 
 nbsphinx_custom_formats = {

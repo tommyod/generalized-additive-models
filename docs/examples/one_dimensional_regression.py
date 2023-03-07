@@ -20,9 +20,11 @@
 #
 # ### Imports and data creation
 
+import matplotlib.pyplot as plt
+
 # %%
 import numpy as np
-import matplotlib.pyplot as plt
+
 from generalized_additive_models import GAM, Spline
 
 rng = np.random.default_rng(42)

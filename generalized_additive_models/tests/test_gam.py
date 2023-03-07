@@ -5,8 +5,10 @@ Created on Wed Feb  8 07:11:09 2023
 
 @author: tommy
 """
+import io
 import itertools
 
+import joblib
 import numpy as np
 import pandas as pd
 import pytest
@@ -17,7 +19,7 @@ from sklearn.metrics import accuracy_score, r2_score
 from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.utils import resample
 
-from generalized_additive_models.distributions import Binomial, Normal, Poisson
+from generalized_additive_models.distributions import Binomial, Normal
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit
 from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
@@ -279,6 +281,24 @@ class TestPandasCompatibility:
 
 
 class TestSklearnCompatibility:
+    def test_saving_model_with_joblib(self):
+        data = load_diabetes(as_frame=True)
+        df = data.data
+        y = data.target
+        terms = Spline("age") + Spline("bmi") + Categorical("sex") + Linear("s5")
+        gam = GAM(terms, link="log", distribution=Normal()).fit(df, y)
+
+        # Store to file object
+        filename = io.BytesIO()
+        joblib.dump(gam, filename)
+        filename.seek(0)
+
+        # Load back and compare
+        gam_restored = joblib.load(filename)
+
+        assert np.allclose(gam_restored.coef_, gam.coef_)
+        assert gam_restored.get_params() == gam.get_params()
+
     @pytest.mark.parametrize("gam_cls", [GAM, ExpectileGAM])
     def test_cloning_with_sklearn_clone(self, gam_cls):
         terms = Spline(0, extrapolation="periodic")
@@ -737,6 +757,6 @@ if __name__ == "__main__":
                 "--capture=sys",
                 "--doctest-modules",
                 "--maxfail=1",
-                "-k TestExpectileGAM",
+                "-k joblib",
             ]
         )

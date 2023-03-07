@@ -11,7 +11,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy import special
 from sklearn.base import BaseEstimator
-from sklearn.utils import check_consistent_length
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -46,23 +45,28 @@ class Link(ABC):
         if not len(threshold) == len(argument):
             raise ValueError("Lengths of threshold in Link must match argument.")
         return threshold
-    
+
     def __call__(self, *args, **kwargs):
         return self.link(*args, **kwargs)
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        return self.get_params() == other.get_params()
+
 
 class Identity(Link, BaseEstimator):
-    """Identity link: :math:`g(\mu) = \mu`"""
+    r"""Identity link: :math:`g(\mu) = \mu`"""
 
-    name = "identity" #: Name of the link function
-    domain = (-np.inf, np.inf) #: Domain of the link function
+    name = "identity"  #: Name of the link function
+    domain = (-np.inf, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         return mu
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         return linear_prediction
 
     def derivative(self, mu):
@@ -75,10 +79,10 @@ class Identity(Link, BaseEstimator):
 
 
 class Logit(Link, BaseEstimator):
-    """Logit link: :math:`g(\mu) = \log(\mu / (1 - \mu))`"""
+    r"""Logit link: :math:`g(\mu) = \log(\mu / (1 - \mu))`"""
 
-    name = "logit" #: Name of the link function
-    domain = (0, 1) #: Domain of the link function
+    name = "logit"  #: Name of the link function
+    domain = (0, 1)  #: Domain of the link function
 
     def __init__(self, low=0, high=1):
         assert type(low) == type(high)
@@ -87,7 +91,7 @@ class Logit(Link, BaseEstimator):
         self.domain = (self.low, self.high)
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         # x = log((-L + y)/(H - y))
 
         low = self._validate_threshold(threshold=self.low, argument=mu)
@@ -96,7 +100,7 @@ class Logit(Link, BaseEstimator):
         return np.log(mu - low) - np.log(high - mu)
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         # expit(x) = 1 / (1 + exp(-x))
 
         low = self._validate_threshold(threshold=self.low, argument=linear_prediction)
@@ -126,17 +130,17 @@ class Logit(Link, BaseEstimator):
 
 
 class Log(Link, BaseEstimator):
-    """Logit link: :math:`g(\mu) = \log(\mu)`"""
+    r"""Logit link: :math:`g(\mu) = \log(\mu)`"""
 
-    name = "log" #: Name of the link function
-    domain = (0, np.inf) #: Domain of the link function
+    name = "log"  #: Name of the link function
+    domain = (0, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         return np.log(mu)
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         return np.exp(linear_prediction)
 
     def derivative(self, mu):
@@ -149,7 +153,7 @@ class Log(Link, BaseEstimator):
 
 
 class SmoothLog(Link, BaseEstimator):
-    """g(x) = (x^(a- 1) - 1) / (a - 1)
+    r"""g(x) = (x^(a- 1) - 1) / (a - 1)
 
     where
     a -> 1       => logarithm
@@ -159,8 +163,8 @@ class SmoothLog(Link, BaseEstimator):
 
     """
 
-    name = "smoothlog" #: Name of the link function
-    domain = (0, np.inf) #: Domain of the link function
+    name = "smoothlog"  #: Name of the link function
+    domain = (0, np.inf)  #: Domain of the link function
 
     def __init__(self, a=1.5):
         self.a = a
@@ -168,13 +172,13 @@ class SmoothLog(Link, BaseEstimator):
         assert self.a != 1
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         a = self._validate_threshold(threshold=self.a, argument=mu)
 
         return (mu ** (a - 1) - 1) / (a - 1)
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         # (a*y - y + 1)**(1/(a - 1))
 
         a = self._validate_threshold(threshold=self.a, argument=linear_prediction)
@@ -197,18 +201,18 @@ class SmoothLog(Link, BaseEstimator):
 
 
 class Softplus(Link, BaseEstimator):
-    """Softplus link: :math:`g(\mu) = \log(\exp(a \mu) - 1)/a`"""
+    r"""Softplus link: :math:`g(\mu) = \log(\exp(a \mu) - 1)/a`"""
 
     # Using the Softplus Function to Construct Alternative Link Functions
     # in Generalized Linear Models and Beyond
     # https://arxiv.org/pdf/2111.14207.pdf
 
-    name = "softplus" #: Name of the link function
-    domain = (0, np.inf) #: Domain of the link function
+    name = "softplus"  #: Name of the link function
+    domain = (0, np.inf)  #: Domain of the link function
 
     def __init__(self, a=1):
-        """Initialize Softplus link.
-        
+        r"""Initialize Softplus link.
+
         Parameters
         ----------
         a : float, optional
@@ -221,14 +225,14 @@ class Softplus(Link, BaseEstimator):
         assert a > 0
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         a = self._validate_threshold(threshold=self.a, argument=mu)
 
         return np.maximum(0, mu) + np.log1p(-np.exp(-a * np.abs(mu))) / a
         return np.log(np.exp(a * mu) - 1) / a
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         # the inverse is the softplus
 
         a = self._validate_threshold(threshold=self.a, argument=linear_prediction)
@@ -250,10 +254,10 @@ class Softplus(Link, BaseEstimator):
 
 
 class CLogLogLink(Link, BaseEstimator):
-    """g(mu) = log(-log(1 - mu))"""
+    r"""g(\mu) = \log(-\log(1 - \mu))"""
 
-    name = "cloglog" #: Name of the link function
-    domain = (0, 1) #: Domain of the link function
+    name = "cloglog"  #: Name of the link function
+    domain = (0, 1)  #: Domain of the link function
 
     def __init__(self, low=0, high=1):
         assert type(low) == type(high)
@@ -261,14 +265,14 @@ class CLogLogLink(Link, BaseEstimator):
         self.high = high
 
     def link(self, mu, levels=1):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         low = self._validate_threshold(threshold=self.low, argument=mu)
         high = self._validate_threshold(threshold=self.high, argument=mu)
 
         return np.log(np.log(high - low) - np.log(high - mu))
 
     def inverse_link(self, linear_prediction, levels=1):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         low = self._validate_threshold(threshold=self.low, argument=linear_prediction)
         high = self._validate_threshold(threshold=self.high, argument=linear_prediction)
 
@@ -294,17 +298,17 @@ class CLogLogLink(Link, BaseEstimator):
 
 
 class Inverse(Link, BaseEstimator):
-    """g(mu) = 1/mu"""
+    r"""g(mu) = 1/mu"""
 
-    name = "inverse" #: Name of the link function
-    domain = (0, np.inf) #: Domain of the link function
+    name = "inverse"  #: Name of the link function
+    domain = (0, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         return 1.0 / mu
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         return 1.0 / linear_prediction
 
     def derivative(self, mu):
@@ -317,17 +321,17 @@ class Inverse(Link, BaseEstimator):
 
 
 class InvSquared(Link, BaseEstimator):
-    """g(mu) = 1/mu**2"""
+    r"""g(mu) = 1/mu**2"""
 
-    name = "inv_squared" #: Name of the link function
-    domain = (0, np.inf) #: Domain of the link function
+    name = "inv_squared"  #: Name of the link function
+    domain = (0, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        """Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         return 1.0 / mu**2
 
     def inverse_link(self, linear_prediction):
-        """Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`."""
         return 1.0 / np.sqrt(linear_prediction)
 
     def derivative(self, mu):

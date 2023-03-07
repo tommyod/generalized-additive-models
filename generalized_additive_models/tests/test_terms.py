@@ -248,6 +248,19 @@ class TestTerms:
         transformed2 = term.transform(X)
         assert np.allclose(transformed, transformed2)
 
+    @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_feature_can_change_between_fit_and_transform(self, term):
+        X = np.linspace(0, 1, num=18).reshape(-1, 2)
+
+        term = term(0)
+        term.fit_transform(X)
+        assert term.feature == 0
+        assert term.feature_ == 0
+
+        term.set_params(feature=1)
+        term.transform(X)
+        assert term.feature_ == 1
+
 
 class TestTermList:
     def test_that_adding_tensor_term_does_not_unpack_tensor(self):

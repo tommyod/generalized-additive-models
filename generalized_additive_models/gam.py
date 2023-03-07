@@ -8,14 +8,16 @@ Created on Sun Feb  5 12:05:41 2023
 
 import copy
 import functools
+import sys
 import warnings
 from numbers import Integral, Real
 
 import matplotlib.pyplot as plt
 import numpy as np
+import tabulate
 from sklearn.base import BaseEstimator, clone
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.utils import Bunch, check_array, check_consistent_length, check_scalar, column_or_1d
+from sklearn.utils import check_consistent_length, check_scalar, column_or_1d
 from sklearn.utils._param_validation import Hidden, Interval, StrOptions
 
 # https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/utils/validation.py#L1870
@@ -24,7 +26,7 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import Intercept, Linear, Spline, Term, TermList, Categorical
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
 
 # from generalized_additive_models.distributions import DISTRIBUTIONS
 
@@ -164,6 +166,8 @@ class GAM(BaseEstimator):
             self.terms.append(Intercept())
 
     def _get_sample_weight(self, *, y=None, mu=None, sample_weight=None):
+        """Return sample weight. The arguments `y` and `mu` are used for
+        compatibility with ExpectileGAM."""
         return sample_weight
 
     def fit(self, X, y, sample_weight=None):
@@ -208,6 +212,7 @@ class GAM(BaseEstimator):
 
         self.X_ = X.copy()  # Store a copy used for patial effects
         self.y_ = y.copy()
+        self.sample_weight_ = sample_weight.copy()
 
         if sample_weight is None:
             sample_weight = np.ones_like(y, dtype=float)
@@ -228,6 +233,7 @@ class GAM(BaseEstimator):
         # Copy over solver information
         self.coef_ = optimizer.solve().copy()
         self.results_ = copy.deepcopy(optimizer.results_)
+        self.results_.pseudo_r2 = self.score(X, y, sample_weight=sample_weight)
 
         # Assign coefficients to terms
         coef_idx = 0
@@ -235,6 +241,8 @@ class GAM(BaseEstimator):
             term.coef_ = self.coef_[coef_idx : coef_idx + term.num_coefficients]
             term.coef_idx_ = np.arange(coef_idx, coef_idx + term.num_coefficients)
             term.coef_covar_ = self.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
+            term.edof_ = self.results_.edof_per_coef[term.coef_idx_]
+
             coef_idx += term.num_coefficients
             assert len(term.coef_) == term.num_coefficients
         assert sum(len(term.coef_) for term in self.terms) == len(self.coef_)
@@ -248,6 +256,24 @@ class GAM(BaseEstimator):
         return self._link.inverse_link(model_matrix @ self.coef_)
 
     def score(self, X, y, sample_weight=None):
+        """Proportion deviance explained (pseudo r^2).
+
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+        y : TYPE
+            DESCRIPTION.
+        sample_weight : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         check_is_fitted(self, attributes=["coef_"])
         self._validate_params(X)
 
@@ -257,147 +283,70 @@ class GAM(BaseEstimator):
         sample_weight = _check_sample_weight(sample_weight, X, only_non_negative=True)
         sample_weight = column_or_1d(sample_weight)
 
+        # Special case for the null gam. Without this line of code, a cycle of
+        # fit() -> score() -> fit() will occur.
+        if self.terms == TermList([Intercept()]):
+            return 0
+
         # Compute pseudo r2
         # https://en.wikipedia.org/wiki/Pseudo-R-squared#R2L_by_Cohen
+        # Page 128 in Wood, 2nd edition
         mu = self.predict(X)
         sample_weight = self._get_sample_weight(y=y, mu=mu, sample_weight=sample_weight)
 
         # Compute the null predictions
         null_gam = clone(self)
-        null_preds = null_gam.set_params(terms=Intercept()).fit(X, y).predict(X)
+        null_preds = null_gam.set_params(terms=Intercept()).fit(X, y, sample_weight=sample_weight).predict(X)
 
         null_deviance = self._distribution.deviance(y=y, mu=null_preds, sample_weight=sample_weight).sum()
         fitted_deviance = self._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight).sum()
-
+        # assert fitted_deviance <= null_deviance
         return (null_deviance - fitted_deviance) / null_deviance
 
-    def partial_effect(self, term, standard_deviations=1.0, edges=None, linear_scale=True):
-        """
-
-        1 standard deviation  => 0.6827 coverage
-        2 standard deviations => 0.9545 coverage
-        3 standard deviations => 0.9973 coverage
-        4 standard deviations => 0.9999 coverage
-
-        Coverage of 1 standard deviation is given by:
-
-        >>> from scipy.stats import norm
-        >>> norm().cdf(1) - norm().cdf(-1)
-        0.6826894921370...
-
-        Parameters
-        ----------
-        term : Linear, Spline, str, int
-            A term from the fitted gam (access via gam.terms), or a feature name
-            corresponding to a term from the fitted gam.
-        standard_deviations : float, optional
-            The number of standard deviations to cover in the credible interval.
-            The default is 1.0.
-
-        Returns
-        -------
-        Bunch
-            A dict-like object with results.
-
-        Examples
-        --------
-        >>> rng = np.random.default_rng(42)
-        >>> X = rng.normal(size=(100, 1))
-        >>> y = np.sin(X).ravel() + rng.normal(scale=0.1, size=100)
-        >>> spline = Spline(0)
-        >>> gam = GAM(spline).fit(X, y)
-        >>> results = gam.partial_effect(spline)
-
-        Alternatively, use the feature index or name:
-
-        >>> results = gam.partial_effect(0)
-
-        Or loop through the model terms like so:
-
-        >>> for term in gam.terms:
-        ...     if isinstance(term, Intercept):
-        ...         continue
-        ...     results = gam.partial_effect(term)
-        ...     # Plotting code goes here
-
-        """
+    def summary(self, file=None):
         check_is_fitted(self, attributes=["coef_"])
 
-        standard_deviations = check_scalar(
-            standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
+        if file is None:
+            file = sys.stdout
+
+        p = functools.partial(print, file=file)
+        fmt = functools.partial(np.format_float_positional, precision=2, min_digits=2)
+
+        # ======================= GAM PROPERTIES =======================
+        rows = []
+        rows.append(("Model", type(self).__name__))
+        rows.append(("Link", self._link))
+        rows.append(("Distribution", self._distribution))
+        rows.append(("Scale", fmt(self.results_.scale)))
+        rows.append(("GCV", fmt(self.results_.generalized_cross_validation_score)))
+        rows.append(("Explained deviance", fmt(self.results_.pseudo_r2)))
+
+        gam_table_str = tabulate.tabulate(
+            rows,
+            headers=("Property", "Value"),
+            tablefmt="github",
         )
 
-        # If the term is a number or string, try to fetch it from the terms
-        if isinstance(term, (str, Integral)):
-            try:
-                term = next(t for t in self.terms if t.feature == term)
-            except StopIteration:
-                return ValueError(f"Could not find term with feature: {term}")
+        p(gam_table_str)
 
-        elif isinstance(term, (Linear, Spline, Categorical)):
-            if term not in self.terms:
-                raise ValueError(f"Term not found in model: {term}")
-            check_is_fitted(term)
+        # ======================= TERM PROPERTIES =======================
 
-        else:
-            raise TypeError(f"`term` must be of type Linear, Spline or Categorical, but found: {term}")
+        rows = []
+        for term in self.terms:
+            t_name = type(term).__name__
+            t_features = ", ".join(s.feature for s in term) if isinstance(term, Tensor) else (term.feature or "")
+            t_repr = f"{t_name}({t_features})"
+            t_numcoef = term.num_coefficients
+            t_edof = fmt(term.edof_.sum())
+            rows.append((t_repr, t_numcoef, t_edof))
 
-        # Get data related to term and create a smooth grid
-        term = copy.deepcopy(term)  # Copy so feature_ is not changed by term.transform() below
-        data = term._get_column(self.X_, selector="feature")
-        if isinstance(term, (Linear, Spline)):
-            if edges is None:
-                min_val, max_val = np.min(data), np.max(data)
-                range_ = max_val - min_val
-                min_val, max_val = min_val - 0.01 * range_, max_val + 0.01 * range_
-            else:
-                min_val, max_val = edges
-    
-            X_smooth = np.linspace(min_val, max_val, num=2**10)
-        elif isinstance(term, Categorical):
-            X_smooth = np.array(term.categories_)
-
-        # Predict on smooth grid
-        X = term.transform(X_smooth.reshape(-1, 1))
-        linear_predictions = X @ term.coef_
-        predictions = linear_predictions if linear_scale else self._link.inverse_link(linear_predictions)
-
-        # Get the covariance matrix associated with the coefficients of this term
-        V = self.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
-
-        # The variance of y = X @ \beta is given by diag(X @ V @ X.T)
-        # Page 293 in Wood, or see: https://math.stackexchange.com/a/2365257
-        # Since we only need the diagonal, we don't form the full matrix product
-        # Also, see equation (375) in The Matrix Cookbook
-        # https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf
-
-        stdev_array = np.sqrt(np.sum((X @ V) * X, axis=1))
-        assert np.all(stdev_array > 0)
-        assert np.allclose(stdev_array**2, np.diag(X @ V @ X.T))
-
-        # For partial residual plots
-        # https://en.wikipedia.org/wiki/Partial_residual_plot#Definition
-        residuals = self.y_ - self._link.inverse_link(self.model_matrix_ @ self.coef_)
-
-        # Prepare the results
-        result = Bunch(
-            x=X_smooth,
-            y=predictions,
-            y_low=predictions - standard_deviations * stdev_array,
-            y_high=predictions + standard_deviations * stdev_array,
-            x_obs=data,
-            y_partial_residuals=(term.transform(data.reshape(-1, 1)) @ term.coef_) + residuals,
+        p()
+        term_table_str = tabulate.tabulate(
+            rows,
+            headers=("Term", "Coefs", "Edof"),
+            tablefmt="github",
         )
-        
-        if not linear_scale:
-            result.y = self._link.inverse_link(result.y)
-            result.y_low = self._link.inverse_link(result.y_low)
-            result.y_high = self._link.inverse_link(result.y_high)
-            model_predictions = self._link.inverse_link((term.transform(data.reshape(-1, 1)) @ term.coef_))
-            result.y_partial_residuals = model_predictions + residuals,
-            
-        
-        return result
+        p(term_table_str)
 
 
 class ExpectileGAM(GAM):
@@ -539,7 +488,7 @@ class ExpectileGAM(GAM):
 
     def fit_quantile(self, X, y, quantile, max_iter=20, tol=0.01, sample_weight=None):
         """Find the `expectile` such that the empirical quantile matches `quantile`.
-        
+
         Finding the desired `expectile` is done by performing binary search.
 
         Parameters
@@ -564,7 +513,7 @@ class ExpectileGAM(GAM):
         Returns
         -------
         self : Fitted GAM object with updated `expectile` parameter.
-        
+
         Examples
         --------
         >>> import numpy as np
@@ -577,7 +526,7 @@ class ExpectileGAM(GAM):
         0.90...
         >>> gam.expectile
         0.976...
-        
+
         """
 
         quantile = check_scalar(
@@ -662,29 +611,47 @@ class ExpectileGAM(GAM):
 
 if __name__ == "__main__":
     import pytest
+    from sklearn.datasets import load_diabetes
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    from generalized_additive_models.terms import Tensor
 
-    np.random.seed(2)
+    data = load_diabetes(as_frame=True)
+    df = data.data
+    y = data.target
+    gam = GAM(
+        Spline("age")
+        + Spline("bmi", penalty=1)
+        + Categorical("sex")
+        + Linear("s5", penalty=0)
+        + Tensor([Spline("s2"), Spline("s1")])
+    )
+    gam.fit(df, y)
 
-    X = np.linspace(0, 2 * np.pi, num=999).reshape(-1, 1)
-    y = (2 + np.sin(X.ravel())) * np.exp((np.random.rand(999) - 0.5) * 2)
+    gam.summary()
 
-    # for num_splines in range(5, 300, 5):
-    plt.scatter(X, y, alpha=0.1)
-    for quantile in [0.1, 0.5, 0.9]:
-        gam = ExpectileGAM(Spline(0, extrapolation="periodic", penalty=100))
-        gam.fit_quantile(X, y, quantile=quantile)
-        plt.plot(X, gam.predict(X), label=str(quantile))
-        print()
+    if False:
+        pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
 
-    plt.legend()
-    plt.show()
+        np.random.seed(2)
 
-    gam = GAM(Spline(0)).fit(X, y)
+        X = np.linspace(0, 2 * np.pi, num=999).reshape(-1, 1)
+        y = (2 + np.sin(X.ravel())) * np.exp((np.random.rand(999) - 0.5) * 2)
 
-    print(gam.score(X, y))
+        # for num_splines in range(5, 300, 5):
+        plt.scatter(X, y, alpha=0.1)
+        for quantile in [0.1, 0.5, 0.9]:
+            gam = ExpectileGAM(Spline(0, extrapolation="periodic", penalty=100))
+            gam.fit_quantile(X, y, quantile=quantile)
+            plt.plot(X, gam.predict(X), label=str(quantile))
+            print()
 
-    gam = ExpectileGAM(Spline(0), expectile=0.9).fit(X, y)
+        plt.legend()
+        plt.show()
 
-    print(gam.score(X, y))
+        gam = GAM(Spline(0)).fit(X, y)
+
+        print(gam.score(X, y))
+
+        gam = ExpectileGAM(Spline(0), expectile=0.9).fit(X, y)
+
+        print(gam.score(X, y))
