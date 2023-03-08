@@ -99,8 +99,6 @@ class GAM(BaseEstimator):
             DESCRIPTION. The default is False.
         verbose : TYPE, optional
             DESCRIPTION. The default is 0.
-         : TYPE
-            DESCRIPTION.
 
         Returns
         -------
@@ -428,8 +426,6 @@ class ExpectileGAM(GAM):
             DESCRIPTION. The default is False.
         verbose : TYPE, optional
             DESCRIPTION. The default is 0.
-         : TYPE
-            DESCRIPTION.
 
         Returns
         -------
