@@ -6,12 +6,7 @@ Created on Wed Feb  8 17:33:49 2023
 @author: tommy
 """
 
-"""
-Distributions
-"""
-
 from abc import ABC, abstractmethod
-from functools import wraps
 from numbers import Real
 
 import numpy as np
@@ -26,26 +21,6 @@ EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
 class Distribution(ABC):
-    """
-    base distribution class
-    """
-
-    def phi(self, y, mu, edof, weights=None):
-        if self.scale is not None:
-            return self.scale
-
-        if weights is None:
-            weights = np.ones_like(y, dtype=float)
-
-        if not (len(y) == len(mu) == len(weights)):
-            msg = f"Lengths of y, mu and weights did not match: {len(y)} {len(mu)} {len(weights)}"
-            raise ValueError(msg)
-
-        # This is the Pearson statistic at its expected value
-        # See Section 3.1.5 in Wood, 2nd ed
-        # The method V() is defined by subclasses
-        return np.sum(weights * (y - mu) ** 2 / self.V(mu)) / (len(mu) - edof)
-
     @abstractmethod
     def sample(self, mu):
         pass
@@ -92,16 +67,8 @@ class Normal(Distribution, BaseEstimator):
         standard_deviation = np.sqrt(self.variance(mu))
         return sp.stats.norm.logpdf(y, loc=mu, scale=standard_deviation)
 
-    def variance(self, mu):
-        return self.V(mu) * self.scale
-
-    def V(self, mu, sample_weight=None):
-        check_consistent_length(mu, sample_weight)
-
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
-        return np.ones_like(mu, dtype=float) / sample_weight
+    def V(self, mu):
+        return np.ones_like(mu, dtype=float)
 
     def V_derivative(self, mu):
         return np.zeros_like(mu, dtype=float)
@@ -118,9 +85,9 @@ class Normal(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu):
+    def sample(self, mu, size=None):
         standard_deviation = np.sqrt(self.variance(mu))
-        return np.random.normal(loc=mu, scale=standard_deviation, size=None)
+        return np.random.normal(loc=mu, scale=standard_deviation, size=size)
 
 
 class Poisson(Distribution, BaseEstimator):
@@ -138,9 +105,6 @@ class Poisson(Distribution, BaseEstimator):
 
     def log_pdf(self, y, mu):
         return sp.stats.poisson.logpmf(y, mu=mu)
-
-    def variance(self, mu):
-        return self.V(mu) * self.scale
 
     def V(self, mu):
         return mu
@@ -160,8 +124,8 @@ class Poisson(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu):
-        return np.random.poisson(lam=mu, size=None)
+    def sample(self, mu, size=None):
+        return np.random.poisson(lam=mu, size=size)
 
 
 class Binomial(Distribution, BaseEstimator):
@@ -195,24 +159,6 @@ class Binomial(Distribution, BaseEstimator):
         return domain
 
     def log_pdf(self, y, mu):
-        """
-        computes the log of the pdf or pmf of the values under the current distribution
-
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        weights : array-like shape (n,) or None, default: None
-            sample weights
-            if None, defaults to array of ones
-
-        Returns
-        -------
-        pdf/pmf : np.array of length n
-        """
-
         n = self.trials
         p = mu / self.trials
         return sp.stats.binom.logpmf(y, n, p)
@@ -242,10 +188,10 @@ class Binomial(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu):
+    def sample(self, mu, size=None):
         n = self.trials
         p = mu / self.trials
-        return np.random.binomial(n=n, p=p, size=None)
+        return np.random.binomial(n=n, p=p, size=size)
 
 
 class Gamma(Distribution, BaseEstimator):
@@ -260,6 +206,11 @@ class Gamma(Distribution, BaseEstimator):
         self.scale = scale
 
     def log_pdf(self, y, mu):
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
+        # The parametrization in scipy, vs. Wood table 3.1 in page 104 is
+        # x = y
+        # a = nu
+        # scale = mu / nu = mu * scale
         nu = 1 / self.scale
         return sp.stats.gamma.logpdf(x=y, a=nu, scale=mu / nu)
 
@@ -282,15 +233,14 @@ class Gamma(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu):
-        shape = 1.0 / self.scale
-        scale = mu / shape
-        return np.random.gamma(shape=shape, scale=scale, size=None)
+    def sample(self, mu, size=None):
+        nu = 1 / self.scale
+        return sp.stats.gamma(a=nu, scale=mu / nu).rvs(size=size)
 
 
 class InvGauss(Distribution, BaseEstimator):
     """
-    Inverse Gaussian (Wald) Distribution
+    Inverse Gaussian Distribution
     """
 
     name = "inv_gauss"
@@ -300,21 +250,28 @@ class InvGauss(Distribution, BaseEstimator):
         self.scale = scale
 
     def log_pdf(self, y, mu):
-        gamma = weights / self.scale
-        return sp.stats.invgauss.logpdf(y, mu, scale=1.0 / gamma)
+        gamma = 1 / self.scale
+        return sp.stats.invgauss.logpdf(y, mu, scale=gamma**1 / 3)
 
     def V(self, mu):
         return mu**3
 
-    def deviance(self, y, mu, scaled=True):
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
+        check_consistent_length(y, mu, sample_weight)
+
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
+
         deviance = ((y - mu) ** 2) / (mu**2 * y)
 
         if scaled and self.scale:
             deviance = deviance / self.scale
+
         return deviance
 
-    def sample(self, mu):
-        return np.random.wald(mean=mu, scale=self.scale, size=None)
+    def sample(self, mu, size=None):
+        gamma = 1 / self.scale
+        return sp.stats.invgauss(mu, scale=gamma**1 / 3).rvs(None)
 
 
 DISTRIBUTIONS = {
