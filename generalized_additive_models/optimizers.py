@@ -299,62 +299,6 @@ class PIRLS(Optimizer):
         return max_coord_update / max_coord < self.tol * step_size
 
 
-def bisect(function, x0=0.5, target=0.8, max_iter=20, tol=0.0001):
-    """Bisection algorithm, assuming f(0) = 0 and f(1) = 1."""
-    min_, max_ = 0, 1
-    for iteration in range(max_iter):
-        y = function(x0)
-        if abs(y - target) < tol:
-            return x0
-
-        if y > target:
-            max_ = x0
-        else:
-            min_ = x0
-
-        x0 = (min_ + max_) / 2
-
-    return x0
-
-
-def regula_falsi(function, x0=0.5, target=0.8, max_iter=20, tol=0.0001):
-    """False position algorithm, assuming f(0) = 0 and f(1) = 1."""
-    xmin_, xmax_ = 0, 1
-    ymin_, ymax_ = 0, 1
-    for iteration in range(max_iter):
-        y = function(x0)
-        if abs(y - target) < tol:
-            return x0
-
-        if y > target:
-            xmax_ = x0
-            ymax_ = y
-        else:
-            xmin_ = x0
-            ymin_ = y
-
-        x0 = xmin_ + (target - ymin_) * ((xmax_ - xmin_) / (ymax_ - ymin_))
-
-    return x0
-
-
 if __name__ == "__main__":
-    # pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
-
-    def function(x):
-        if x < 0.2:
-            return x
-        elif 0.2 <= x < 0.9:
-            return 0.2
-        else:
-            return 0.2 + (x - 0.9) * (0.8 / 0.1)
-
-    ans = bisect(function, x0=0.5, target=0.8)
-
-    print(function(ans), 0.8)
-
-    print("---------------")
-
-    ans = regula_falsi(function, x0=0.5, target=0.8)
-
-    print(function(ans), 0.8)
+    import pytest
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

@@ -84,7 +84,7 @@ __all__ = [
 
 message = f"""Thank you for using {__name__}, version {__version__}.
 Until version 1.0.0 is released, the package and API should be considered unstable.
-You are welcome to try it out. Report bugs and join the discussion on GitHub:
+You are welcome to use the package. Report bugs and join the discussion on GitHub:
 https://github.com/tommyod/generalized-additive-models"""
 
 

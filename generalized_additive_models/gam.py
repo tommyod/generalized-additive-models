@@ -12,7 +12,6 @@ import sys
 import warnings
 from numbers import Integral, Real
 
-import matplotlib.pyplot as plt
 import numpy as np
 import tabulate
 from sklearn.base import BaseEstimator, clone
@@ -26,10 +25,7 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
-
-# from generalized_additive_models.distributions import DISTRIBUTIONS
-
+from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
 
 class GAM(BaseEstimator):
     """Generalized Additive Model.
@@ -614,47 +610,4 @@ class ExpectileGAM(GAM):
 
 if __name__ == "__main__":
     import pytest
-    from sklearn.datasets import load_diabetes
-
-    from generalized_additive_models.terms import Tensor
-
-    data = load_diabetes(as_frame=True)
-    df = data.data
-    y = data.target
-    gam = GAM(
-        Spline("age")
-        + Spline("bmi", penalty=1)
-        + Categorical("sex")
-        + Linear("s5", penalty=0)
-        + Tensor([Spline("s2"), Spline("s1")])
-    )
-    gam.fit(df, y)
-
-    gam.summary()
-
-    if False:
-        pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
-
-        np.random.seed(2)
-
-        X = np.linspace(0, 2 * np.pi, num=999).reshape(-1, 1)
-        y = (2 + np.sin(X.ravel())) * np.exp((np.random.rand(999) - 0.5) * 2)
-
-        # for num_splines in range(5, 300, 5):
-        plt.scatter(X, y, alpha=0.1)
-        for quantile in [0.1, 0.5, 0.9]:
-            gam = ExpectileGAM(Spline(0, extrapolation="periodic", penalty=100))
-            gam.fit_quantile(X, y, quantile=quantile)
-            plt.plot(X, gam.predict(X), label=str(quantile))
-            print()
-
-        plt.legend()
-        plt.show()
-
-        gam = GAM(Spline(0)).fit(X, y)
-
-        print(gam.score(X, y))
-
-        gam = ExpectileGAM(Spline(0), expectile=0.9).fit(X, y)
-
-        print(gam.score(X, y))
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
