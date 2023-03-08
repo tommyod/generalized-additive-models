@@ -443,6 +443,7 @@ class ExpectileGAM(GAM):
            :include-source: True
            
             >>> import numpy as np
+            >>> import matplotlib.pyplot as plt
             >>> from generalized_additive_models import ExpectileGAM, Intercept
             >>> rng = np.random.default_rng(42)
             >>> X = rng.uniform(size=(1000, 1))
@@ -455,9 +456,6 @@ class ExpectileGAM(GAM):
             >>> plt.legend()  # doctest: +SKIP
             >>> plt.show()  # doctest: +SKIP
         
-        
-
-
         """
         self.expectile = expectile
         super().__init__(

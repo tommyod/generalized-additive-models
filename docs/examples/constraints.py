@@ -15,11 +15,11 @@
 
 # %% [markdown]
 # ## Constraints
-
-import matplotlib.pyplot as plt
+#
 
 # %%
 import numpy as np
+import matplotlib.pyplot as plt
 
 from generalized_additive_models import GAM, Spline
 
@@ -79,7 +79,7 @@ plt.show()
 
 # %%
 fig, axes = plt.subplots(2, 3, figsize=(8, 5), sharex=True, sharey=False)
-fig.suptitle("Nullspace (functions with high penalty)")
+fig.suptitle("Nullspace (functions that are unpenalized)")
 
 num_functions = 10
 
@@ -104,3 +104,5 @@ for constraint, ax in zip(constraints, axes.ravel()):
 
 fig.tight_layout()
 plt.show()
+
+# %%

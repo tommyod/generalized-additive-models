@@ -20,9 +20,9 @@
 #
 # ### Imports and data creation
 
-import matplotlib.pyplot as plt
-
 # %%
+# Import packages
+import matplotlib.pyplot as plt
 import numpy as np
 
 from generalized_additive_models import GAM, Spline
