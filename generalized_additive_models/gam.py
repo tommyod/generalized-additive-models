@@ -27,6 +27,7 @@ from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
 from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
 
+
 class GAM(BaseEstimator):
     """Generalized Additive Model.
 
@@ -610,4 +611,5 @@ class ExpectileGAM(GAM):
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

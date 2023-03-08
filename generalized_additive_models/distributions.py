@@ -25,53 +25,12 @@ MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
-def multiply_weights(deviance):
-    @wraps(deviance)
-    def multiplied(self, y, mu, weights=None, **kwargs):
-        if weights is None:
-            weights = np.ones_like(mu)
-        return deviance(self, y, mu, **kwargs) * weights
-
-    return multiplied
-
-
-def divide_weights(V):
-    @wraps(V)
-    def divided(self, mu, weights=None, **kwargs):
-        if weights is None:
-            weights = np.ones_like(mu)
-        return V(self, mu, **kwargs) / weights
-
-    return divided
-
-
 class Distribution(ABC):
     """
     base distribution class
     """
 
     def phi(self, y, mu, edof, weights=None):
-        """
-        GLM scale parameter.
-        for Binomial and Poisson families this is unity
-        for Normal family this is variance
-
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        edof : float
-            estimated degrees of freedom
-        weights : array-like shape (n,) or None, default: None
-            sample weights
-            if None, defaults to array of ones
-
-        Returns
-        -------
-        scale : estimated model scale
-        """
         if self.scale is not None:
             return self.scale
 
@@ -90,6 +49,9 @@ class Distribution(ABC):
     @abstractmethod
     def sample(self, mu):
         pass
+
+    def variance(self, mu):
+        return self.V(mu) * self.scale
 
     @abstractmethod
     def V(self, mu):
@@ -286,7 +248,7 @@ class Binomial(Distribution, BaseEstimator):
         return np.random.binomial(n=n, p=p, size=None)
 
 
-class GammaDist(Distribution, BaseEstimator):
+class Gamma(Distribution, BaseEstimator):
     """
     Gamma Distribution
     """
@@ -321,28 +283,12 @@ class GammaDist(Distribution, BaseEstimator):
         return deviance * sample_weight
 
     def sample(self, mu):
-        """
-        Return random samples from this Gamma distribution.
-
-        Parameters
-        ----------
-        mu : array-like of shape n_samples or shape (n_simulations, n_samples)
-            expected values
-
-        Returns
-        -------
-        random_samples : np.array of same shape as mu
-        """
-        # in numpy.random.gamma, `shape` is the parameter sometimes denoted by
-        # `k` that corresponds to `nu` in Wood, table 3.1 on page 104
         shape = 1.0 / self.scale
-        # in numpy.random.gamma, `scale` is the parameter sometimes denoted by
-        # `theta` that corresponds to mu / nu in Wood, table 3.1 on page 104
         scale = mu / shape
         return np.random.gamma(shape=shape, scale=scale, size=None)
 
 
-class InvGaussDist(Distribution, BaseEstimator):
+class InvGauss(Distribution, BaseEstimator):
     """
     Inverse Gaussian (Wald) Distribution
     """
@@ -353,87 +299,21 @@ class InvGaussDist(Distribution, BaseEstimator):
     def __init__(self, scale=None):
         self.scale = scale
 
-    def log_pdf(self, y, mu, weights=None):
-        """
-        computes the log of the pdf or pmf of the values under the current distribution
-
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        weights : array-like shape (n,) or None, default: None
-            containing sample weights
-            if None, defaults to array of ones
-
-        Returns
-        -------
-        pdf/pmf : np.array of length n
-        """
-        if weights is None:
-            weights = np.ones_like(mu)
+    def log_pdf(self, y, mu):
         gamma = weights / self.scale
         return sp.stats.invgauss.logpdf(y, mu, scale=1.0 / gamma)
 
-    @divide_weights
     def V(self, mu):
-        """
-        glm Variance function
-
-        computes the variance of the distribution
-
-        Parameters
-        ----------
-        mu : array-like of length n
-            expected values
-
-        Returns
-        -------
-        variance : np.array of length n
-        """
         return mu**3
 
-    @multiply_weights
     def deviance(self, y, mu, scaled=True):
-        """
-        model deviance
-
-        for a bernoulli logistic model, this is equal to the twice the
-        negative loglikelihod.
-
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        scaled : boolean, default: True
-            whether to divide the deviance by the distribution scaled
-
-        Returns
-        -------
-        deviances : np.array of length n
-        """
-        dev = ((y - mu) ** 2) / (mu**2 * y)
+        deviance = ((y - mu) ** 2) / (mu**2 * y)
 
         if scaled and self.scale:
-            dev = dev / self.scale
-        return dev
+            deviance = deviance / self.scale
+        return deviance
 
     def sample(self, mu):
-        """
-        Return random samples from this Inverse Gaussian (Wald) distribution.
-
-        Parameters
-        ----------
-        mu : array-like of shape n_samples or shape (n_simulations, n_samples)
-            expected values
-
-        Returns
-        -------
-        random_samples : np.array of same shape as mu
-        """
         return np.random.wald(mean=mu, scale=self.scale, size=None)
 
 

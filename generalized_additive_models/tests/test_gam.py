@@ -109,6 +109,12 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_weight = normal_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
 
+        # Scale should be the same
+        scale1 = normal_gam.fit(X_repeated, y_repeated).results_.scale
+        scale2 = normal_gam.fit(X, y, sample_weight=weights).results_.scale
+
+        assert np.isclose(scale1, scale2)
+
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_canonical_poisson(self, intercept):
         rng = np.random.default_rng(123456 + int(intercept * 100))
@@ -461,6 +467,66 @@ class TestGamAutoModels:
 
 
 class TestGAMSanityChecks:
+    @pytest.mark.parametrize("num", [5, 10, 50, 100, 500, 1000])
+    def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(self, num):
+        rng = np.random.default_rng(num)
+
+        # Create a normal problem
+        x = np.linspace(0, 2 * np.pi, num=num)
+        X = x.reshape(-1, 1)
+        linear_prediction = 1 + np.sin(x)
+
+        mu = Identity().inverse_link(linear_prediction)
+
+        y = rng.normal(loc=mu, scale=0.1)
+
+        # Create a GAM
+        normal_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="identity",
+            distribution="normal",
+        )
+
+        # Test that sample weights work
+        weights = rng.integers(low=1, high=4, size=len(x))
+        X_repeated = np.repeat(X, weights, axis=0)
+        y_repeated = np.repeat(y, weights)
+
+        # Repeating data is equal to passing weights
+        preds_repeat = normal_gam.fit(X_repeated, y_repeated).predict(X)
+        preds_weight = normal_gam.fit(X, y, sample_weight=weights).predict(X)
+        assert np.allclose(preds_repeat, preds_weight)
+
+        # Scale should be the same
+        scale1 = normal_gam.fit(X_repeated, y_repeated).results_.scale
+        scale2 = normal_gam.fit(X, y, sample_weight=weights).results_.scale
+
+        assert np.isclose(scale1, scale2)
+
+    @pytest.mark.parametrize("scale", [0.1, 0.5, 1, 5, 10, 50])
+    def test_that_scale_is_correctly_inferred(self, scale):
+        rng = np.random.default_rng(int(9999 * scale))
+
+        # Create a normal problem
+        x = np.linspace(0, 2 * np.pi, num=9999)
+        X = x.reshape(-1, 1)
+        linear_prediction = 1 + np.sin(x)
+
+        mu = Identity().inverse_link(linear_prediction)
+
+        y = rng.normal(loc=mu, scale=scale)
+
+        # Create a GAM
+        gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="identity",
+            distribution="normal",
+        )
+
+        gam.fit(X, y)
+
+        assert np.isclose(np.sqrt(gam.results_.scale), scale, rtol=0.02)
+
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
         list(itertools.product([1, 2, 3], [2, 3, 4], [0.01, 1, 100], ["quantile", "uniform"])),
@@ -757,6 +823,6 @@ if __name__ == "__main__":
                 "--capture=sys",
                 "--doctest-modules",
                 "--maxfail=1",
-                "-k joblib",
+                "-k test_that_scale_is_correctly_inferred",
             ]
         )

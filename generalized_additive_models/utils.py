@@ -8,24 +8,34 @@ Created on Wed Feb  8 07:56:33 2023
 
 import logging
 import sys
+from numbers import Real
 
 import numpy as np
 import scipy as sp
+from sklearn.utils import check_consistent_length, check_scalar
 
 
-def phi_pearson(y, mu, distribution, edof):
+def phi_pearson(y, mu, distribution, edof, sample_weight=None):
     # See page 111 in Wood
     # phi = np.sum((z - X @ beta) ** 2 * w) / (len(z) - edof)
+    check_consistent_length(y, mu)
+    edof = check_scalar(edof, "edof", target_type=Real, min_val=0, include_boundaries="both")
+    if sample_weight is None:
+        sample_weight = np.ones_like(mu, dtype=float)
 
     # Equation (6.2) on page 251, also see page 111
-    X_sq = np.sum((y - mu) ** 2 / distribution.V(mu))
-    n = len(y)
+    X_sq = np.sum((y - mu) ** 2 * sample_weight / distribution.V(mu))
+    n = np.sum(sample_weight)
     return X_sq / (n - edof)
 
 
-def phi_fletcher(y, mu, distribution, edof):
-    s_bar = np.mean(distribution.V_derivative(mu) * (y - mu) / distribution.V(mu))
-    return phi_pearson(y, mu, distribution, edof) / (1 + s_bar)
+def phi_fletcher(y, mu, distribution, edof, sample_weight=None):
+    check_consistent_length(y, mu)
+    if sample_weight is None:
+        sample_weight = np.ones_like(mu, dtype=float)
+
+    s_bar = np.mean(distribution.V_derivative(mu) * (y - mu) * sample_weight / distribution.V(mu))
+    return phi_pearson(y, mu, distribution, edof, sample_weight) / (1 + s_bar)
 
 
 def cartesian(arrays):

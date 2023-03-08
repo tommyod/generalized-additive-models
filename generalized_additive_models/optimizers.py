@@ -264,7 +264,9 @@ class PIRLS(Optimizer):
         if self.distribution.scale is not None:
             phi = self.distribution.scale
         else:
-            phi = phi_fletcher(self.y, mu, self.distribution, edof)
+            phi = phi_fletcher(
+                self.y, mu, self.distribution, edof, sample_weight=self.get_sample_weight(mu=mu, y=self.y)
+            )
 
         self.results_.scale = phi
 
@@ -301,4 +303,5 @@ class PIRLS(Optimizer):
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])

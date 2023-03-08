@@ -344,10 +344,16 @@ class InvSquared(Link, BaseEstimator):
 
 
 # Dict comprehension instead of hard-coding the names again here
-LINKS = {l.name: l for l in [Identity, Log, Logit, 
-                             #CLogLogLink, InvSquared, Inverse, SmoothLog, 
-                             Softplus
-                             ]}
+LINKS = {
+    l.name: l
+    for l in [
+        Identity,
+        Log,
+        Logit,
+        # CLogLogLink, InvSquared, Inverse, SmoothLog,
+        Softplus,
+    ]
+}
 
 
 if __name__ == "__main__":
