@@ -13,6 +13,8 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
+from generalized_additive_models.utils import phi_fletcher
+
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
@@ -262,7 +264,7 @@ class PIRLS(Optimizer):
         if self.distribution.scale is not None:
             phi = self.distribution.scale
         else:
-            phi = np.sum((z - self.X @ beta) ** 2 * w) / (len(z) - edof)
+            phi = phi_fletcher(self.y, mu, self.distribution, edof)
 
         self.results_.scale = phi
 

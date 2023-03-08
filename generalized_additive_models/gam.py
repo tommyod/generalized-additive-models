@@ -235,6 +235,9 @@ class GAM(BaseEstimator):
         self.results_ = copy.deepcopy(optimizer.results_)
         self.results_.pseudo_r2 = self.score(X, y, sample_weight=sample_weight)
 
+        # Update distribution scale if set to None
+        self._distribution.scale = self.results_.scale if self._distribution.scale is None else self._distribution.scale
+
         # Assign coefficients to terms
         coef_idx = 0
         for term in self.terms:

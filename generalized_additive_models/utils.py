@@ -13,6 +13,21 @@ import numpy as np
 import scipy as sp
 
 
+def phi_pearson(y, mu, distribution, edof):
+    # See page 111 in Wood
+    # phi = np.sum((z - X @ beta) ** 2 * w) / (len(z) - edof)
+
+    # Equation (6.2) on page 251, also see page 111
+    X_sq = np.sum((y - mu) ** 2 / distribution.V(mu))
+    n = len(y)
+    return X_sq / (n - edof)
+
+
+def phi_fletcher(y, mu, distribution, edof):
+    s_bar = np.mean(distribution.V_derivative(mu) * (y - mu) / distribution.V(mu))
+    return phi_pearson(y, mu, distribution, edof) / (1 + s_bar)
+
+
 def cartesian(arrays):
     """
     Generate a cartesian product of input arrays.

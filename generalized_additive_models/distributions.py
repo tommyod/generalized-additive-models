@@ -111,35 +111,24 @@ class Normal(Distribution, BaseEstimator):
     }
 
     def __init__(self, scale=None):
-        self.scale = scale
+        """Create a Normal distribution.
 
-    def get_scale(self):
-        return self.scale_ if hasattr(self, "scale_") else self.scale
-
-    def log_pdf(self, y, mu, weights=None):
-        """
-        computes the log of the pdf or pmf of the values under the current distribution
 
         Parameters
         ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        weights : array-like shape (n,) or None, default: None
-            sample weights
-            if None, defaults to array of ones
+        scale : float or None, optional
+            If None, will be set by the GAM. The default is None.
 
         Returns
         -------
-        pdf/pmf : np.array of length n
+        None.
+
         """
+        self.scale = scale
 
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
-
-        scale = self.scale / weights
-        return sp.stats.norm.logpdf(y, loc=mu, scale=scale)
+    def log_pdf(self, y, mu):
+        standard_deviation = np.sqrt(self.variance(mu))
+        return sp.stats.norm.logpdf(y, loc=mu, scale=standard_deviation)
 
     def variance(self, mu):
         return self.V(mu) * self.scale
@@ -150,14 +139,17 @@ class Normal(Distribution, BaseEstimator):
         if sample_weight is None:
             sample_weight = np.ones_like(mu, dtype=float)
 
-        return np.ones_like(mu) / sample_weight
+        return np.ones_like(mu, dtype=float) / sample_weight
+
+    def V_derivative(self, mu):
+        return np.zeros_like(mu, dtype=float)
 
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
         deviance = (y - mu) ** 2
         if scaled and self.scale:
-            deviance = deviance / self.scale
+            deviance = deviance / self.get_scale()
 
         if sample_weight is None:
             sample_weight = np.ones_like(mu, dtype=float)
@@ -165,7 +157,7 @@ class Normal(Distribution, BaseEstimator):
         return deviance * sample_weight
 
     def sample(self, mu):
-        standard_deviation = self.scale or 1.0
+        standard_deviation = np.sqrt(self.variance(mu))
         return np.random.normal(loc=mu, scale=standard_deviation, size=None)
 
 
@@ -177,28 +169,22 @@ class Poisson(Distribution, BaseEstimator):
     name = "poisson"
     domain = (0, np.inf)
     continuous = True
+    scale = 1
 
-    def __init__(self, scale=1):
-        self.scale = scale
+    def __init__(self):
+        pass
 
-    def log_pdf(self, y, mu, weights=None):
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
-        # in Poisson regression weights are proportional to the exposure
-        # so we want to pump up all our predictions
-        # NOTE: we assume the targets are counts, not rate.
-        # ie if observations were scaled to account for exposure, they have
-        # been rescaled before calling this function.
-        # since some samples have higher exposure,
-        # they also need to have higher variance,
-        # we do this by multiplying mu by the weight=exposure
-        mu = mu * weights
+    def log_pdf(self, y, mu):
         return sp.stats.poisson.logpmf(y, mu=mu)
 
-    def V(self, mu, weights=None):
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
-        return mu / weights
+    def variance(self, mu):
+        return self.V(mu) * self.scale
+
+    def V(self, mu):
+        return mu
+
+    def V_derivative(self, mu):
+        return np.ones_like(mu, dtype=float)
 
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
@@ -246,7 +232,7 @@ class Binomial(Distribution, BaseEstimator):
         domain = (0, self.trials)
         return domain
 
-    def log_pdf(self, y, mu, *, weights=None):
+    def log_pdf(self, y, mu):
         """
         computes the log of the pdf or pmf of the values under the current distribution
 
@@ -264,59 +250,24 @@ class Binomial(Distribution, BaseEstimator):
         -------
         pdf/pmf : np.array of length n
         """
-        if weights is None:
-            weights = np.ones_like(mu)
 
         n = self.trials
         p = mu / self.trials
         return sp.stats.binom.logpmf(y, n, p)
 
-    def V(self, mu, weights=None):
-        """
-        glm Variance function
+    def variance(self, mu):
+        return self.V(mu) * self.scale
 
-        computes the variance of the distribution
-
-        Parameters
-        ----------
-        mu : array-like of length n
-            expected values
-
-        Returns
-        -------
-        variance : np.array of length n
-        """
-
+    def V(self, mu):
         threshold = EPSILON
         mu = np.maximum(np.minimum(mu, 1 - threshold), 0 + threshold)
 
-        V = mu * (1 - mu / self.trials)
+        return mu * (1 - mu / self.trials)
 
-        if weights is None:
-            weights = np.ones_like(mu, dtype=float)
-
-        return V / weights
+    def V_derivative(self, mu):
+        return 1 - 2 * (mu / self.trials)
 
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
-        """
-        model deviance
-
-        for a bernoulli logistic model, this is equal to the twice the
-        negative loglikelihod.
-
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        scaled : boolean, default: True
-            whether to divide the deviance by the distribution scaled
-
-        Returns
-        -------
-        deviances : np.array of length n
-        """
         check_consistent_length(y, mu, sample_weight)
 
         if sample_weight is None:
@@ -324,24 +275,15 @@ class Binomial(Distribution, BaseEstimator):
 
         deviance = 2 * (rel_entr(y, mu) + rel_entr(self.trials - y, self.trials - mu))
 
+        if scaled and self.scale:
+            deviance = deviance / self.scale
+
         return deviance * sample_weight
 
     def sample(self, mu):
-        """
-        Return random samples from this Binomial distribution.
-
-        Parameters
-        ----------
-        mu : array-like of shape n_samples or shape (n_simulations, n_samples)
-            expected values
-
-        Returns
-        -------
-        random_samples : np.array of same shape as mu
-        """
-        number_of_trials = self.trials
-        success_probability = mu / number_of_trials
-        return np.random.binomial(n=number_of_trials, p=success_probability, size=None)
+        n = self.trials
+        p = mu / self.trials
+        return np.random.binomial(n=n, p=p, size=None)
 
 
 class GammaDist(Distribution, BaseEstimator):
@@ -353,87 +295,30 @@ class GammaDist(Distribution, BaseEstimator):
     domain = (0, np.inf)
 
     def __init__(self, scale=None):
-        """
-        creates an instance of the GammaDist class
+        self.scale = scale
 
-        Parameters
-        ----------
-        scale : float or None, default: None
-            scale/standard deviation of the distribution
-
-        Returns
-        -------
-        self
-        """
-        super().__init__(scale=scale)
-
-    def log_pdf(self, y, mu, weights=None):
-        """
-        computes the log of the pdf or pmf of the values under the current distribution
-
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        weights : array-like shape (n,) or None, default: None
-            containing sample weights
-            if None, defaults to array of ones
-
-        Returns
-        -------
-        pdf/pmf : np.array of length n
-        """
-        if weights is None:
-            weights = np.ones_like(mu)
-        nu = weights / self.scale
+    def log_pdf(self, y, mu):
+        nu = 1 / self.scale
         return sp.stats.gamma.logpdf(x=y, a=nu, scale=mu / nu)
 
-    @divide_weights
+    def variance(self, mu):
+        return self.V(mu) * self.scale
+
     def V(self, mu):
-        """
-        glm Variance function
-
-        computes the variance of the distribution
-
-        Parameters
-        ----------
-        mu : array-like of length n
-            expected values
-
-        Returns
-        -------
-        variance : np.array of length n
-        """
         return mu**2
 
-    @multiply_weights
-    def deviance(self, y, mu, scaled=True):
-        """
-        model deviance
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
+        check_consistent_length(y, mu, sample_weight)
 
-        for a bernoulli logistic model, this is equal to the twice the
-        negative loglikelihod.
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
 
-        Parameters
-        ----------
-        y : array-like of length n
-            target values
-        mu : array-like of length n
-            expected values
-        scaled : boolean, default: True
-            whether to divide the deviance by the distribution scaled
-
-        Returns
-        -------
-        deviances : np.array of length n
-        """
-        dev = 2 * ((y - mu) / mu - np.log(y / mu))
+        deviance = 2 * ((y - mu) / mu - np.log(y / mu))
 
         if scaled and self.scale:
-            dev = dev / self.scale
-        return dev
+            deviance = deviance / self.scale
+
+        return deviance * sample_weight
 
     def sample(self, mu):
         """
@@ -449,10 +334,10 @@ class GammaDist(Distribution, BaseEstimator):
         random_samples : np.array of same shape as mu
         """
         # in numpy.random.gamma, `shape` is the parameter sometimes denoted by
-        # `k` that corresponds to `nu` in S. Wood (2006) Table 2.1
+        # `k` that corresponds to `nu` in Wood, table 3.1 on page 104
         shape = 1.0 / self.scale
         # in numpy.random.gamma, `scale` is the parameter sometimes denoted by
-        # `theta` that corresponds to mu / nu in S. Wood (2006) Table 2.1
+        # `theta` that corresponds to mu / nu in Wood, table 3.1 on page 104
         scale = mu / shape
         return np.random.gamma(shape=shape, scale=scale, size=None)
 
@@ -466,19 +351,7 @@ class InvGaussDist(Distribution, BaseEstimator):
     domain = (0, np.inf)
 
     def __init__(self, scale=None):
-        """
-        creates an instance of the InvGaussDist class
-
-        Parameters
-        ----------
-        scale : float or None, default: None
-            scale/standard deviation of the distribution
-
-        Returns
-        -------
-        self
-        """
-        super().__init__(scale=scale)
+        self.scale = scale
 
     def log_pdf(self, y, mu, weights=None):
         """
