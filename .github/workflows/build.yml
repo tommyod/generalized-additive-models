@@ -53,3 +53,9 @@ jobs:
         run: |
           sudo apt install pandoc -y
           sphinx-build docs _built_docs/html -W
+          
+          
+      - name: Build package
+        run: |
+          python -m build
+          twine check dist/* --strict

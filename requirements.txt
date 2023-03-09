@@ -16,6 +16,8 @@ jupyter
 matplotlib
 pylint
 scikit-learn
+twine
+build
 
 # Documentation Requirements
 sphinxcontrib-napoleon      # Parses numpy-style docstrings
