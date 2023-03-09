@@ -14,19 +14,7 @@
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
 .. _Black: https://github.com/psf/black
 
-.. |PythonMinVersion| replace:: 3.8
-.. |NumPyMinVersion| replace:: 1.17.3
-.. |SciPyMinVersion| replace:: 1.3.2
-.. |JoblibMinVersion| replace:: 1.1.1
-.. |ThreadpoolctlMinVersion| replace:: 2.0.0
-.. |MatplotlibMinVersion| replace:: 3.1.3
-.. |Scikit-ImageMinVersion| replace:: 0.16.2
-.. |PandasMinVersion| replace:: 1.0.5
-.. |SeabornMinVersion| replace:: 0.9.0
-.. |PytestMinVersion| replace:: 5.3.1
-.. |PlotlyMinVersion| replace:: 5.10.0
-
-.. image:: https://raw.githubusercontent.com/tommyod/generalized-additive-models/prepare-alpha/docs/_static/readme_figure.png
+.. image:: https://raw.githubusercontent.com/tommyod/generalized-additive-models/prepare-alpha/docs/_static/readme_figure.png?token=GHSAT0AAAAAABHJPRNESAGIMSDHQ652ZK74ZAKCICA
   :target: https://github.com/tommyod/generalized-additive-models/
 
 
@@ -36,9 +24,10 @@ generalized-additive-models
 About
 -----
 
-Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf`_.
+Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf`_ .
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
 and interest focuses on inference about these smooth functions.
+
 
 .. image:: https://latex.codecogs.com/svg.image?Y_i&space;\sim&space;\textup{ExponentialFamily}(\mu_i,&space;\phi)&space;\\g(\mu_i)&space;=&space;f_1(x_{i1})&space;&plus;&space;f_2(x_{i2})&space;&plus;&space;f_3(x_{i3},&space;x_{i4})&space;&plus;&space;\cdots
   
