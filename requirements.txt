@@ -1,0 +1,25 @@
+codecov
+mock
+future
+numpy
+tqdm
+pytest
+pytest-cov
+pytest-pylint
+setuptools
+scipy
+black
+flake8
+pandas
+jupytext
+jupyter
+matplotlib
+pylint
+scikit-learn
+
+# Documentation Requirements
+sphinxcontrib-napoleon      # Parses numpy-style docstrings
+nbsphinx                    # Converts notebooks to reStructuredText
+ipython                     # For syntax highlighting notebooks
+sphinx_rtd_theme            # The Read The Docs theme
+numpydoc                    # numpy-style docstrings
