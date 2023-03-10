@@ -14,6 +14,70 @@ import numpy as np
 import scipy as sp
 from sklearn.utils import check_consistent_length, check_scalar
 
+MACHINE_EPSILON = np.finfo(float).eps
+EPSILON = np.sqrt(MACHINE_EPSILON)
+
+
+def identifiable_parameters(X):
+    """Return a boolean mask indicating identifiable parameters.
+
+    Identifiable parameters are the non-zero parameters in a regression model.
+
+
+    Parameters
+    ----------
+    X : np.ndarray
+        A matrix.
+
+    Returns
+    -------
+    identifiable_mask : np.ndarray
+        One dimensional boolean array.
+
+    Examples
+    --------
+    >>> X = np.array([[1, 0, 1],
+    ...               [1, 0, 1],
+    ...               [1, 1, 0]])
+    >>> identifiable_parameters(X)
+    array([ True, False,  True])
+
+    More columns than rows:
+
+    >>> X = np.array([[1, 0, 1, 0],
+    ...               [1, 0, 1, 1],
+    ...               [1, 1, 0, 1]])
+    >>> identifiable_parameters(X)
+    array([ True, False,  True,  True])
+
+    More rows than columns:
+
+    >>> X = np.array([[1, 0, 1],
+    ...               [1, 0, 1],
+    ...               [1, 0, 1],
+    ...               [1, 1, 0]])
+    >>> identifiable_parameters(X)
+    array([ True,  True, False])
+
+    """
+
+    # Set non-identifiable coefficients to zero
+    # Compute Q R = A P
+    # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
+    Q, R, pivot = sp.linalg.qr(X, mode="economic", pivoting=True)
+    # Q, R, pivot = sp.linalg.qr(self.X, mode="economic", pivoting=True)
+
+    # Inverse pivot mapping
+    pivot_inv = np.zeros_like(pivot)
+    pivot_inv[pivot] = np.arange(len(pivot))
+
+    # Find the non-zero coefficients, ie the identifiable parameters
+    sizes = np.zeros(X.shape[1], dtype=float)
+    sizes[: (R.shape[0])] = np.diag(R)
+    identifiable = (np.abs(sizes) > EPSILON)[pivot_inv]
+
+    return identifiable
+
 
 def phi_pearson(y, mu, distribution, edof, sample_weight=None):
     # See page 111 in Wood

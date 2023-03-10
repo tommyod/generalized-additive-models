@@ -193,7 +193,7 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     # Predict on smooth grid
     X = term.transform(X_smooth)
     linear_predictions = X @ term.coef_
-    predictions = linear_predictions if linear_scale else gam._link.inverse_link(linear_predictions)
+    predictions = linear_predictions  # if linear_scale else gam._link.inverse_link(linear_predictions)
 
     # Get the covariance matrix associated with the coefficients of this term
     V = gam.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
@@ -212,7 +212,7 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     # https://en.wikipedia.org/wiki/Partial_residual_plot#Definition
     residuals = gam.y_ - gam._link.inverse_link(gam.model_matrix_ @ gam.coef_)
 
-    # Prepare the results
+    # Prepare the linear results
     result = Bunch(
         x=X_smooth,
         y=predictions,
@@ -223,11 +223,12 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
         meshgrid=meshgrid,
     )
 
+    # Map the variables
     if not linear_scale:
         result.y = gam._link.inverse_link(result.y)
         result.y_low = gam._link.inverse_link(result.y_low)
         result.y_high = gam._link.inverse_link(result.y_high)
-        model_predictions = gam._link.inverse_link((X_original_transformed @ term.coef_))
+        model_predictions = gam._link.inverse_link(X_original_transformed @ term.coef_)
         result.y_partial_residuals = (model_predictions + residuals,)
 
     return result

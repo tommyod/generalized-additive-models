@@ -13,7 +13,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
-from generalized_additive_models.utils import phi_fletcher
+from generalized_additive_models.utils import identifiable_parameters, phi_fletcher
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -150,10 +150,11 @@ class PIRLS(Optimizer):
             objective_init = self.evaluate_objective(self.X, self.D, beta, self.y, w)
 
             msg = "Initial guess:      "
-            objective_fmt = np.format_float_scientific(objective_init, precision=4, min_digits=4)
+            objective_fmt = np.format_float_scientific(objective_init, precision=4, min_digits=4, exp_digits=2)
             msg += f"Objective: {objective_fmt}   "
-            beta_fmt = np.format_float_scientific(sp.linalg.norm(beta), precision=4, min_digits=4)
-            msg += f"Coef. norm: {beta_fmt}   "
+            beta_rmse = np.sqrt(np.mean(beta**2))
+            beta_fmt = np.format_float_scientific(beta_rmse, precision=4, min_digits=4, exp_digits=2)
+            msg += f"Coef. rmse: {beta_fmt}   "
             print(msg)
 
         # List of betas to watch as optimization progresses
@@ -161,16 +162,15 @@ class PIRLS(Optimizer):
         deviances = [self.distribution.deviance(y=self.y, mu=mu).mean()]
 
         # Set non-identifiable coefficients to zero
-        # Compute Q R = A P
-        # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
-        Q, R, P = sp.linalg.qr(np.vstack((self.X, self.D)), mode="economic", pivoting=True)
-        zero_coefs = (np.abs(np.diag(R)) < EPSILON)[P]
+        nonzero_coefs = identifiable_parameters(np.vstack((self.X, self.D)))
+        zero_coefs = ~nonzero_coefs
+
         if self.verbose >= 2:
             print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
 
-        X = self.X[:, ~zero_coefs]
-        D = self.D[:, ~zero_coefs]
-        betas[0] = betas[0][~zero_coefs]
+        X = self.X[:, nonzero_coefs]
+        D = self.D[:, nonzero_coefs]
+        betas[0] = betas[0][nonzero_coefs]
 
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
@@ -184,7 +184,7 @@ class PIRLS(Optimizer):
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
-            bounds = (self.bounds[0][~zero_coefs], self.bounds[1][~zero_coefs])
+            bounds = (self.bounds[0][nonzero_coefs], self.bounds[1][nonzero_coefs])
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
             beta_previous = betas[-1]
@@ -212,8 +212,9 @@ class PIRLS(Optimizer):
                 msg = f"Iteration: {str(iteration).rjust(lpad, ' ')}/{self.max_iter}   "
                 objective_fmt = np.format_float_scientific(objective_suggested, precision=4, min_digits=4, exp_digits=2)
                 msg += f"Objective: {objective_fmt}   "
-                beta_fmt = np.format_float_scientific(sp.linalg.norm(beta), precision=4, min_digits=4, exp_digits=2)
-                msg += f"Coef. norm: {beta_fmt}   "
+                beta_rmse = np.sqrt(np.mean(beta**2))
+                beta_fmt = np.format_float_scientific(beta_rmse, precision=4, min_digits=4, exp_digits=2)
+                msg += f"Coef. rmse: {beta_fmt}   "
                 msg += f"Step size: 1/2^{half_exponent}"
                 print(msg)
 
@@ -239,21 +240,26 @@ class PIRLS(Optimizer):
 
         # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
         # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
-        to_invert = self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D
+        to_invert = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
         to_invert.flat[:: to_invert.shape[0] + 1] += EPSILON  # Add to diagonal
         inverted = sp.linalg.inv(to_invert)
 
+        # Compute the effective degrees of freedom per coefficient
         # Only need the diagonal of H, so use the fact that
         # np.diag(B @ A.T) = (B * A).sum(axis=1)
         # to compute H below:
         # H = ((w.reshape(-1, 1) * self.X) @ inverted @ self.X.T)
         # H_diag = np.sum(((w.reshape(-1, 1) * self.X) @ inverted) * self.X, axis=1)
         # H_diag2 = sp.linalg.inv(self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D) @ self.X.T @ np.diag(w) @ self.X
-        H_diag = ((self.X.T @ (w.reshape(-1, 1) * self.X)) * inverted).sum(axis=1)
+        H_diag = ((X.T @ (w.reshape(-1, 1) * X)) * inverted).sum(axis=1)
         # H_diag = np.diag(inverted @ self.X.T @ np.diag(w) @ self.X )
         # assert np.allclose(H_diag, np.diag(H_diag2))
 
         # assert len(beta) == len(np.diag(H_diag2))
+        H_diag_full = np.zeros(num_beta, dtype=float)
+        H_diag_full[nonzero_coefs] = H_diag
+        H_diag = H_diag_full
+
         assert len(beta) == len(H_diag)
 
         edof_per_coef = H_diag
@@ -272,6 +278,11 @@ class PIRLS(Optimizer):
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
+        covariance_full = np.zeros(shape=(len(beta), len(beta)), dtype=float)
+        covariance_full = np.eye(len(beta), dtype=float) * EPSILON
+        covariance_full[np.ix_(nonzero_coefs, nonzero_coefs)] = covariance
+        covariance = covariance_full
+
         assert covariance.shape == (len(beta), len(beta))
         self.results_.covariance = covariance
 

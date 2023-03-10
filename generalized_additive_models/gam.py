@@ -25,7 +25,7 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
 
 
 class GAM(BaseEstimator):
@@ -294,7 +294,7 @@ class GAM(BaseEstimator):
 
         # Compute the null predictions
         null_gam = clone(self)
-        null_preds = null_gam.set_params(terms=Intercept()).fit(X, y, sample_weight=sample_weight).predict(X)
+        null_preds = null_gam.set_params(terms=Intercept(), verbose=0).fit(X, y, sample_weight=sample_weight).predict(X)
 
         null_deviance = self._distribution.deviance(y=y, mu=null_preds, sample_weight=sample_weight).sum()
         fitted_deviance = self._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight).sum()
@@ -345,6 +345,46 @@ class GAM(BaseEstimator):
             tablefmt="github",
         )
         p(term_table_str)
+
+        # ============================ COEFFICIENTS ============================
+        fmt = functools.partial(np.format_float_positional, precision=4, min_digits=4)
+
+        rows = []
+        for term in self.terms:
+            if isinstance(term, Intercept):
+                t_name = type(term).__name__
+                t_repr = f"{t_name}()"
+                t_coef = term.coef_[0]
+                t_std = np.sqrt(term.coef_covar_[0])
+                rows.append((t_repr, fmt(t_coef), fmt(t_std)))
+
+            elif isinstance(term, Linear):
+                t_name = type(term).__name__
+                t_feature = term.feature
+                t_repr = f"{t_name}({t_feature})"
+                t_coef = term.coef_[0]
+                t_std = np.sqrt(term.coef_covar_[0])
+                rows.append((t_repr, fmt(t_coef), fmt(t_std)))
+
+            elif isinstance(term, Categorical):
+                t_name = type(term).__name__
+                t_feature = term.feature
+
+                for i, category in enumerate(term.categories_):
+                    t_repr = f"{t_name}({t_feature}={category})"
+                    t_coef = term.coef_[i]
+                    t_std = np.sqrt(term.coef_covar_[i, i])
+                    rows.append((t_repr, fmt(t_coef), fmt(t_std)))
+            else:
+                continue
+
+        p()
+        coef_table_str = tabulate.tabulate(
+            rows,
+            headers=("Term", "Coef", "Coef std"),
+            tablefmt="github",
+        )
+        p(coef_table_str)
 
 
 class ExpectileGAM(GAM):

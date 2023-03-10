@@ -17,9 +17,6 @@
 # ## Getting started
 #
 # Import packages.
-#
-# import matplotlib.pyplot as plt
-# import numpy as np
 
 # %%
 # Import packages
@@ -42,6 +39,9 @@ y = data.target
 # Code the "sex" variable as strings
 df = df.assign(sex=lambda df: np.where(df.sex < 0, "Male", "Female"))
 
+# %%
+df
+
 # %% [markdown]
 # ### Creating a model
 #
@@ -50,14 +50,21 @@ df = df.assign(sex=lambda df: np.where(df.sex < 0, "Male", "Female"))
 # %%
 # Features can be string and refer to column names if X is a pandas DataFrame
 # If X was a 2D numpy array, features must instead be integers referring to the columns
-penalty = 1000
+num_splines = 12
+penalty = 1
 terms = (
-    Spline("age", penalty=penalty) + Categorical("sex") + Spline("bmi", penalty=penalty) + Spline("bp", penalty=penalty)
+     Spline("age", penalty=penalty, num_splines=num_splines)
+     + Categorical("sex", penalty=1)
+    + Spline("bmi", penalty=penalty, num_splines=num_splines)
+    + Spline("bp", penalty=penalty, num_splines=num_splines)
 )
-model = GAM(terms, link="log")
+model = GAM(terms, link="identity", verbose=2, fit_intercept=False)
 
 # Fit the model
 model.fit(df, y)
+
+# %%
+model.summary()
 
 # %% [markdown]
 # Make a prediction and score the model.
@@ -72,9 +79,7 @@ model.score(df, y)  # Pseudo R2 score
 # %%
 from sklearn.metrics import r2_score
 
-r2 = r2_score(y_true=y, y_pred=predictions)
-assert np.isclose(r2, model.score(df, y))
-r2
+r2_score(y_true=y, y_pred=predictions)
 
 # %% [markdown]
 # ### Partial effects and partial residuals
@@ -90,13 +95,14 @@ for ax, term in zip(axes.ravel(), model.terms):
     if isinstance(term, (Intercept)):
         continue
 
-    results = partial_effect(model, term, standard_deviations=1.0)
+    results = partial_effect(model, term, standard_deviations=1.0, linear_scale=True)
 
     # Create a plot
     ax.set_title(f"Partial effects for term: '{term.feature}'")
 
     # Linear and Spline terms
     if isinstance(term, (Linear, Spline)):
+        
         ax.plot(results.x, results.y)
         ax.plot(results.x, results.y_low, color="k", ls="--")
         ax.plot(results.x, results.y_high, color="k", ls="--")
@@ -116,6 +122,7 @@ for ax, term in zip(axes.ravel(), model.terms):
     elif isinstance(term, Categorical):
         x_ticks = np.arange(len(results.x))
         x_labels = term.categories_
+        
         ax.scatter(x_labels, results.y)
         ax.scatter(x_labels, results.y_low, color="k", ls="--")
         ax.scatter(x_labels, results.y_high, color="k", ls="--")
@@ -138,7 +145,7 @@ terms = [term for term in model.terms if isinstance(term, (Linear, Spline))]
 
 # Loop over the individual terms in the model
 for ax, term in zip(axes.ravel(), terms):
-    results = partial_effect(model, term, standard_deviations=1.0)
+    results = partial_effect(model, term, standard_deviations=1.0, linear_scale=True)
 
     # Create a plot
     ax.set_title(f"Partial effects for term: '{term.feature}'")
@@ -228,5 +235,3 @@ for constraint in [None, "increasing", "increasing-concave"]:
 plt.legend()
 plt.tight_layout()
 plt.show()
-
-# %%

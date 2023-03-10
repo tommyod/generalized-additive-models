@@ -24,10 +24,9 @@ generalized-additive-models
 About
 -----
 
-Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf`_ .
+Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf>`_.
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
 and interest focuses on inference about these smooth functions.
-
 
 .. image:: https://latex.codecogs.com/svg.image?Y_i&space;\sim&space;\textup{ExponentialFamily}(\mu_i,&space;\phi)&space;\\g(\mu_i)&space;=&space;f_1(x_{i1})&space;&plus;&space;f_2(x_{i2})&space;&plus;&space;f_3(x_{i3},&space;x_{i4})&space;&plus;&space;\cdots
   
@@ -36,17 +35,12 @@ along with a link function g (for example the identity or log functions) relatin
 expected value of Y to the predictor variables.
 
 
-
-
-TODO
-
 Installation
 ------------
 
 Install using pip::
 
     pip install generalized-additive-models
-
 
 
 Example
@@ -86,5 +80,4 @@ Some guidelines:
 Citing
 ------
 
-If you use scikit-learn in a scientific publication, we would appreciate citations: https://scikit-learn.org/stable/about.html#citing-scikit-learn
-
+TODO

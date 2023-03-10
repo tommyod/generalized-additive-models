@@ -22,7 +22,7 @@ templates_path = ["_templates"]
 exclude_patterns = ["conf.py"]
 
 
-source_suffix = [".md", ".rst"]
+source_suffix = [".rst"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -94,7 +94,7 @@ html_theme_options = {
     # 'logo': 'logo.png',
     # 'logo': 'logo.png',
     "github_user": "tommyod",
-    "github_repo": "KDEpy",
+    "github_repo": "generalized-additive-models",
     "github_button": True,
     "github_banner": True,
     "travis_button": False,
