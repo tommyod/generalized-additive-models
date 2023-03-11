@@ -78,7 +78,7 @@ class Normal(Distribution, BaseEstimator):
 
         deviance = (y - mu) ** 2
         if scaled and self.scale:
-            deviance = deviance / self.get_scale()
+            deviance = deviance / self.scale
 
         if sample_weight is None:
             sample_weight = np.ones_like(mu, dtype=float)
@@ -88,6 +88,10 @@ class Normal(Distribution, BaseEstimator):
     def sample(self, mu, size=None):
         standard_deviation = np.sqrt(self.variance(mu))
         return np.random.normal(loc=mu, scale=standard_deviation, size=size)
+
+    def to_scipy(self, mu):
+        standard_deviation = np.sqrt(self.variance(mu))
+        return sp.stats.norm(loc=mu, scale=standard_deviation)
 
 
 class Poisson(Distribution, BaseEstimator):
@@ -127,6 +131,9 @@ class Poisson(Distribution, BaseEstimator):
     def sample(self, mu, size=None):
         return np.random.poisson(lam=mu, size=size)
 
+    def to_scipy(self, mu):
+        return sp.stats.poisson(mu=mu)
+
 
 class Binomial(Distribution, BaseEstimator):
     """
@@ -149,8 +156,11 @@ class Binomial(Distribution, BaseEstimator):
         -------
         self
         """
-        assert isinstance(trials, int), "trials must be an integer"
-        assert trials > 0, "trials must be >= 1"
+        assert isinstance(trials, (int, np.ndarray)), "trials must be an integer"
+        if isinstance(trials, np.ndarray):
+            assert np.all(trials >= 1), "trials must be >= 1"
+        else:
+            assert trials >= 1, "trials must be >= 1"
         self.trials = trials
 
     @property
@@ -168,7 +178,7 @@ class Binomial(Distribution, BaseEstimator):
 
     def V(self, mu):
         threshold = EPSILON
-        mu = np.maximum(np.minimum(mu, 1 - threshold), 0 + threshold)
+        mu = np.maximum(np.minimum(mu, self.trials - threshold), 0 + threshold)
 
         return mu * (1 - mu / self.trials)
 
@@ -192,6 +202,11 @@ class Binomial(Distribution, BaseEstimator):
         n = self.trials
         p = mu / self.trials
         return np.random.binomial(n=n, p=p, size=size)
+
+    def to_scipy(self, mu):
+        n = self.trials
+        p = mu / self.trials
+        return sp.stats.binom(n, p)
 
 
 class Gamma(Distribution, BaseEstimator):

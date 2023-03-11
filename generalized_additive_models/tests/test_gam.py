@@ -179,6 +179,33 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_weight = logistic_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
 
+    @pytest.mark.parametrize("intercept", INTERCEPT)
+    def test_caononical_binomial(self, intercept):
+        rng = np.random.default_rng(123456 + int(intercept * 100))
+
+        # Create a logistic problem
+        num = 100_000
+        x = np.linspace(0, 2 * np.pi, num=num)
+        X = x.reshape(-1, 1)
+        linear_prediction = intercept + np.sin(x)
+
+        p = Logit().inverse_link(linear_prediction)
+
+        trials = rng.integers(1, 100, size=num)
+        y = rng.binomial(n=trials, p=p)
+
+        # Expected value mu
+        mu = trials * p
+
+        # Create a GAM
+        binomial_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link=Logit(low=0, high=trials),
+            distribution=Binomial(trials=trials),
+        ).fit(X, y)
+
+        assert np.allclose(mu, binomial_gam.predict(X), rtol=0.05)
+
 
 class TestPandasCompatibility:
     @pytest.mark.parametrize("term_cls", [Spline, Linear])
@@ -840,6 +867,6 @@ if __name__ == "__main__":
                 "--capture=sys",
                 "--doctest-modules",
                 "--maxfail=1",
-                "-k test_that_categorical_identifiability_works",
+                "-k test_caononical_binomial",
             ]
         )

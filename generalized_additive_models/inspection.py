@@ -52,7 +52,7 @@ def model_checking(gam):
 
     # =========================================================================
     ax3.set_title("Histogram of residuals")
-    ax3.hist(residuals, bins="fd", density=True)
+    ax3.hist(residuals, bins="auto", density=True)
     ax3.axvline(x=np.mean(residuals), color="k")
     ax3.set_yticklabels([])
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
     from sklearn.datasets import fetch_california_housing
 
     data = fetch_california_housing(as_frame=True)
-    df, y = data.data, data.target
+    df, y = data.data, data.target * 100
 
     df = df.assign(cat=[random.choice(list("abcdef")) for _ in range(len(df))])
 
@@ -258,3 +258,38 @@ if __name__ == "__main__":
     a, b = generate_X_grid(gam, gam.terms[2], df, num=10)
 
     model_checking(gam)
+
+    # Paper
+    X, y, sample_weight = gam.X_, gam.y_, gam.sample_weight_
+
+    # Compute deviance residuals
+    mu = gam.predict(X)
+    deviance = gam._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight, scaled=True)
+    d_i = np.sign(y - mu) * np.sqrt(deviance)
+    d_i = np.sort(d_i)
+
+    simulations = 1000
+    simulated_y = gam.sample(y, size=(simulations, len(y)))
+    predictions = np.outer(np.ones(simulations), gam.predict(X))
+    sample_weight = np.outer(np.ones(simulations), sample_weight)
+    assert simulated_y.shape == predictions.shape
+
+    # residuals = simulated_y - gam.predict(X)
+
+    deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
+
+    i = (np.arange(len(y)) + 0.5) / len(y)
+    d_star_i = np.percentile(deviance_residuals, q=i * 100)
+
+    plt.figure()
+    plt.scatter(d_i, d_star_i, s=5)
+
+    min_value = min(np.min(d_i), np.min(d_star_i))
+    max_value = max(np.max(d_i), np.max(d_star_i))
+    plt.plot([min_value, max_value], [min_value, max_value], color="k")
+
+    deviance_residuals = np.sort(deviance_residuals, axis=1)
+    low, high = np.percentile(deviance_residuals, q=[1, 99], axis=0)
+
+    plt.fill_between(d_star_i, low, high, alpha=0.33, color="black")

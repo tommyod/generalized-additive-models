@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy import special
 from sklearn.base import BaseEstimator
+from numbers import Real
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -85,7 +86,17 @@ class Logit(Link, BaseEstimator):
     domain = (0, 1)  #: Domain of the link function
 
     def __init__(self, low=0, high=1):
-        assert type(low) == type(high)
+        if isinstance(low, np.ndarray) and isinstance(high, Real):
+            high = np.ones_like(low, dtype=float) * high
+        elif isinstance(high, np.ndarray) and isinstance(low, Real):
+            low = np.ones_like(high, dtype=float) * low
+        elif isinstance(low, Real) and isinstance(high, Real):
+            pass
+        elif isinstance(low, np.ndarray) and isinstance(high, np.ndarray):
+            pass
+        else:
+            raise TypeError("`low` and `high` must be array or floats.")
+
         self.low = low
         self.high = high
         self.domain = (self.low, self.high)
@@ -359,4 +370,4 @@ LINKS = {
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[".", "-v", "--capture=sys", "-k link"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "-k link"])

@@ -247,6 +247,10 @@ class GAM(BaseEstimator):
 
         return self
 
+    def sample(self, mu, size=None):
+        check_is_fitted(self, attributes=["coef_"])
+        return self._distribution.to_scipy(mu).rvs(size=size)
+
     def predict(self, X):
         check_is_fitted(self, attributes=["coef_"])
 
