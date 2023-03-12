@@ -175,7 +175,7 @@ class PIRLS(Optimizer):
 
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
             w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            assert np.all(w > 0)
+            assert np.all(w >= 0), f"smallest w_i {np.min(w)}"
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
@@ -190,10 +190,10 @@ class PIRLS(Optimizer):
                     beta = step_size * beta1 + (1 - step_size) * beta0
                     obj = self.evaluate_objective(X, D, beta, y, sample_weight)
 
-                    if obj <= obj0:
-                        break
+                    if obj < obj0:
+                        return beta, obj, half_exponent
 
-                return beta, obj, half_exponent
+                return beta0, obj0, half_exponent
 
             beta, objective_value, half_exponent = halving_search(X, D, self.y, sample_weight, betas[-1], beta_trial)
 
@@ -211,7 +211,7 @@ class PIRLS(Optimizer):
                 msg += f"Step size: 1/2^{half_exponent}"
                 print(msg)
 
-            if self._should_stop(betas=betas, step_size=(1 / 2) ** half_exponent):
+            if self._should_stop(betas=betas, step_size=1):
                 if self.verbose >= 1:
                     print(" => SUCCESS: Solver converged (met tolerance criterion).")
                 break

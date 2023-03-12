@@ -234,6 +234,64 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     return result
 
 
+def plot_qq(gam, return_data=False):
+    # From paper: "On quantile quantile plots for generalized linear models"
+    # By Nicole H. Augustin, Erik-André Sauleau, Simon N. Wood
+    # https://www.sciencedirect.com/science/article/pii/S0167947312000692
+
+    # Paper
+    X, y, sample_weight = gam.X_, gam.y_, gam.sample_weight_
+
+    # Compute deviance residuals, following the notation in Section 2.1
+    mu = gam.predict(X)
+    deviance = gam._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight, scaled=True)
+    d_i = np.sort(np.sign(y - mu) * np.sqrt(deviance))
+
+    # Number of simulations
+    simulations = int(max(10**5 / len(y), 25))
+
+    # Create arrays of size (simulations, num_samples)
+    simulated_y = gam.sample(y, size=(simulations, len(y)))
+    predictions = np.outer(np.ones(simulations), gam.predict(X))
+    sample_weight = np.outer(np.ones(simulations), sample_weight)
+
+    # Compute deviance residuals for all simulations
+    # This gives a probability distribution for the deviance residuals
+    deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
+
+    # Compute percentiles => approx the inverse CDF of the residual distribution
+    i = (np.arange(len(y)) + 0.5) / len(y)
+    d_star_i = np.percentile(deviance_residuals, q=i * 100)
+
+    if return_data:
+        return Bunch(
+            obs_deviance_residuals=d_i,
+            theoretical_deviance_residuals=d_star_i,
+            simulated_deviance_residuals=deviance_residuals,
+        )
+
+    # Create the figure
+    # -------------------------------------------------------------------------
+    fig, ax = plt.subplots(figsize=(5, 4))
+
+    ax.scatter(d_star_i, d_i, s=5, zorder=15)
+
+    min_value = min(np.min(d_i), np.min(d_star_i))
+    max_value = max(np.max(d_i), np.max(d_star_i))
+    ax.plot([min_value, max_value], [min_value, max_value], color="black", zorder=10)
+
+    deviance_residuals = np.sort(deviance_residuals, axis=1)
+    low, high = np.percentile(deviance_residuals, q=[1, 99], axis=0)
+
+    ax.fill_between(d_star_i, low, high, alpha=0.33, color="black", zorder=5)
+
+    ax.set_ylabel("Observed deviance residuals")
+    ax.set_xlabel("Theoretical quantiles")
+    ax.grid(True, ls="--", zorder=0, alpha=0.33)
+    fig.tight_layout()
+
+
 if __name__ == "__main__":
     import random
 
@@ -254,6 +312,9 @@ if __name__ == "__main__":
         # link="log"
     )
     gam.fit(df, y)
+
+    plot_qq(gam)
+    1 / 0
 
     a, b = generate_X_grid(gam, gam.terms[2], df, num=10)
 

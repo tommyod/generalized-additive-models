@@ -130,7 +130,11 @@ class GAM(BaseEstimator):
 
     def _validate_params(self, X):
         super()._validate_params()
+
+        # if not hasattr(self, "_distribution"):
         self._link = LINKS[self.link]() if isinstance(self.link, str) else self.link
+
+        # if not hasattr(self, "_distribution"):
         self._distribution = (
             DISTRIBUTIONS[self.distribution]() if isinstance(self.distribution, str) else self.distribution
         )
@@ -232,6 +236,7 @@ class GAM(BaseEstimator):
 
         # Update distribution scale if set to None
         self._distribution.scale = self.results_.scale if self._distribution.scale is None else self._distribution.scale
+        assert self._distribution.scale is not None
 
         # Assign coefficients to terms
         coef_idx = 0
@@ -277,7 +282,6 @@ class GAM(BaseEstimator):
 
         """
         check_is_fitted(self, attributes=["coef_"])
-        self._validate_params(X)
 
         check_consistent_length(X, y, sample_weight)
         y = column_or_1d(y)

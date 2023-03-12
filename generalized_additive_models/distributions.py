@@ -77,7 +77,7 @@ class Normal(Distribution, BaseEstimator):
         check_consistent_length(y, mu, sample_weight)
 
         deviance = (y - mu) ** 2
-        if scaled and self.scale:
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
         if sample_weight is None:

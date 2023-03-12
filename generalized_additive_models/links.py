@@ -255,6 +255,10 @@ class Softplus(Link, BaseEstimator):
         """Elementwise first derivative of the link function."""
         a = self._validate_threshold(threshold=self.a, argument=mu)
 
+        # If mu is 0 + epislon, then exp(mu) = 1 and we divide by zero
+        threshold = EPSILON
+        mu = np.maximum(mu, 0 + threshold)
+
         return 1 / (1 - np.exp(-a * mu))
 
     def second_derivative(self, mu):
@@ -371,3 +375,14 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "-k link"])
+
+    import matplotlib.pyplot as plt
+
+    l = Softplus()
+
+    x = np.linspace(0.1, 10)
+    plt.plot(x, l(x))
+    plt.plot(x, l.derivative(x))
+    plt.plot(x, x)
+    plt.grid(True)
+    plt.show()

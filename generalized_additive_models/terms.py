@@ -977,8 +977,8 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         self.splines = TermList(self.splines)
         for spline in self.splines:
-            if not isinstance(spline, Spline):
-                raise TypeError(f"Only Splines can be used in a Tensor, found: {spline}")
+            if not isinstance(spline, (Spline, Categorical)):
+                raise TypeError(f"Only Splines and Categorical can be used in Tensor, found: {spline}")
             spline._validate_params(X)
 
         self._infer_feature_variable(variable_name="by", X=X)
