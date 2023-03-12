@@ -17,19 +17,13 @@
 # ## Getting started
 #
 # Import packages.
-#
-# import matplotlib.pyplot as plt
-# import numpy as np
 
 # %%
-# Import packages
-
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_diabetes
 
-from generalized_additive_models import GAM, Categorical, Intercept, Linear, Spline
-from generalized_additive_models.inspection import partial_effect
+from generalized_additive_models import GAM, Categorical, Spline
 
 # %% [markdown]
 # Load data.
@@ -42,6 +36,8 @@ y = data.target
 # Code the "sex" variable as strings
 df = df.assign(sex=lambda df: np.where(df.sex < 0, "Male", "Female"))
 
+df.sample(5)
+
 # %% [markdown]
 # ### Creating a model
 #
@@ -50,14 +46,15 @@ df = df.assign(sex=lambda df: np.where(df.sex < 0, "Male", "Female"))
 # %%
 # Features can be string and refer to column names if X is a pandas DataFrame
 # If X was a 2D numpy array, features must instead be integers referring to the columns
-penalty = 1000
-terms = (
-    Spline("age", penalty=penalty) + Categorical("sex") + Spline("bmi", penalty=penalty) + Spline("bp", penalty=penalty)
-)
-model = GAM(terms, link="log")
+
+terms = Spline("age") + Categorical("sex", penalty=1) + Spline("bmi") + Spline("bp")
+model = GAM(terms, link="identity", verbose=2, fit_intercept=False)
 
 # Fit the model
 model.fit(df, y)
+
+# %%
+model.summary()
 
 # %% [markdown]
 # Make a prediction and score the model.
@@ -72,90 +69,7 @@ model.score(df, y)  # Pseudo R2 score
 # %%
 from sklearn.metrics import r2_score
 
-r2 = r2_score(y_true=y, y_pred=predictions)
-assert np.isclose(r2, model.score(df, y))
-r2
-
-# %% [markdown]
-# ### Partial effects and partial residuals
-#
-# Partial effects may be plotted as follows:
-
-# %%
-fig, axes = plt.subplots(2, 2, figsize=(8, 5))
-
-# Loop over the individual terms in the model
-for ax, term in zip(axes.ravel(), model.terms):
-    # Skip plotting intercept terms and categorical terms
-    if isinstance(term, (Intercept)):
-        continue
-
-    results = partial_effect(model, term, standard_deviations=1.0)
-
-    # Create a plot
-    ax.set_title(f"Partial effects for term: '{term.feature}'")
-
-    # Linear and Spline terms
-    if isinstance(term, (Linear, Spline)):
-        ax.plot(results.x, results.y)
-        ax.plot(results.x, results.y_low, color="k", ls="--")
-        ax.plot(results.x, results.y_high, color="k", ls="--")
-
-        # Rugplot
-        minimum_value = np.min(results.y_low)
-        ax.scatter(
-            results.x_obs,
-            np.ones_like(results.x_obs) * minimum_value,
-            marker="|",
-            color="black",
-        )
-
-        ax.grid(True, ls="--", alpha=0.2)
-
-    # Categorical terms get a slightly different plot
-    elif isinstance(term, Categorical):
-        x_ticks = np.arange(len(results.x))
-        x_labels = term.categories_
-        ax.scatter(x_labels, results.y)
-        ax.scatter(x_labels, results.y_low, color="k", ls="--")
-        ax.scatter(x_labels, results.y_high, color="k", ls="--")
-
-        ax.grid(True, ls="--", alpha=0.2)
-        ax.set_xticks(x_ticks)
-        ax.set_xticklabels(x_labels)
-
-
-fig.tight_layout()
-plt.show()
-
-# %% [markdown]
-# We can also plot partial residuals.
-
-# %%
-fig, axes = plt.subplots(2, 2, figsize=(8, 5))
-
-terms = [term for term in model.terms if isinstance(term, (Linear, Spline))]
-
-# Loop over the individual terms in the model
-for ax, term in zip(axes.ravel(), terms):
-    results = partial_effect(model, term, standard_deviations=1.0)
-
-    # Create a plot
-    ax.set_title(f"Partial effects for term: '{term.feature}'")
-
-    ax.plot(results.x, results.y)
-    ax.plot(results.x, results.y_low, color="k", ls="--")
-    ax.plot(results.x, results.y_high, color="k", ls="--")
-
-    # Partial residuals
-    minimum_value = np.min(results.y_low)
-    ax.scatter(results.x_obs, results.y_partial_residuals, color="black", s=1, alpha=0.33)
-
-    ax.grid(True, ls="--", alpha=0.2)
-
-
-fig.tight_layout()
-plt.show()
+r2_score(y_true=y, y_pred=predictions)
 
 # %% [markdown]
 # ### Scikit-learn compatibility
@@ -208,25 +122,3 @@ for penalty in [0.001, 1, 1000]:
 plt.legend()
 plt.tight_layout()
 plt.show()
-
-# %% [markdown]
-# ### Constraints
-
-# %%
-plt.figure(figsize=(6, 3))
-plt.scatter(df["bp"], y, s=2, alpha=0.5, color="k")
-
-# Create smooth grid to evaluate on
-X_smooth = np.linspace(df["bp"].min(), df["bp"].max(), num=2**10).reshape(-1, 1)
-
-# Loop over constraints and create a model to fit and plot
-for constraint in [None, "increasing", "increasing-concave"]:
-    model = GAM(Spline("bp", constraint=constraint)).fit(df, y)
-
-    plt.plot(X_smooth, model.predict(X_smooth), label=str(constraint))
-
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-# %%

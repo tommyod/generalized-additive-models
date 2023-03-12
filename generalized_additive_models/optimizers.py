@@ -6,6 +6,7 @@ Created on Tue Feb  7 06:22:30 2023
 @author: tommy
 """
 import warnings
+import functools
 
 import numpy as np
 import scipy as sp
@@ -13,15 +14,15 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
-from generalized_additive_models.utils import phi_fletcher
+from generalized_additive_models.utils import identifiable_parameters, phi_fletcher
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
-def solve_lstsq(X, D, w, z):
-    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
-
+def solve_unbounded_lstsq(X, D, w, z):
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z
+    for beta."""
     lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
     rhs = X.T @ (w * z)
     beta, *_ = sp.linalg.lstsq(lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True)
@@ -62,65 +63,51 @@ class PIRLS(Optimizer):
         if np.any(self.y > high):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
 
-    def solve_lstsq(self, X, D, w, z, bounds=None):
+    def solve_lstsq(self, X, D, w, z, bounds):
         """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
 
         lower_bounds, upper_bounds = bounds
 
         # If bounds are inactive, solve using standard least squares
         if np.all(lower_bounds == -np.inf) and np.all(upper_bounds == np.inf):
-            return solve_lstsq(X, D, w, z)
+            return solve_unbounded_lstsq(X, D, w, z)
 
-        # If there are active bounds, solve by stacking
-        # lhs = np.vstack([np.sqrt(w).reshape(-1, 1) * X, D])
-        # rhs = np.zeros(lhs.shape[0])
-        # rhs[: len(w)] = np.sqrt(w) * z
-
+        # Set up left hand side and right hand side
         lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
         rhs = X.T @ (w * z)
 
-        result = sp.optimize.lsq_linear(
-            lhs,
-            rhs,
-            bounds=bounds,
-            verbose=min(max(0, self.verbose - 2), 2),
-        )
+        verbose = min(max(0, self.verbose - 2), 2)
+        result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds, verbose=verbose)
 
         if self.verbose >= 2:
-            print(
-                f"  Constrained LSQ {'success' if result.success else 'failure'} in {result.nit} iters. Msg: {result.message}"
-            )
+            msg = f"  Constrained LSQ {'success' if result.success else 'failure'} "
+            msg += f"in {result.nit} iters. Msg: {result.message}"
+            print(msg)
+
             if not result.success:
                 print(f" => Constrained LSQ msg: {result.message}")
 
         return result.x
 
     def _initial_estimate(self):
-        # Map the observations to the linear scale
-        y_to_map = self.y.copy()
+        """Construct an initial estimate of beta by solving a Ridge problem."""
 
-        # Numerical problems can occur if for instance we use the logit link
-        # and y is 0 or 1, then we will map to infinity
+        # Numerical problems occur with e.g. logit link, since 0 and 1 map to inf
         low, high = self.link.domain
         threshold = EPSILON**0.25
-        y_to_map = np.maximum(np.minimum(y_to_map, high - threshold), low + threshold)
-        assert np.all(y_to_map >= low + threshold)
-        assert np.all(y_to_map <= high - threshold)
-
+        y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
         mu_initial = self.link.link(y_to_map)
-        assert np.all(np.isfinite(mu_initial))
+
+        assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
 
         # Solve X @ beta = mu using Ridge regression
         ridge = Ridge(alpha=1e3, fit_intercept=False)
         sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
         ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
-        beta_initial = ridge.coef_
 
-        # Respect the bounds
+        # Respect the bounds naively by projecting to them
         lower_bound, upper_bound = self.bounds
-        beta_initial = np.maximum(np.minimum(beta_initial, upper_bound), lower_bound)
-
-        return beta_initial
+        return np.maximum(np.minimum(ridge.coef_, upper_bound), lower_bound)
 
     def evaluate_objective(self, X, D, beta, y, sample_weight):
         """Evaluate the log likelihood plus the penalty."""
@@ -129,95 +116,102 @@ class PIRLS(Optimizer):
         penalty = sp.linalg.norm(D @ beta) ** 2
         return (deviance + penalty) / len(beta)
 
-    def solve(self):
+    def solve(self, fisher_weights=True):
+        """Solve the optimization problem."""
+        # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
+
         num_observations, num_beta = self.X.shape
 
-        alpha = 1  # Fisher weights, see page 250 in Wood, 2nd ed
+        def alpha(mu):
+            # Fisher weights, see page 250 in Wood, 2nd ed
+            if fisher_weights:
+                alpha = 1
+            else:
+                V_term = self.distribution.V_derivative(mu) / self.distribution.V(mu)
+                g_term = self.link.second_derivative(mu) / self.link.derivative(mu)
+                alpha = 1 + (self.y - mu) * (V_term + g_term)
 
+            return alpha
+
+        fmt = functools.partial(np.format_float_scientific, precision=4, min_digits=4, exp_digits=2)
+
+        # See page 251 in Wood, 2nd edition
+        # Step 1: Compute initial values
+        # ---------------------------------------------------------------------
         beta = self._initial_estimate()
 
-        # Step 1: Compute initial values
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
+        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
 
         if self.verbose >= 1:
             lpad = int(np.floor(np.log10(self.max_iter)))
-            w = (
-                alpha
-                * self.get_sample_weight(mu=mu, y=self.y)
-                / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            )
+            w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
             objective_init = self.evaluate_objective(self.X, self.D, beta, self.y, w)
 
-            msg = "Initial guess:      "
-            objective_fmt = np.format_float_scientific(objective_init, precision=4, min_digits=4)
-            msg += f"Objective: {objective_fmt}   "
-            beta_fmt = np.format_float_scientific(sp.linalg.norm(beta), precision=4, min_digits=4)
-            msg += f"Coef. norm: {beta_fmt}   "
+            msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
+            beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
+            msg += f"Coef. rmse: {beta_fmt}   "
             print(msg)
 
-        # List of betas to watch as optimization progresses
-        betas = [beta]
-        deviances = [self.distribution.deviance(y=self.y, mu=mu).mean()]
-
         # Set non-identifiable coefficients to zero
-        # Compute Q R = A P
-        # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
-        Q, R, P = sp.linalg.qr(np.vstack((self.X, self.D)), mode="economic", pivoting=True)
-        zero_coefs = (np.abs(np.diag(R)) < EPSILON)[P]
+        nonzero_coefs = identifiable_parameters(np.vstack((self.X, self.D)))
+        zero_coefs = ~nonzero_coefs
+
         if self.verbose >= 2:
             print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
 
-        X = self.X[:, ~zero_coefs]
-        D = self.D[:, ~zero_coefs]
-        betas[0] = betas[0][~zero_coefs]
+        X = self.X[:, nonzero_coefs]
+        D = self.D[:, nonzero_coefs]
+        beta = beta[nonzero_coefs]
+
+        # List of betas to watch as optimization progresses
+        betas = [beta]
+        deviances = [self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean()]
 
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
-            z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
-            # w = alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            z = self.link.derivative(mu) * (self.y - mu) / alpha(mu) + eta
 
-            # w = alpha * self.get_weights(mu, sample_weight)
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-            w = alpha * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            assert np.all(w > 0)
+            w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            assert np.all(w >= 0), f"smallest w_i {np.min(w)}"
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
-            bounds = (self.bounds[0][~zero_coefs], self.bounds[1][~zero_coefs])
+            bounds = (self.bounds[0][nonzero_coefs], self.bounds[1][nonzero_coefs])
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
-            beta_previous = betas[-1]
-            objective_previous = self.evaluate_objective(X, D, beta_previous, self.y, sample_weight)
+            def halving_search(X, D, y, sample_weight, beta0, beta1):
+                obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
 
-            for half_exponent in range(21):
-                step_size = (1 / 2) ** half_exponent
-                suggested_beta = step_size * beta_trial + (1 - step_size) * beta_previous
-                objective_suggested = self.evaluate_objective(X, D, suggested_beta, self.y, sample_weight)
+                for half_exponent in range(21):
+                    step_size = (1 / 2) ** half_exponent
+                    beta = step_size * beta1 + (1 - step_size) * beta0
+                    obj = self.evaluate_objective(X, D, beta, y, sample_weight)
 
-                if objective_suggested <= objective_previous:
-                    beta = suggested_beta
-                    break
-            else:
-                break
+                    if obj < obj0:
+                        return beta, obj, half_exponent
+
+                return beta0, obj0, half_exponent
+
+            beta, objective_value, half_exponent = halving_search(X, D, self.y, sample_weight, betas[-1], beta_trial)
 
             eta = X @ beta
             mu = self.link.inverse_link(eta)
             betas.append(beta)
-            deviances.append(self.distribution.deviance(y=self.y, mu=mu).mean())
+            deviances.append(self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean())
 
             if self.verbose >= 1:
                 lpad = int(np.floor(np.log10(self.max_iter)))
 
                 msg = f"Iteration: {str(iteration).rjust(lpad, ' ')}/{self.max_iter}   "
-                objective_fmt = np.format_float_scientific(objective_suggested, precision=4, min_digits=4, exp_digits=2)
-                msg += f"Objective: {objective_fmt}   "
-                beta_fmt = np.format_float_scientific(sp.linalg.norm(beta), precision=4, min_digits=4, exp_digits=2)
-                msg += f"Coef. norm: {beta_fmt}   "
+                msg += f"Objective: {fmt(objective_value)}   "
+                msg += f"Coef. rmse: {fmt(np.sqrt(np.mean(beta**2)))}   "
                 msg += f"Step size: 1/2^{half_exponent}"
                 print(msg)
 
-            if self._should_stop(betas=betas, step_size=step_size):
+            if self._should_stop(betas=betas, step_size=1):
                 if self.verbose >= 1:
                     print(" => SUCCESS: Solver converged (met tolerance criterion).")
                 break
@@ -239,21 +233,26 @@ class PIRLS(Optimizer):
 
         # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
         # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
-        to_invert = self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D
+        to_invert = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
         to_invert.flat[:: to_invert.shape[0] + 1] += EPSILON  # Add to diagonal
         inverted = sp.linalg.inv(to_invert)
 
+        # Compute the effective degrees of freedom per coefficient
         # Only need the diagonal of H, so use the fact that
         # np.diag(B @ A.T) = (B * A).sum(axis=1)
         # to compute H below:
         # H = ((w.reshape(-1, 1) * self.X) @ inverted @ self.X.T)
         # H_diag = np.sum(((w.reshape(-1, 1) * self.X) @ inverted) * self.X, axis=1)
         # H_diag2 = sp.linalg.inv(self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D) @ self.X.T @ np.diag(w) @ self.X
-        H_diag = ((self.X.T @ (w.reshape(-1, 1) * self.X)) * inverted).sum(axis=1)
+        H_diag = ((X.T @ (w.reshape(-1, 1) * X)) * inverted).sum(axis=1)
         # H_diag = np.diag(inverted @ self.X.T @ np.diag(w) @ self.X )
         # assert np.allclose(H_diag, np.diag(H_diag2))
 
         # assert len(beta) == len(np.diag(H_diag2))
+        H_diag_full = np.zeros(num_beta, dtype=float)
+        H_diag_full[nonzero_coefs] = H_diag
+        H_diag = H_diag_full
+
         assert len(beta) == len(H_diag)
 
         edof_per_coef = H_diag
@@ -272,11 +271,18 @@ class PIRLS(Optimizer):
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
+        covariance_full = np.zeros(shape=(len(beta), len(beta)), dtype=float)
+        covariance_full = np.eye(len(beta), dtype=float) * EPSILON
+        covariance_full[np.ix_(nonzero_coefs, nonzero_coefs)] = covariance
+        covariance = covariance_full
+
         assert covariance.shape == (len(beta), len(beta))
         self.results_.covariance = covariance
 
         self.results_.edof_per_coef = edof_per_coef
         self.results_.edof = edof
+        self.results_.iters_deviance = deviances
+        self.results_.iters_coef = betas
 
         # Compute generalized cross validation score
         # Equation (6.18) on page 260

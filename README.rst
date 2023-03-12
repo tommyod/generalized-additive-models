@@ -1,12 +1,22 @@
-.. generalized-additive-models documentation master file, created by
-   sphinx-quickstart on Sat Feb 18 21:33:00 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. -*- mode: rst -*-
 
-Welcome to generalized-additive-models's documentation!
-=======================================================
+|Actions|_ |PythonVersion|_ |PyPi|_ |Black|_
 
-.. currentmodule:: generalized_additive_models
+.. |Actions| image:: https://github.com/tommyod/generalized-additive-models/workflows/Python%20CI/badge.svg?branch=main
+.. _Actions: https://github.com/tommyod/generalized-additive-models/actions/workflows/build.yml?query=branch%3Amain
+
+.. |PythonVersion| image:: https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue
+.. _PythonVersion: https://pypi.org/project/generalized-additive-models
+
+.. |PyPi| image:: https://img.shields.io/pypi/v/generalized-additive-models
+.. _PyPi: https://pypi.org/project/generalized-additive-models
+
+.. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+.. _Black: https://github.com/psf/black
+
+.. image:: https://raw.githubusercontent.com/tommyod/generalized-additive-models/prepare-alpha/docs/_static/readme_figure.png?token=GHSAT0AAAAAABHJPRNESAGIMSDHQ652ZK74ZAKCICA
+  :target: https://github.com/tommyod/generalized-additive-models/
+
 
 generalized-additive-models
 ---------------------------
@@ -18,12 +28,8 @@ Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <ht
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
 and interest focuses on inference about these smooth functions.
 
-
-.. math::
-
-   Y_i &\sim \textup{ExponentialFamily}(\mu_i, \phi) \\
-   g(\mu_i) &= f_1(x_{i1}) + f_2(x_{i2}) + f_3(x_{i3}, x_{i4}) + \cdots
-
+.. image:: https://latex.codecogs.com/svg.image?Y_i&space;\sim&space;\textup{ExponentialFamily}(\mu_i,&space;\phi)&space;\\g(\mu_i)&space;=&space;f_1(x_{i1})&space;&plus;&space;f_2(x_{i2})&space;&plus;&space;f_3(x_{i3},&space;x_{i4})&space;&plus;&space;\cdots
+  
 An exponential family distribution is specified for the target Y (.e.g Normal, Binomial or Poisson) 
 along with a link function g (for example the identity or log functions) relating the 
 expected value of Y to the predictor variables.
@@ -71,21 +77,7 @@ Some guidelines:
 - Write tests, especically regression tests if a bug is fixed.
 - Take backward compatibility seriously. API changes require good reason.
 
-   
-Examples
-========
-   
-.. toctree::
-   :maxdepth: 1
-   
-   examples/getting_started
-   API documentation <API>
-   references
-   
+Citing
+------
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+TODO

@@ -27,7 +27,7 @@ def model_checking(gam):
     # Common computations
     X, y, sample_weight = gam.X_, gam.y_, gam.sample_weight_
     predictions = gam.predict(X)
-    residuals = predictions - y
+    residuals = y - predictions
 
     # Page 331 in Wood, 2nd ed
 
@@ -35,24 +35,37 @@ def model_checking(gam):
 
     # =========================================================================
     deviance = gam._distribution.deviance(y=y, mu=predictions, sample_weight=sample_weight, scaled=True)
-    deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
+    deviance_residuals = np.sign(residuals) * np.sqrt(deviance)
 
-    deviance_residuals = np.sort(deviance_residuals)
+    sorted_deviance_residuals = np.sort(deviance_residuals)
 
-    i = (np.arange(len(deviance_residuals)) + 0.5) / len(deviance_residuals)
+    i = (np.arange(len(residuals)) + 0.5) / len(residuals)
     q_i = sp.stats.norm(loc=0, scale=1).ppf(i)
 
-    ax1.scatter(q_i, deviance_residuals, s=2)
+    ax1.scatter(q_i, sorted_deviance_residuals, s=2)
 
-    min_value = min(np.min(q_i), np.min(deviance_residuals))
-    max_value = max(np.max(q_i), np.max(deviance_residuals))
+    min_value = min(np.min(q_i), sorted_deviance_residuals[0])
+    max_value = max(np.max(q_i), sorted_deviance_residuals[-1])
     ax1.plot([min_value, max_value], [min_value, max_value], color="k")
+    ax1.set_xlabel("Theoretical N(0, 1) quantiles")
+    ax1.set_ylabel("Observed deviance residuals")
 
-    print(deviance_residuals)
+    # =========================================================================
+    # ax2.set_title("Histogram of deviance residuals")
+    # ax2.hist(deviance_residuals, bins="auto", density=True)
+    # ax2.axvline(x=np.mean(deviance_residuals), color="k")
+    # ax2.set_yticklabels([])
+
+    ax2.set_title("Response vs. fitted values")
+    deviance = gam._distribution.deviance(y=y, mu=predictions, scaled=False)
+    deviance_residuals = np.sign(residuals) * np.sqrt(deviance)
+    ax2.scatter(predictions, deviance_residuals, s=2)
+    ax2.set_xlabel("Predicted values")
+    ax2.set_ylabel("Deviance residuals")
 
     # =========================================================================
     ax3.set_title("Histogram of residuals")
-    ax3.hist(residuals, bins="fd", density=True)
+    ax3.hist(residuals, bins="auto", density=True)
     ax3.axvline(x=np.mean(residuals), color="k")
     ax3.set_yticklabels([])
 
@@ -64,6 +77,9 @@ def model_checking(gam):
     min_value = min(np.min(y), np.min(predictions))
     max_value = max(np.max(y), np.max(predictions))
     ax4.plot([min_value, max_value], [min_value, max_value], color="k")
+
+    for ax in (ax1, ax2, ax3, ax4):
+        ax.grid(True, ls="--", zorder=0, alpha=0.33)
 
     fig.tight_layout()
 
@@ -193,7 +209,7 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     # Predict on smooth grid
     X = term.transform(X_smooth)
     linear_predictions = X @ term.coef_
-    predictions = linear_predictions if linear_scale else gam._link.inverse_link(linear_predictions)
+    predictions = linear_predictions  # if linear_scale else gam._link.inverse_link(linear_predictions)
 
     # Get the covariance matrix associated with the coefficients of this term
     V = gam.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
@@ -212,7 +228,7 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     # https://en.wikipedia.org/wiki/Partial_residual_plot#Definition
     residuals = gam.y_ - gam._link.inverse_link(gam.model_matrix_ @ gam.coef_)
 
-    # Prepare the results
+    # Prepare the linear results
     result = Bunch(
         x=X_smooth,
         y=predictions,
@@ -223,14 +239,73 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
         meshgrid=meshgrid,
     )
 
+    # Map the variables
     if not linear_scale:
         result.y = gam._link.inverse_link(result.y)
         result.y_low = gam._link.inverse_link(result.y_low)
         result.y_high = gam._link.inverse_link(result.y_high)
-        model_predictions = gam._link.inverse_link((X_original_transformed @ term.coef_))
+        model_predictions = gam._link.inverse_link(X_original_transformed @ term.coef_)
         result.y_partial_residuals = (model_predictions + residuals,)
 
     return result
+
+
+def plot_qq(gam, return_data=False):
+    # From paper: "On quantile quantile plots for generalized linear models"
+    # By Nicole H. Augustin, Erik-André Sauleau, Simon N. Wood
+    # https://www.sciencedirect.com/science/article/pii/S0167947312000692
+
+    # Paper
+    X, y, sample_weight = gam.X_, gam.y_, gam.sample_weight_
+
+    # Compute deviance residuals, following the notation in Section 2.1
+    mu = gam.predict(X)
+    deviance = gam._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight, scaled=True)
+    d_i = np.sort(np.sign(y - mu) * np.sqrt(deviance))
+
+    # Number of simulations
+    simulations = int(max(10**5 / len(y), 25))
+
+    # Create arrays of size (simulations, num_samples)
+    simulated_y = gam.sample(y, size=(simulations, len(y)))
+    predictions = np.outer(np.ones(simulations), gam.predict(X))
+    sample_weight = np.outer(np.ones(simulations), sample_weight)
+
+    # Compute deviance residuals for all simulations
+    # This gives a probability distribution for the deviance residuals
+    deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
+
+    # Compute percentiles => approx the inverse CDF of the residual distribution
+    i = (np.arange(len(y)) + 0.5) / len(y)
+    d_star_i = np.percentile(deviance_residuals, q=i * 100)
+
+    if return_data:
+        return Bunch(
+            obs_deviance_residuals=d_i,
+            theoretical_deviance_residuals=d_star_i,
+            simulated_deviance_residuals=deviance_residuals,
+        )
+
+    # Create the figure
+    # -------------------------------------------------------------------------
+    fig, ax = plt.subplots(figsize=(5, 4))
+
+    ax.scatter(d_star_i, d_i, s=5, zorder=15)
+
+    min_value = min(np.min(d_i), np.min(d_star_i))
+    max_value = max(np.max(d_i), np.max(d_star_i))
+    ax.plot([min_value, max_value], [min_value, max_value], color="black", zorder=10)
+
+    deviance_residuals = np.sort(deviance_residuals, axis=1)
+    low, high = np.percentile(deviance_residuals, q=[1, 99], axis=0)
+
+    ax.fill_between(d_star_i, low, high, alpha=0.33, color="black", zorder=5)
+
+    ax.set_ylabel("Observed deviance residuals")
+    ax.set_xlabel("Theoretical quantiles")
+    ax.grid(True, ls="--", zorder=0, alpha=0.33)
+    fig.tight_layout()
 
 
 if __name__ == "__main__":
@@ -239,7 +314,7 @@ if __name__ == "__main__":
     from sklearn.datasets import fetch_california_housing
 
     data = fetch_california_housing(as_frame=True)
-    df, y = data.data, data.target
+    df, y = data.data, data.target * 100
 
     df = df.assign(cat=[random.choice(list("abcdef")) for _ in range(len(df))])
 
@@ -254,6 +329,44 @@ if __name__ == "__main__":
     )
     gam.fit(df, y)
 
+    plot_qq(gam)
+    1 / 0
+
     a, b = generate_X_grid(gam, gam.terms[2], df, num=10)
 
     model_checking(gam)
+
+    # Paper
+    X, y, sample_weight = gam.X_, gam.y_, gam.sample_weight_
+
+    # Compute deviance residuals
+    mu = gam.predict(X)
+    deviance = gam._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight, scaled=True)
+    d_i = np.sign(y - mu) * np.sqrt(deviance)
+    d_i = np.sort(d_i)
+
+    simulations = 1000
+    simulated_y = gam.sample(y, size=(simulations, len(y)))
+    predictions = np.outer(np.ones(simulations), gam.predict(X))
+    sample_weight = np.outer(np.ones(simulations), sample_weight)
+    assert simulated_y.shape == predictions.shape
+
+    # residuals = simulated_y - gam.predict(X)
+
+    deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
+
+    i = (np.arange(len(y)) + 0.5) / len(y)
+    d_star_i = np.percentile(deviance_residuals, q=i * 100)
+
+    plt.figure()
+    plt.scatter(d_i, d_star_i, s=5)
+
+    min_value = min(np.min(d_i), np.min(d_star_i))
+    max_value = max(np.max(d_i), np.max(d_star_i))
+    plt.plot([min_value, max_value], [min_value, max_value], color="k")
+
+    deviance_residuals = np.sort(deviance_residuals, axis=1)
+    low, high = np.percentile(deviance_residuals, q=[1, 99], axis=0)
+
+    plt.fill_between(d_star_i, low, high, alpha=0.33, color="black")

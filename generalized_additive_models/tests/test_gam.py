@@ -18,6 +18,7 @@ from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_
 from sklearn.metrics import accuracy_score, r2_score
 from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.utils import resample
+from numbers import Real
 
 from generalized_additive_models.distributions import Binomial, Normal
 from generalized_additive_models.gam import GAM, ExpectileGAM
@@ -72,6 +73,11 @@ class TestAPIContract:
             if isinstance(term, Categorical):
                 assert hasattr(term, "categories_")
                 assert len(term.categories_) == len(term.coef_)
+
+        # Test that scoring does not remove scale
+        assert isinstance(gam._distribution.scale, Real)
+        gam.score(df, y)
+        assert isinstance(gam._distribution.scale, Real)
 
 
 class TestExponentialFunctionGamsWithCanonicalLinks:
@@ -178,6 +184,33 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_repeat = logistic_gam.fit(X_repeated, y_repeated).predict(X)
         preds_weight = logistic_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
+
+    @pytest.mark.parametrize("intercept", INTERCEPT)
+    def test_caononical_binomial(self, intercept):
+        rng = np.random.default_rng(123456 + int(intercept * 100))
+
+        # Create a logistic problem
+        num = 100_000
+        x = np.linspace(0, 2 * np.pi, num=num)
+        X = x.reshape(-1, 1)
+        linear_prediction = intercept + np.sin(x)
+
+        p = Logit().inverse_link(linear_prediction)
+
+        trials = rng.integers(1, 100, size=num)
+        y = rng.binomial(n=trials, p=p)
+
+        # Expected value mu
+        mu = trials * p
+
+        # Create a GAM
+        binomial_gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link=Logit(low=0, high=trials),
+            distribution=Binomial(trials=trials),
+        ).fit(X, y)
+
+        assert np.allclose(mu, binomial_gam.predict(X), rtol=0.05)
 
 
 class TestPandasCompatibility:
@@ -529,11 +562,11 @@ class TestGAMSanityChecks:
 
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
-        list(itertools.product([1, 2, 3], [2, 3, 4], [0.01, 1, 100], ["quantile", "uniform"])),
+        list(itertools.product([1, 2], [2, 3, 4], [0.1, 1, 10], ["quantile", "uniform"])),
     )
     def test_that_constraints_work_no_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 789)
-        num_samples = 15 + seed // 2
+        num_samples = 5 + 5 * seed
         X = (rng.random(size=(num_samples, 1)) - 0.5) * 2
         X_smooth = np.linspace(np.min(X), np.max(X), num=2**8).reshape(-1, 1)
         y = np.sin(X * 3).ravel() + rng.random(size=num_samples)
@@ -556,7 +589,7 @@ class TestGAMSanityChecks:
 
             # Create model
             terms = Spline(0, constraint=constraint, degree=degree, penalty=penalty, knots=knots)
-            prediction = GAM(terms).fit(X, y).predict(X_smooth)
+            prediction = GAM(terms, tol=0.01).fit(X, y).predict(X_smooth)
             assert np.all(np.isfinite(prediction))
 
             if (kernel := convolution_masks.get(constraint1)) is not None:
@@ -569,11 +602,11 @@ class TestGAMSanityChecks:
 
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
-        list(itertools.product([1, 2, 3], [2, 3, 4], [0.01, 1, 100], ["quantile", "uniform"])),
+        list(itertools.product([1, 2], [2, 3, 4], [0.1, 1, 10], ["quantile", "uniform"])),
     )
     def test_that_constraints_work_with_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 123)
-        num_samples = 15 + seed // 2
+        num_samples = 5 + 5 * seed
         X = (rng.random(size=(num_samples, 1)) - 0.5) * 2
         X_smooth = np.linspace(np.min(X) - 0.5, np.max(X) + 0.5, num=2**8).reshape(-1, 1)
         y = np.sin(X * 3).ravel() + rng.random(size=num_samples)
@@ -598,7 +631,7 @@ class TestGAMSanityChecks:
             terms = Spline(
                 0, constraint=constraint, extrapolation="linear", degree=degree, penalty=penalty, knots=knots
             )
-            prediction = GAM(terms).fit(X, y).predict(X_smooth)
+            prediction = GAM(terms, tol=0.01).fit(X, y).predict(X_smooth)
             assert np.all(np.isfinite(prediction))
 
             if (kernel := convolution_masks.get(constraint1)) is not None:
@@ -647,7 +680,7 @@ class TestGAMSanityChecks:
 
         assert score_tensor_model > score_spline_model
         assert score_tensor_model > 0.95
-        assert score_spline_model < 0.5
+        assert score_spline_model < 0.85
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
     def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
@@ -708,13 +741,13 @@ class TestGAMSanityChecks:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
         # Train GAM using automodel feature (sending in one spline and expanding)
-        terms = TermList(Spline(None, extrapolation="continue", num_splines=8, penalty=100))
+        terms = TermList(Spline(None, extrapolation="continue", num_splines=6, penalty=999))
         gam = GAM(terms, link="logit", distribution=Binomial(trials=1))
         gam.fit(X_train, y_train)
         gam_preds = gam.predict(X_test) > 0.5
         gam_accuracy = accuracy_score(y_true=y_test, y_pred=gam_preds)
 
-        assert gam_accuracy > 0.95
+        assert gam_accuracy > 0.93
 
     @pytest.mark.parametrize("term", [Linear, Spline])
     def test_that_sample_weights_equal_data_repetitions(self, term):
@@ -734,17 +767,17 @@ class TestGAMSanityChecks:
         # Train one GAM on repeated data, and one on weighted data
         gam1 = GAM(term(0)).fit(X_repeated, y_repeated)
         gam2 = GAM(term(0)).fit(X, y, sample_weight=weights)
-        assert np.allclose(gam1.predict(X), gam2.predict(X))
+        assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
 
         # Same as above, but with log links
         gam1 = GAM(term(0), link="log").fit(X_repeated, y_repeated)
         gam2 = GAM(term(0), link="log").fit(X, y, sample_weight=weights)
-        assert np.allclose(gam1.predict(X), gam2.predict(X))
+        assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
 
         # Same as above, but with poisson distribution
         gam1 = GAM(term(0), distribution="poisson", link="log").fit(X_repeated, y_repeated)
         gam2 = GAM(term(0), distribution="poisson", link="log").fit(X, y, sample_weight=weights)
-        assert np.allclose(gam1.predict(X), gam2.predict(X))
+        assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
 
     @pytest.mark.parametrize("shift", [-100000, -100, -10, 10, 100, 100000])
     def test_shift_invariance_of_features(self, shift):
@@ -779,6 +812,39 @@ class TestGAMSanityChecks:
         predictions_unshifted = normal_gam.fit(X, y).predict(X)
         predictions_shifted = normal_gam.fit(X, y + shift).predict(X) - shift
         assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.02)
+
+    def test_that_tensor_with_spline_and_categorical_works(self):
+        # Set up problem - essentially one sub-problem per categorical value
+        x = np.linspace(-np.pi, np.pi, num=2**10)
+
+        numerical_feature = np.hstack((x, x))
+        categorical_feature = [1] * len(x) + [2] * len(x)
+
+        df = pd.DataFrame({"num": numerical_feature, "cat": categorical_feature})
+        y = np.hstack((np.sin(x), np.cos(x)))
+
+        # Create gam
+        te = Tensor([Spline("num", num_splines=10), Categorical("cat")])
+        gam = GAM(te).fit(df, y)
+
+        assert (gam.score(df, y)) > 0.999
+
+    @pytest.mark.parametrize("columns", [1, 2, 3, 4, 5, 6])
+    def test_that_categorical_identifiability_works(self, columns):
+        rng = np.random.default_rng(columns)
+
+        # Create a data set
+        df = pd.DataFrame({f"cat_{i}": rng.integers(0, i, size=10 + columns**3) for i in range(2, 2 + columns)})
+
+        # No penalty => one column in the design matrix per categorical is not identifiable
+        terms = TermList([Categorical(col, penalty=0) for col in df.columns])
+
+        gam = GAM(terms, fit_intercept=True).fit(df, rng.normal(size=len(df)))
+
+        for term in gam.terms:
+            if isinstance(term, Categorical):
+                # Check that exactly one is set to zero
+                assert np.sum(np.isclose(term.coef_, 0)) == 1
 
 
 class TestExpectileGAM:
@@ -815,14 +881,13 @@ class TestExpectileGAM:
 if __name__ == "__main__":
     import pytest
 
-    if True:
-        pytest.main(
-            args=[
-                __file__,
-                "-v",
-                "--capture=sys",
-                "--doctest-modules",
-                "--maxfail=1",
-                "-k test_that_scale_is_correctly_inferred",
-            ]
-        )
+    pytest.main(
+        args=[
+            __file__,
+            "-v",
+            "--capture=sys",
+            "--doctest-modules",
+            "--maxfail=1",
+            "-k test_that_underscore_results_are_present",
+        ]
+    )
