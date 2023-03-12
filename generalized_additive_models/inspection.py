@@ -27,7 +27,7 @@ def model_checking(gam):
     # Common computations
     X, y, sample_weight = gam.X_, gam.y_, gam.sample_weight_
     predictions = gam.predict(X)
-    residuals = predictions - y
+    residuals = y - predictions
 
     # Page 331 in Wood, 2nd ed
 
@@ -35,20 +35,33 @@ def model_checking(gam):
 
     # =========================================================================
     deviance = gam._distribution.deviance(y=y, mu=predictions, sample_weight=sample_weight, scaled=True)
-    deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
+    deviance_residuals = np.sign(residuals) * np.sqrt(deviance)
 
-    deviance_residuals = np.sort(deviance_residuals)
+    sorted_deviance_residuals = np.sort(deviance_residuals)
 
-    i = (np.arange(len(deviance_residuals)) + 0.5) / len(deviance_residuals)
+    i = (np.arange(len(residuals)) + 0.5) / len(residuals)
     q_i = sp.stats.norm(loc=0, scale=1).ppf(i)
 
-    ax1.scatter(q_i, deviance_residuals, s=2)
+    ax1.scatter(q_i, sorted_deviance_residuals, s=2)
 
-    min_value = min(np.min(q_i), np.min(deviance_residuals))
-    max_value = max(np.max(q_i), np.max(deviance_residuals))
+    min_value = min(np.min(q_i), sorted_deviance_residuals[0])
+    max_value = max(np.max(q_i), sorted_deviance_residuals[-1])
     ax1.plot([min_value, max_value], [min_value, max_value], color="k")
+    ax1.set_xlabel("Theoretical N(0, 1) quantiles")
+    ax1.set_ylabel("Observed deviance residuals")
 
-    print(deviance_residuals)
+    # =========================================================================
+    # ax2.set_title("Histogram of deviance residuals")
+    # ax2.hist(deviance_residuals, bins="auto", density=True)
+    # ax2.axvline(x=np.mean(deviance_residuals), color="k")
+    # ax2.set_yticklabels([])
+
+    ax2.set_title("Response vs. fitted values")
+    deviance = gam._distribution.deviance(y=y, mu=predictions, scaled=False)
+    deviance_residuals = np.sign(residuals) * np.sqrt(deviance)
+    ax2.scatter(predictions, deviance_residuals, s=2)
+    ax2.set_xlabel("Predicted values")
+    ax2.set_ylabel("Deviance residuals")
 
     # =========================================================================
     ax3.set_title("Histogram of residuals")
@@ -64,6 +77,9 @@ def model_checking(gam):
     min_value = min(np.min(y), np.min(predictions))
     max_value = max(np.max(y), np.max(predictions))
     ax4.plot([min_value, max_value], [min_value, max_value], color="k")
+
+    for ax in (ax1, ax2, ax3, ax4):
+        ax.grid(True, ls="--", zorder=0, alpha=0.33)
 
     fig.tight_layout()
 

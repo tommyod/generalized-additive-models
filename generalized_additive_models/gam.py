@@ -316,13 +316,13 @@ class GAM(BaseEstimator):
             file = sys.stdout
 
         p = functools.partial(print, file=file)
-        fmt = functools.partial(np.format_float_positional, precision=2, min_digits=2)
+        fmt = functools.partial(np.format_float_positional, precision=3, min_digits=3)
 
         # ======================= GAM PROPERTIES =======================
         rows = []
         rows.append(("Model", type(self).__name__))
         rows.append(("Link", self._link))
-        rows.append(("Distribution", self._distribution))
+        rows.append(("Distribution", type(self._distribution).__name__))
         rows.append(("Scale", fmt(self.results_.scale)))
         rows.append(("GCV", fmt(self.results_.generalized_cross_validation_score)))
         rows.append(("Explained deviance", fmt(self.results_.pseudo_r2)))
