@@ -79,6 +79,7 @@ Examples
    :maxdepth: 1
    
    examples/getting_started
+   examples/diagnostics_plots
    API documentation <API>
    references
    

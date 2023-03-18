@@ -846,6 +846,41 @@ class TestGAMSanityChecks:
                 # Check that exactly one is set to zero
                 assert np.sum(np.isclose(term.coef_, 0)) == 1
 
+    @pytest.mark.parametrize("standard_deviation", [0.1, 1, 5, 10])
+    def test_residuals(self, standard_deviation):
+        rng = np.random.default_rng(12)
+
+        # Create a normal problem
+        x = np.linspace(0, 2 * np.pi, num=1_000)
+        X = x.reshape(-1, 1)
+
+        mu = Identity().inverse_link(1 + np.sin(x))
+
+        y = rng.normal(loc=mu, scale=standard_deviation)
+
+        # Create a GAM
+        gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="identity",
+            distribution="normal",
+        ).fit(X, y)
+
+        # Test that the standard deviation is correct
+        residuals = gam.residuals(X, y, residuals="response", standardized=False)
+        assert np.isclose(np.std(residuals), standard_deviation, rtol=0.02)
+
+        # Check standardization
+        residuals = gam.residuals(X, y, residuals="response", standardized=True)
+        assert np.isclose(np.std(residuals), 1, rtol=0.01)
+
+        # For a normal model, all three residuals are equal
+        for standardized in [True, False]:
+            r1 = gam.residuals(X, y, residuals="response", standardized=standardized)
+            r2 = gam.residuals(X, y, residuals="pearson", standardized=standardized)
+            r3 = gam.residuals(X, y, residuals="deviance", standardized=standardized)
+            assert np.allclose(r1, r2)
+            assert np.allclose(r2, r3)
+
 
 class TestExpectileGAM:
     @pytest.mark.parametrize("expectile", np.linspace(0.05, 0.9, num=18))
@@ -888,6 +923,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_that_underscore_results_are_present",
+            "-k test_residuals",
         ]
     )

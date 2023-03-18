@@ -394,6 +394,38 @@ class GAM(BaseEstimator):
         )
         p(coef_table_str)
 
+    def residuals(self, X, y, *, residuals="deviance", standardized=True):
+        distribution = self._distribution
+
+        y_pred = self.predict(X)
+        y_true = np.array(y, dtype=float)
+
+        expected_residuals = {"response", "pearson", "deviance"}
+
+        if residuals == "response":
+            residuals = y_true - y_pred
+            if standardized:
+                residuals = residuals / np.sqrt(distribution.variance(y_pred))
+
+        # Se page 112 in Wood, 2nd edition
+        elif residuals == "pearson":
+            # Should have approximately zero mean and variance "scale"
+            residuals = (y_true - y_pred) / np.sqrt(distribution.V(y_pred))
+            # Should be N(0, 1)
+            if standardized:
+                residuals = residuals / np.sqrt(distribution.scale)
+
+        elif residuals == "deviance":
+            deviances = distribution.deviance(y=y_true, mu=y_pred, scaled=False)
+            residuals = np.sqrt(deviances) * np.sign(y_true - y_pred)
+            # Should be N(0, 1)
+            if standardized:
+                residuals = residuals / np.sqrt(distribution.scale)
+        else:
+            raise ValueError(f"Parameter `residuals` must be in: {expected_residuals}")
+
+        return residuals
+
 
 class ExpectileGAM(GAM):
     _parameter_constraints: dict = {

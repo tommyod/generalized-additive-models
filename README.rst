@@ -24,8 +24,17 @@
 generalized-additive-models
 ---------------------------
 
+Generalized Additive Models (GAMs) in Python.
+
 About
 -----
+
+- GAMs extend linear regression by allowing non-linear relationships between features and the target.
+- The model is still linear, in the se
+
+
+
+
 
 Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf>`_.
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
