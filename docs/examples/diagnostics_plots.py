@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_diabetes
 
-from generalized_additive_models import GAM, Categorical, Spline, Intercept
+from generalized_additive_models import GAM, Categorical, Spline
 
 # %% [markdown]
 # Load data.
