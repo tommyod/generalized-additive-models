@@ -114,6 +114,7 @@ class PIRLS(Optimizer):
         mu = self.link.inverse_link(X @ beta)
         deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
+
         return (deviance + penalty) / len(beta)
 
     def solve(self, fisher_weights=True):

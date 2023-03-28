@@ -813,6 +813,25 @@ class TestGAMSanityChecks:
         predictions_shifted = normal_gam.fit(X, y + shift).predict(X) - shift
         assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.02)
 
+    @pytest.mark.parametrize("scale", np.logspace(-10, 10, num=21))
+    def test_scale_invariance_of_target(self, scale):
+        rng = np.random.default_rng(1)
+
+        # Create a normal problem
+        size = 64
+        X = rng.uniform(size=(size, 1)) * 2 * np.pi
+        y = 1 + np.sin(X[:, 0]) + rng.normal(scale=0.1, size=size)
+
+        # Test shift invariance
+        gam_unscaled = GAM(Spline(0)).fit(X, y)
+        gam_scaled = GAM(Spline(0)).fit(X, y * scale)
+
+        # Assert equal coefs
+        assert np.allclose(gam_unscaled.coef_, gam_scaled.coef_ / scale)
+
+        # Asssert equal preds
+        assert np.allclose(gam_unscaled.predict(X), gam_scaled.predict(X) / scale)
+
     def test_that_tensor_with_spline_and_categorical_works(self):
         # Set up problem - essentially one sub-problem per categorical value
         x = np.linspace(-np.pi, np.pi, num=2**10)
@@ -923,6 +942,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_residuals",
+            "-k test_scale_invariance_of_target",
         ]
     )
