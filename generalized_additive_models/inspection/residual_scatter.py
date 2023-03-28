@@ -74,6 +74,10 @@ class ResidualScatterDisplay:
             if subsample <= 0 or subsample >= 1:
                 raise ValueError(f"When a floating-point, subsample={subsample} should" " be in the (0, 1) range.")
             subsample = int(n_samples * subsample)
+        elif subsample is None:
+            y_sampled = y
+            X_sampled = X
+            subsample = n_samples
 
         if subsample is not None and subsample < n_samples:
             indices = random_state.choice(np.arange(n_samples), size=subsample)
@@ -90,6 +94,6 @@ class ResidualScatterDisplay:
 
         return viz.plot(
             ax=ax,
-            scatter_kwargs=None,
-            line_kwargs=None,
+            scatter_kwargs=scatter_kwargs,
+            line_kwargs=line_kwargs,
         )
