@@ -39,11 +39,8 @@ df = df.assign(sex=lambda df: np.where(df.sex < 0, "Male", "Female"))
 df.sample(5)
 
 # %%
-x = np.linspace(0, 2 * np.pi, num=2**10)
-y = np.sin(x) + np.random.randn(len(x)) / 10
-X = x.reshape(-1, 1)
-
-gam = GAM(Spline(0)).fit(X, y)
+terms = Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex")
+gam = GAM(terms).fit(df, y)
 
 # %% [markdown]
 # ### Diagnostics with sklearn
@@ -54,11 +51,29 @@ from sklearn.metrics import PredictionErrorDisplay
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
 
 ax1.set_title("Actual vs. predicted")
-PredictionErrorDisplay.from_estimator(gam, X, y, ax=ax1, kind="actual_vs_predicted")
+PredictionErrorDisplay.from_estimator(gam, df, y, ax=ax1, kind="actual_vs_predicted")
 ax1.grid(True, ls="--", alpha=0.2)
 
 ax2.set_title("Residuals vs. predicted")
-PredictionErrorDisplay.from_estimator(gam, X, y, ax=ax2, kind="residual_vs_predicted")
+PredictionErrorDisplay.from_estimator(gam, df, y, ax=ax2, kind="residual_vs_predicted")
 ax2.grid(True, ls="--", alpha=0.2)
 
 fig.tight_layout()
+plt.show()
+
+# %% [markdown]
+# ### GAM diagnostics plots
+
+# %%
+from generalized_additive_models.inspection import QQDisplay
+
+
+fig, ax = plt.subplots(1, 1, figsize=(4, 3))
+
+display = QQDisplay.from_estimator(
+    gam, df, y, residuals="deviance", standardized=True, method="normal", ax=ax
+)
+
+ax.grid(True)
+fig.tight_layout()
+plt.show()
