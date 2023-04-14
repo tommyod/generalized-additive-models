@@ -1,8 +1,4 @@
-codecov
-mock
-future
 numpy
-tqdm
 pytest
 pytest-cov
 pytest-pylint
