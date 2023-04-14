@@ -1,7 +1,6 @@
 numpy
 pytest
 pytest-cov
-pytest-pylint
 setuptools
 scipy
 black
@@ -16,8 +15,8 @@ twine
 build
 
 # Documentation Requirements
-sphinxcontrib-napoleon      # Parses numpy-style docstrings
-nbsphinx                    # Converts notebooks to reStructuredText
-ipython                     # For syntax highlighting notebooks
-sphinx_rtd_theme            # The Read The Docs theme
-numpydoc                    # numpy-style docstrings
+sphinxcontrib-napoleon
+nbsphinx
+ipython
+sphinx_rtd_theme
+numpydoc
