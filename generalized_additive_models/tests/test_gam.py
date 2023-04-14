@@ -813,6 +813,25 @@ class TestGAMSanityChecks:
         predictions_shifted = normal_gam.fit(X, y + shift).predict(X) - shift
         assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.02)
 
+    @pytest.mark.parametrize("scale", np.logspace(-10, 10, num=21))
+    def test_scale_invariance_of_target(self, scale):
+        rng = np.random.default_rng(1)
+
+        # Create a normal problem
+        size = 64
+        X = rng.uniform(size=(size, 1)) * 2 * np.pi
+        y = 1 + np.sin(X[:, 0]) + rng.normal(scale=0.1, size=size)
+
+        # Test shift invariance
+        gam_unscaled = GAM(Spline(0)).fit(X, y)
+        gam_scaled = GAM(Spline(0)).fit(X, y * scale)
+
+        # Assert equal coefs
+        assert np.allclose(gam_unscaled.coef_, gam_scaled.coef_ / scale)
+
+        # Asssert equal preds
+        assert np.allclose(gam_unscaled.predict(X), gam_scaled.predict(X) / scale)
+
     def test_that_tensor_with_spline_and_categorical_works(self):
         # Set up problem - essentially one sub-problem per categorical value
         x = np.linspace(-np.pi, np.pi, num=2**10)
@@ -845,6 +864,41 @@ class TestGAMSanityChecks:
             if isinstance(term, Categorical):
                 # Check that exactly one is set to zero
                 assert np.sum(np.isclose(term.coef_, 0)) == 1
+
+    @pytest.mark.parametrize("standard_deviation", [0.1, 1, 5, 10])
+    def test_residuals(self, standard_deviation):
+        rng = np.random.default_rng(12)
+
+        # Create a normal problem
+        x = np.linspace(0, 2 * np.pi, num=1_000)
+        X = x.reshape(-1, 1)
+
+        mu = Identity().inverse_link(1 + np.sin(x))
+
+        y = rng.normal(loc=mu, scale=standard_deviation)
+
+        # Create a GAM
+        gam = GAM(
+            Spline(0, extrapolation="periodic"),
+            link="identity",
+            distribution="normal",
+        ).fit(X, y)
+
+        # Test that the standard deviation is correct
+        residuals = gam.residuals(X, y, residuals="response", standardized=False)
+        assert np.isclose(np.std(residuals), standard_deviation, rtol=0.02)
+
+        # Check standardization
+        residuals = gam.residuals(X, y, residuals="response", standardized=True)
+        assert np.isclose(np.std(residuals), 1, rtol=0.01)
+
+        # For a normal model, all three residuals are equal
+        for standardized in [True, False]:
+            r1 = gam.residuals(X, y, residuals="response", standardized=standardized)
+            r2 = gam.residuals(X, y, residuals="pearson", standardized=standardized)
+            r3 = gam.residuals(X, y, residuals="deviance", standardized=standardized)
+            assert np.allclose(r1, r2)
+            assert np.allclose(r2, r3)
 
 
 class TestExpectileGAM:
@@ -888,6 +942,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_that_underscore_results_are_present",
+            "-k test_scale_invariance_of_target",
         ]
     )

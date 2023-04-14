@@ -54,7 +54,7 @@ https://link.springer.com/article/10.1007/s11222-013-9448-7
 
 """
 
-__version__ = "0.0.0"
+__version__ = "0.1.0"
 __name__ = "generalized-additive-models"
 
 
