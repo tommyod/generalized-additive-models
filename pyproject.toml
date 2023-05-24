@@ -29,13 +29,25 @@ Repository = "https://github.com/tommyod/generalized-additive-models"
 
 [project.optional-dependencies]
 dev = ["pytest",
+        "pytest-cov",
         "black",
         "flake8",
         "jupyter",
-        "matplotlib"
+        "setuptools",
+        "jupytext",
+        "pylint",
+        "twine",
+        "build",
         ]
+        
+doc = ["sphinx",
+"sphinxcontrib-napoleon",
+"nbsphinx",
+"ipython",
+"sphinx_rtd_theme",
+"numpydoc",
+]
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
-
