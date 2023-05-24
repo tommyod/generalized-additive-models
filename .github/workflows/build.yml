@@ -35,7 +35,8 @@ jobs:
         run: |
           pip install pip --upgrade
           pip install black flake8 --upgrade
-          black generalized_additive_models docs --check -l 120
+          black generalized_additive_models --check -l 120
+          black docs --check
           flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 \
                  --exclude=tests,'*ipynb_checkpoints*'
           
