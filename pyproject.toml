@@ -28,10 +28,12 @@ classifiers = [
 Repository = "https://github.com/tommyod/generalized-additive-models"
 
 [project.optional-dependencies]
-dev = ["pytest",
-        "pytest-cov",
-        "black",
+lint = ["black",
         "flake8",
+        ]
+
+dev = [ "pytest",
+        "pytest-cov",
         "jupyter",
         "setuptools",
         "jupytext",
@@ -40,13 +42,13 @@ dev = ["pytest",
         "build",
         ]
         
-doc = ["sphinx",
-"sphinxcontrib-napoleon",
-"nbsphinx",
-"ipython",
-"sphinx_rtd_theme",
-"numpydoc",
-]
+doc = [ "sphinx",
+        "sphinxcontrib-napoleon",
+        "nbsphinx",
+        "ipython",
+        "sphinx_rtd_theme",
+        "numpydoc",
+        ]
 
 [build-system]
 requires = ["setuptools"]
