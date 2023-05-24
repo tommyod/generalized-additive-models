@@ -5,7 +5,7 @@
 .. |Actions| image:: https://github.com/tommyod/generalized-additive-models/workflows/Python%20CI/badge.svg?branch=main
 .. _Actions: https://github.com/tommyod/generalized-additive-models/actions/workflows/build.yml?query=branch%3Amain
 
-.. |PythonVersion| image:: https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue
+.. |PythonVersion| image:: https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11-blue
 .. _PythonVersion: https://pypi.org/project/generalized-additive-models
 
 .. |PyPi| image:: https://img.shields.io/pypi/v/generalized-additive-models
@@ -31,10 +31,6 @@ About
 
 - GAMs extend linear regression by allowing non-linear relationships between features and the target.
 - The model is still linear, in the se
-
-
-
-
 
 Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf>`_.
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
