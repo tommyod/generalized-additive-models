@@ -5,7 +5,7 @@
 .. |Actions| image:: https://github.com/tommyod/generalized-additive-models/workflows/Python%20CI/badge.svg?branch=main
 .. _Actions: https://github.com/tommyod/generalized-additive-models/actions/workflows/build.yml?query=branch%3Amain
 
-.. |PythonVersion| image:: https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue
+.. |PythonVersion| image:: https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11-blue
 .. _PythonVersion: https://pypi.org/project/generalized-additive-models
 
 .. |PyPi| image:: https://img.shields.io/pypi/v/generalized-additive-models
@@ -29,14 +29,18 @@ Generalized Additive Models (GAMs) in Python.
 About
 -----
 
+GAMs are uniquely placed on the interpretability vs. precitive power continuum.
+In many applications they perform almost as well as more complex models, but are extremely interpretable.
+
 - GAMs extend linear regression by allowing non-linear relationships between features and the target.
-- The model is still linear, in the se
+- The model is still additive, but link functions and multivariate splines facilitate a broad class of models.
+- While GAMs are likely outperformed by non-additive models (e.g. boosted trees), GAMs are extremely interpretable.
 
+Read more about GAMs:
 
+- `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf>`_
+- `Generalized Additive Models: An Introduction with R <https://www.amazon.com/Generalized-Additive-Models-Introduction-Statistical/dp/1498728332>`_
 
-
-
-Generalized Additive Models (GAM) are the `Predictive Modeling Silver Bullet <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf>`_.
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
 and interest focuses on inference about these smooth functions.
 

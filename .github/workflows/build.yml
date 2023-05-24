@@ -13,7 +13,7 @@ jobs:
       fail-fast: false # Allow one of the matrix builds to fail without failing others
       matrix:
         os: [ubuntu-latest] # , macos-latest, windows-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11']
         
         
     # The job
@@ -34,8 +34,9 @@ jobs:
       - name: Run linting
         run: |
           pip install pip --upgrade
-          pip install black flake8 --upgrade
-          black generalized_additive_models docs --check -l 120
+          pip install .[lint]
+          black generalized_additive_models --check -l 120
+          black docs --check
           flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 \
                  --exclude=tests,'*ipynb_checkpoints*'
           
@@ -43,13 +44,13 @@ jobs:
           
       - name: Run tests
         run: |
-          pip install -r requirements.txt --upgrade
-          pip install .
           pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple scikit-learn --upgrade
+          pip install .[dev]
           pytest generalized_additive_models --doctest-modules
           
       - name: Build documentation
         run: |
+          pip install .[doc]
           sudo apt install pandoc -y
           sphinx-build docs _built_docs/html -W
           
