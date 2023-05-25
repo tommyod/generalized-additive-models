@@ -25,6 +25,7 @@ classifiers = [
 
 [project.urls]
 Repository = "https://github.com/tommyod/generalized-additive-models"
+"Bug Reports" = "https://github.com/tommyod/generalized-additive-models/issues"
 
 [project.optional-dependencies]
 lint = ["black",
