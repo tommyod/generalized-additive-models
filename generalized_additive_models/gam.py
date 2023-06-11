@@ -380,11 +380,11 @@ class GAM(BaseEstimator):
 
     def summary(self, file=None):
         """Print a model summary.
-        
+
         Parameters
         ----------
         file : filehandle, optional
-            A file handle to write to. 
+            A file handle to write to.
             The default is None, which maps to sys.stdout.
 
         Returns

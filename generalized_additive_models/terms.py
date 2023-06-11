@@ -440,6 +440,52 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 class Spline(TransformerMixin, Term, BaseEstimator):
     """A Spline term.
 
+    Parameters
+    ----------
+    feature : int or str, optional
+        The column index of the feature, or the name of the feature if the
+        data set is a pandas DataFrame. The default is None.
+    penalty : float, optional
+        A penalty term that penalizes the second derivative of the spline.
+        If set high, the spline becomes linear (no second derivative).
+        If set low, the spline becomes very wiggly and tends to overfit.
+        The default is 1.
+    by : int or str, optional
+        An interaction effect with a numerical feature. The spline
+
+        >>> Spline("age", by="income")
+
+        models the multiplicative interaction :math:`\text{income} \times f(\text{age})`,
+        meaning that the target is modeled as a smooth function of age, times
+        a linear function of income. The default is None.
+    num_splines : int, optional
+        The number of spline basis functions. The default is 20.
+    constraint : TYPE, optional
+        A constraint for the spline. Must be one of
+        {'increasing-concave', 'convex', 'decreasing-concave', 'increasing',
+         'concave', 'decreasing', 'decreasing-convex', 'increasing-convex'}
+        or None. The constraints do not hold for all extrapolations.
+        The default is None.
+    edges : tuple, optional
+        A tuple with edges (low, high). For instance, to model a 24 hour
+        periodic phenomenon, we could use
+
+        >>> Spline("time", edges=(0, 24), extrapolation="periodic")
+
+        The default is None, meaning that edges are inferred from the data.
+    degree : int, optional
+        The spline degree. Degree 0 are box function, degree 1 are hat
+        functions (also called tent functions), degree 2 are quadratic and
+        degree 3 are cubic, and so forth.
+    knots : str, optional
+        Where to place the knots, must be in {'quantile', 'uniform'}.
+    extrapolation : str, optional
+        Must be one of {'continue', 'linear', 'error', 'constant', 'periodic'}.
+
+    Returns
+    -------
+    None.
+
     Examples
     --------
     >>> spline = Spline(feature=0, num_splines=8)
