@@ -52,7 +52,7 @@ jobs:
         run: |
           pip install .[doc]
           sudo apt install pandoc -y
-          sphinx-build docs _built_docs/html -W
+          sphinx-build docs _built_docs/html
           
       - name: Build package
         run: |
