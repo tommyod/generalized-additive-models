@@ -175,13 +175,15 @@ class GAM(BaseEstimator):
             be passed.
         y : np.ndarray or Series
             An array of target values.
-        sample_weight : TYPE, optional
-            DESCRIPTION. The default is None.
+        sample_weight : np.ndarray, optional
+            An array of sample weights. Sample weights [1, 3] is equal to
+            repeating the second data point three times.
+            The default is None.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        GAM
+            Returns the instance.
 
         Examples
         --------
@@ -245,11 +247,79 @@ class GAM(BaseEstimator):
 
         return self
 
-    def sample(self, mu, size=None):
+    def sample(self, mu, size=None, random_state=None):
+        """Sample from the posterior predictive distribution.
+
+        Parameters
+        ----------
+        mu : np.ndarray
+            The expected value of the distribution.
+        size : int, optional
+            Number of samples. The default is None, which means one sample.
+        random_state : int, optional
+            Random state used to sample from the scipy distribution with
+            reproducible results.
+
+        Returns
+        -------
+        np.ndarray
+            A numpy array of samples.
+
+        Examples
+        --------
+        >>> rng = np.random.default_rng(32)
+        >>> X = np.ones((9999, 1))
+        >>> y = rng.normal(size=9999) * 10
+        >>> gam = GAM(terms=Intercept(), fit_intercept=False).fit(X, y)
+        >>> gam._distribution.scale
+        99.389...
+        >>> gam.sample(mu=np.zeros(5), random_state=1).round(1)
+        array([ 16.2,  -6.1,  -5.3, -10.7,   8.6])
+        >>> gam.sample(mu=np.zeros(5), random_state=3, size=(3, 5)).round(1)
+        array([[ 17.8,   4.4,   1. , -18.6,  -2.8],
+               [ -3.5,  -0.8,  -6.3,  -0.4,  -4.8],
+               [-13.1,   8.8,   8.8,  17. ,   0.5]])
+
+        """
         check_is_fitted(self, attributes=["coef_"])
-        return self._distribution.to_scipy(mu).rvs(size=size)
+        distr = self._distribution.to_scipy(mu)
+        return distr.rvs(size=size, random_state=random_state)
 
     def predict(self, X):
+        """Predict the expected value with the model.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset to predict on. Must be a np.ndarray of dimension 2 with
+            shape (num_samples, num_features) or a pandas DataFrame. If the
+            `terms` in the GAM refer to integer features, a np.ndarray must be
+            passed. If the `terms` refer to string column names, a pandas
+            DataFrame must be passed.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        Examples
+        --------
+
+        Create a data set where probability of y being 1 increases with X:
+
+        >>> rng = np.random.default_rng(32)
+        >>> X = rng.normal(size=(99, 1))
+        >>> probs = (1 / (1 +  np.exp(-X))).ravel()
+        >>> y = rng.binomial(1, p=probs)
+
+        Fit a model and predict:
+
+        >>> gam = GAM(Linear(0), distribution="binomial", link="logit").fit(X, y)
+        >>> X_new = np.array([-3, -2, -1, 0, 1, 2, 3]).reshape(-1, 1)
+        >>> gam.predict(X_new).round(3)
+        array([0.011, 0.045, 0.168, 0.465, 0.789, 0.942, 0.986])
+
+        """
         check_is_fitted(self, attributes=["coef_"])
 
         model_matrix = self.terms.transform(X)
@@ -456,14 +526,6 @@ class ExpectileGAM(GAM):
     expectile : float, optional
         The expectile to fit to.
         The default is 0.5.
-    distribution : str or Distribution, optional
-        The assumed distribution of the target variable. Look at the dict
-        GAM.DISTRIBUTIONS for a list of available options.
-        The default is "normal".
-    link : str or Link, optional
-        The assumed link function of the target variable. Look at the dict
-        GAM.LINKS for a list of available options.
-        The default is "identity".
     fit_intercept : TYPE, optional
         Whether or not to automatically add an intercept term to the terms.
         If an intercept is already present, then this setting has no effect.
@@ -529,8 +591,6 @@ class ExpectileGAM(GAM):
         terms=None,
         *,
         expectile=0.5,
-        distribution="normal",
-        link="identity",
         fit_intercept=True,
         solver="pirls",
         max_iter=100,
