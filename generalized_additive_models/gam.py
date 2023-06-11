@@ -286,7 +286,7 @@ class GAM(BaseEstimator):
         return distr.rvs(size=size, random_state=random_state)
 
     def predict(self, X):
-        """Predict the expected value with the model.
+        """Predict the expected value :math:`\mu` with the model.
 
         Parameters
         ----------
@@ -299,8 +299,8 @@ class GAM(BaseEstimator):
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        np.ndarray
+            An array with predictions. Predictions are inverse_link(X @ coef).
 
         Examples
         --------
@@ -326,22 +326,28 @@ class GAM(BaseEstimator):
         return self._link.inverse_link(model_matrix @ self.coef_)
 
     def score(self, X, y, sample_weight=None):
-        """Proportion deviance explained (pseudo r^2).
+        """Proportion deviance explained (pseudo :math:`r^2`).
 
 
         Parameters
         ----------
-        X : TYPE
-            DESCRIPTION.
-        y : TYPE
-            DESCRIPTION.
-        sample_weight : TYPE, optional
-            DESCRIPTION. The default is None.
+        X : np.ndarray or pd.DataFrame
+            A dataset to predict on. Must be a np.ndarray of dimension 2 with
+            shape (num_samples, num_features) or a pandas DataFrame. If the
+            `terms` in the GAM refer to integer features, a np.ndarray must be
+            passed. If the `terms` refer to string column names, a pandas
+            DataFrame must be passed.
+        y : np.ndarray or Series
+            An array of target values.
+        sample_weight : np.ndarray, optional
+            An array of sample weights. Sample weights [1, 3] is equal to
+            repeating the second data point three times.
+            The default is None.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        float
+            The pseudo r^2 score.
 
         """
         check_is_fitted(self, attributes=["coef_"])
@@ -373,6 +379,19 @@ class GAM(BaseEstimator):
         return (null_deviance - fitted_deviance) / null_deviance
 
     def summary(self, file=None):
+        """Print a model summary.
+        
+        Parameters
+        ----------
+        file : filehandle, optional
+            A file handle to write to. 
+            The default is None, which maps to sys.stdout.
+
+        Returns
+        -------
+        None.
+
+        """
         check_is_fitted(self, attributes=["coef_"])
 
         if file is None:
