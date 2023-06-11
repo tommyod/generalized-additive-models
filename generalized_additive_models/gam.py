@@ -29,7 +29,44 @@ from generalized_additive_models.terms import Categorical, Intercept, Linear, Sp
 
 
 class GAM(BaseEstimator):
-    """Generalized Additive Model.
+    """Initialize a Generalized Additive Model (GAM).
+
+    Parameters
+    ----------
+    terms : Term, TermList or list, optional
+        The term(s) of the model. The argument can be a single term or a
+        collection of terms. The features that the terms refer to must be
+        present in the data set at fit and predict time.
+        The default is None.
+    distribution : str or Distribution, optional
+        The assumed distribution of the target variable. Look at the dict
+        GAM.DISTRIBUTIONS for a list of available options.
+        The default is "normal".
+    link : str or Link, optional
+        The assumed link function of the target variable. Look at the dict
+        GAM.LINKS for a list of available options.
+        The default is "identity".
+    fit_intercept : TYPE, optional
+        Whether or not to automatically add an intercept term to the terms.
+        If an intercept is already present, then this setting has no effect.
+        The default is True.
+    solver : str, optional
+        The solver to use, currently only "pirls" is available, which stands
+        for Penalized Iterated Reweighted Least Squares.
+        The default is "pirls".
+    max_iter : int, optional
+        Maximum number of iterations in the solver.
+        The default is 100.
+    tol : TYPE, optional
+        Tolerance in the solver.
+        The default is 0.0001.
+    verbose : int, optional
+        Verbosity level. The higher the number, the more info is printed.
+        The default is 0.
+
+    Returns
+    -------
+    None.
 
     Examples
     --------
@@ -46,6 +83,9 @@ class GAM(BaseEstimator):
 
     """
 
+    DISTRIBUTIONS = DISTRIBUTIONS
+    LINKS = LINKS
+
     _parameter_constraints: dict = {
         "terms": [Term, TermList],
         "distribution": [StrOptions(set(DISTRIBUTIONS.keys())), Distribution],
@@ -57,7 +97,6 @@ class GAM(BaseEstimator):
         ],
         "max_iter": [Interval(Integral, 1, None, closed="left")],
         "tol": [Interval(Real, 0.0, None, closed="neither")],
-        "warm_start": ["boolean"],
         "verbose": [Integral, "boolean"],
     }
 
@@ -71,53 +110,8 @@ class GAM(BaseEstimator):
         solver="pirls",
         max_iter=100,
         tol=0.0001,
-        warm_start=False,
         verbose=0,
     ):
-        """Initialize a GAM.
-
-
-        Parameters
-        ----------
-        terms : Term, TermList or list, optional
-            The term(s) of the model. The argument can be a single term or a
-            collection of terms. The features that the terms refer to must be
-            present in the data set at fit and predict time. The default is None.
-        distribution : str or Distribution, optional
-            DESCRIPTION. The default is "normal".
-        link : TYPE, optional
-            DESCRIPTION. The default is "identity".
-        fit_intercept : TYPE, optional
-            DESCRIPTION. The default is True.
-        solver : TYPE, optional
-            DESCRIPTION. The default is "pirls".
-        max_iter : TYPE, optional
-            DESCRIPTION. The default is 100.
-        tol : TYPE, optional
-            DESCRIPTION. The default is 0.0001.
-        warm_start : TYPE, optional
-            DESCRIPTION. The default is False.
-        verbose : TYPE, optional
-            DESCRIPTION. The default is 0.
-
-        Returns
-        -------
-        None.
-
-        Examples
-        --------
-        >>> from generalized_additive_models import GAM, Spline, Categorical
-        >>> from sklearn.datasets import load_diabetes
-        >>> data = load_diabetes(as_frame=True)
-        >>> df = data.data
-        >>> y = data.target
-        >>> gam = GAM(Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex"))
-        >>> gam = gam.fit(df, y)
-        >>> predictions = gam.predict(df)
-        >>> for term in gam.terms:
-        ...     print(term, term.coef_) # doctest: +SKIP
-
-        """
         self.terms = terms
         self.distribution = distribution
         self.link = link
@@ -125,7 +119,6 @@ class GAM(BaseEstimator):
         self.solver = solver
         self.max_iter = max_iter
         self.tol = tol
-        self.warm_start = warm_start
         self.verbose = verbose
 
     def _validate_params(self, X):
@@ -428,6 +421,94 @@ class GAM(BaseEstimator):
 
 
 class ExpectileGAM(GAM):
+    r"""Initialize an ExpectileGAM.
+    
+    A GAM with a Normal distribution and an Identity link minimizes a weighted
+    least squares objective
+    
+    .. math::
+        
+       \ell(\beta) = \sum_i w_i (f(x_i; \beta) - y_i)^2 + \operatorname{penalty}(\beta)
+       
+    The ExpectileGAM minimizes a least asymmetrically weighted squares objective.
+    The weights :math:`w_i` are chosen based on the residuals
+    :math:`\epsilon_i = f(x_i; \beta) - y_i` and a desired `expectile` :math:`\tau`. 
+    The weights are given by
+    
+    .. math::
+        
+        \epsilon_i = \begin{cases}
+          \tau  &\text{ if } \epsilon_i \leq 0 \\
+          1 - \tau &\text{ if } \epsilon_i > 0
+        \end{cases}
+        
+    For more information, see:
+        
+        - https://freakonometrics.hypotheses.org/files/2017/05/erasmus-1.pdf
+        
+    Parameters
+    ----------
+    terms : Term, TermList or list, optional
+        The term(s) of the model. The argument can be a single term or a
+        collection of terms. The features that the terms refer to must be
+        present in the data set at fit and predict time. 
+        The default is None.
+    expectile : float, optional
+        The expectile to fit to.
+        The default is 0.5.
+    distribution : str or Distribution, optional
+        The assumed distribution of the target variable. Look at the dict
+        GAM.DISTRIBUTIONS for a list of available options.
+        The default is "normal".
+    link : str or Link, optional
+        The assumed link function of the target variable. Look at the dict
+        GAM.LINKS for a list of available options.
+        The default is "identity".
+    fit_intercept : TYPE, optional
+        Whether or not to automatically add an intercept term to the terms.
+        If an intercept is already present, then this setting has no effect.
+        The default is True.
+    solver : str, optional
+        The solver to use, currently only "pirls" is available, which stands
+        for Penalized Iterated Reweighted Least Squares. 
+        The default is "pirls".
+    max_iter : int, optional
+        Maximum number of iterations in the solver. 
+        The default is 100.
+    tol : TYPE, optional
+        Tolerance in the solver. 
+        The default is 0.0001.
+    verbose : int, optional
+        Verbosity level. The higher the number, the more info is printed. 
+        The default is 0.
+
+    Returns
+    -------
+    None.
+
+    Examples
+    --------
+
+    .. plot::
+       :format: doctest
+       :include-source: True
+       
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+        >>> from generalized_additive_models import ExpectileGAM, Intercept
+        >>> rng = np.random.default_rng(42)
+        >>> X = rng.uniform(size=(1000, 1))
+        >>> y = rng.triangular(left=0, mode=0.5, right=1, size=(1000, 1))
+        >>> gam = ExpectileGAM(Intercept(), expectile=0.9).fit(X, y)
+        >>> plt.scatter(X, y) # doctest: +SKIP
+        >>> plt.plot(X, gam.predict(X), color="black", label="Expectile 0.9") # doctest: +SKIP
+        >>> gam = gam.fit_quantile(X, y, quantile=0.9)
+        >>> plt.plot(X, gam.predict(X), color="red", label="Quantile 0.9")  # doctest: +SKIP
+        >>> plt.legend()  # doctest: +SKIP
+        >>> plt.show()  # doctest: +SKIP
+    
+    """
+
     _parameter_constraints: dict = {
         "terms": [Term, TermList],
         "expectile": [Interval(Real, 0, 1, closed="neither")],
@@ -440,7 +521,6 @@ class ExpectileGAM(GAM):
         ],
         "max_iter": [Interval(Integral, 1, None, closed="left")],
         "tol": [Interval(Real, 0.0, None, closed="neither")],
-        "warm_start": ["boolean"],
         "verbose": [Integral, "boolean"],
     }
 
@@ -455,84 +535,8 @@ class ExpectileGAM(GAM):
         solver="pirls",
         max_iter=100,
         tol=0.0001,
-        warm_start=False,
         verbose=-1,
     ):
-        r"""Initialize an ExpectileGAM.
-        
-        A GAM with a Normal distribution and an Identity link minimizes a weighted
-        least squares objective
-        
-        .. math::
-            
-           \ell(\beta) = \sum_i w_i (f(x_i; \beta) - y_i)^2 + \operatorname{penalty}(\beta)
-           
-        The ExpectileGAM minimizes a least asymmetrically weighted squares objective.
-        The weights :math:`w_i` are chosen based on the residuals
-        :math:`\epsilon_i = f(x_i; \beta) - y_i` and a desired `expectile` :math:`\tau`. 
-        The weights are given by
-        
-        .. math::
-            
-            \epsilon_i = \begin{cases}
-              \tau  &\text{ if } \epsilon_i \leq 0 \\
-              1 - \tau &\text{ if } \epsilon_i > 0
-            \end{cases}
-            
-        For more information, see:
-            
-            - https://freakonometrics.hypotheses.org/files/2017/05/erasmus-1.pdf
-
-
-        Parameters
-        ----------
-        terms : Term, TermList or list, optional
-            The term(s) of the model. The argument can be a single term or a
-            collection of terms. The features that the terms refer to must be
-            present in the data set at fit and predict time. The default is None.
-        distribution : str or Distribution, optional
-            DESCRIPTION. The default is "normal".
-        link : TYPE, optional
-            DESCRIPTION. The default is "identity".
-        fit_intercept : TYPE, optional
-            DESCRIPTION. The default is True.
-        solver : TYPE, optional
-            DESCRIPTION. The default is "pirls".
-        max_iter : TYPE, optional
-            DESCRIPTION. The default is 100.
-        tol : TYPE, optional
-            DESCRIPTION. The default is 0.0001.
-        warm_start : TYPE, optional
-            DESCRIPTION. The default is False.
-        verbose : TYPE, optional
-            DESCRIPTION. The default is 0.
-
-        Returns
-        -------
-        None.
-
-        Examples
-        --------
-
-        .. plot::
-           :format: doctest
-           :include-source: True
-           
-            >>> import numpy as np
-            >>> import matplotlib.pyplot as plt
-            >>> from generalized_additive_models import ExpectileGAM, Intercept
-            >>> rng = np.random.default_rng(42)
-            >>> X = rng.uniform(size=(1000, 1))
-            >>> y = rng.triangular(left=0, mode=0.5, right=1, size=(1000, 1))
-            >>> gam = ExpectileGAM(Intercept(), expectile=0.9).fit(X, y)
-            >>> plt.scatter(X, y) # doctest: +SKIP
-            >>> plt.plot(X, gam.predict(X), color="black", label="Expectile 0.9") # doctest: +SKIP
-            >>> gam = gam.fit_quantile(X, y, quantile=0.9)
-            >>> plt.plot(X, gam.predict(X), color="red", label="Quantile 0.9")  # doctest: +SKIP
-            >>> plt.legend()  # doctest: +SKIP
-            >>> plt.show()  # doctest: +SKIP
-        
-        """
         self.expectile = expectile
         super().__init__(
             terms=terms,
@@ -542,7 +546,6 @@ class ExpectileGAM(GAM):
             solver=solver,
             max_iter=max_iter,
             tol=tol,
-            warm_start=warm_start,
             verbose=verbose,
         )
 
