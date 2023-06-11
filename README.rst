@@ -80,8 +80,8 @@ Example
     scores = cross_val_score(gam, df, y, scoring="r2")
     print(scores) # array([0.26, 0.4 , 0.41, 0.35, 0.42])
 
-Contributing
-------------
+Contributing and development
+----------------------------
 
 Contributions are very welcome.
 You can correct spelling mistakes, write documentation, clean up code, implement new features, etc.
@@ -92,6 +92,15 @@ Some guidelines:
 - If possible, use existing algorithms from `numpy`, `scipy` and `scikit-learn`.
 - Write tests, especically regression tests if a bug is fixed.
 - Take backward compatibility seriously. API changes require good reason.
+
+Installation for local development::
+
+    pip install -e '.[dev,lint,doc]'
+    
+Create documentation locally::
+
+    sphinx-build docs _built_docs/html -W -a -E --keep-going
+    sphinx-autobuild docs _built_docs/html -v -j "auto" --watch generalized_additive_models
 
 Citing
 ------
