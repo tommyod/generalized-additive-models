@@ -453,7 +453,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     by : int or str, optional
         An interaction effect with a numerical feature. The spline
 
-        >>> Spline("age", by="income")
+        > Spline("age", by="income")
 
         models the multiplicative interaction :math:`\text{income} \times f(\text{age})`,
         meaning that the target is modeled as a smooth function of age, times
@@ -470,7 +470,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         A tuple with edges (low, high). For instance, to model a 24 hour
         periodic phenomenon, we could use
 
-        >>> Spline("time", edges=(0, 24), extrapolation="periodic")
+        > Spline("time", edges=(0, 24), extrapolation="periodic")
 
         The default is None, meaning that edges are inferred from the data.
     degree : int, optional
