@@ -1,1 +1,1 @@
-include generalized-additive-models/datasets/*.csv
+include generalized_additive_models/datasets/*.csv
