@@ -53,3 +53,10 @@ doc = [ "sphinx",
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["generalized-additive-models/datasets"]
