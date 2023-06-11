@@ -58,5 +58,5 @@ build-backend = "setuptools.build_meta"
 # https://setuptools.pypa.io/en/latest/userguide/datafiles.html
 include-package-data = true
 
-[tool.setuptools.packages.find]
-where = ["generalized_additive_models/datasets"]
+# [tool.setuptools.packages.find]
+# where = ["generalized_additive_models/datasets"]
