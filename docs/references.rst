@@ -16,3 +16,10 @@ Papers
 
 - Kim Larsen (2015), GAM: The Predictive Modeling Silver Bullet [`Link <https://web.archive.org/web/20210812020305/https://multithreaded.stitchfix.com/assets/files/gam.pdf>`_]
    - Subpoint
+   
+   
+Other
+-----
+
+- Dani Servén Marín (2018), `pyGAM: balancing interpretability and predictive power <https://www.youtube.com/watch?v=XQ1vk7wEI7c>`_
+   - Subpoint
