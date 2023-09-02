@@ -46,7 +46,7 @@ class GAM(BaseEstimator):
         The assumed link function of the target variable. Look at the dict
         GAM.LINKS for a list of available options.
         The default is "identity".
-    fit_intercept : TYPE, optional
+    fit_intercept : bool, optional
         Whether or not to automatically add an intercept term to the terms.
         If an intercept is already present, then this setting has no effect.
         The default is True.
