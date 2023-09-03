@@ -1,6 +1,6 @@
 .. -*- mode: rst -*-
 
-|Actions|_ |PythonVersion|_ |PyPi|_ |Black|_
+|Actions|_ |PythonVersion|_ |PyPi|_ |Black|_ |ReadtheDocs|_
 
 .. |Actions| image:: https://github.com/tommyod/generalized-additive-models/workflows/Python%20CI/badge.svg?branch=main
 .. _Actions: https://github.com/tommyod/generalized-additive-models/actions/workflows/build.yml?query=branch%3Amain
@@ -16,6 +16,9 @@
 
 .. |Downloads| image:: https://pepy.tech/badge/generalized-additive-models
 .. _Downloads: https://pepy.tech/project/generalized-additive-models
+
+.. |ReadtheDocs| image:: https://readthedocs.org/projects/generalized-additive-models/badge/
+.. _ReadtheDocs: https://generalized-additive-models.readthedocs.io/en/latest/
 
 .. image:: https://github.com/tommyod/generalized-additive-models/blob/main/docs/_static/readme_figure.png
   :target: https://github.com/tommyod/generalized-additive-models/
