@@ -12,4 +12,4 @@ from generalized_additive_models.datasets import load_salaries
 def test_load_salaries():
     df = load_salaries()
     assert df.shape == (2232, 9)
-    assert dfs.isnull().sum().sum() == 0
+    assert df.isnull().sum().sum() == 0
