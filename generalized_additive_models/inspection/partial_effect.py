@@ -291,7 +291,7 @@ class PartialEffectDisplay:
 
         # The variance of y = X @ \beta is given by diag(X @ V @ X.T)
         # Page 293 in Wood, or see: https://math.stackexchange.com/a/2365257
-        # Since we only need the diagonal, we don't form the full matrix product
+        # Since we only need the diagonal, we don't form the full matrix productrid()
         # Also, see equation (375) in The Matrix Cookbook
         # https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf
 
