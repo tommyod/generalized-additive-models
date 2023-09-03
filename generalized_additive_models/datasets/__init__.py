@@ -4,7 +4,8 @@
 import os
 import pandas as pd
 
-file_path = os.path.realpath(__file__)
+
+DATASET_DIRECTORY, _ = os.path.split(os.path.realpath(__file__))
 
 
 def load_salaries():
@@ -16,4 +17,4 @@ def load_salaries():
     - https://www.kaggle.com/datasets/olemagnushiback/lonn-data
 
     """
-    return pd.load_csv(os.path.join(file_path, "salaries.csv"))
+    return pd.read_csv(os.path.join(DATASET_DIRECTORY, "salaries.csv"))
