@@ -44,7 +44,6 @@ jobs:
           
       - name: Run tests
         run: |
-          pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple scikit-learn --upgrade
           pip install .[dev]
           pytest generalized_additive_models --doctest-modules
           

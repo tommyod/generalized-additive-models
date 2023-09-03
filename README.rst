@@ -79,6 +79,9 @@ Example
     # Cross validate
     scores = cross_val_score(gam, df, y, scoring="r2")
     print(scores) # array([0.26, 0.4 , 0.41, 0.35, 0.42])
+    
+
+Go to `Read the Docs <https://generalized-additive-models.readthedocs.io/en/latest/>`_ to see full documentation.
 
 Contributing and development
 ----------------------------

@@ -1029,7 +1029,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     @property
     def num_coefficients(self):
         """Number of coefficients for the term."""
-        return np.product([spline.num_coefficients for spline in self.splines])
+        return np.prod([spline.num_coefficients for spline in self.splines])
 
     def _build_marginal_penalties(self, i):
         """

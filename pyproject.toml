@@ -2,11 +2,11 @@
 name = "generalized_additive_models"
 version = "0.1.0"
 dependencies = [
-    "numpy",
-    "scipy",
+    "numpy<=2.0.0",
+    "scipy<=2.0.0",
     "matplotlib",
     "pandas",
-    "scikit-learn",
+    "scikit-learn>=1.3.0",
     "tabulate"
 ]
 description = "Generalized additive models in Python."

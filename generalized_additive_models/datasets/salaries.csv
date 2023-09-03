@@ -1,0 +1,2233 @@
+age,years_formal_relevant_education,years_relevant_work_experience,sector,geographical_location,work_domain,num_colleagues,salary,happy_with_salary
+28.0,5.0,3.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,770000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Vestland,backend,50 - 100,600000.0,0
+28.0,5.0,6.0,konsulent,Oslo,fullstack,1.000 - 10.000,850000.0,1
+38.0,4.0,10.0,konsulent,Oslo,backend,100 - 500,900000.0,0
+28.0,5.0,6.0,konsulent,Oslo,backend,100 - 500,900000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,690000.0,0
+33.0,1.0,5.0,konsulent,Oslo,devops,50 - 100,770000.0,1
+38.0,6.0,10.0,"in-house, privat sektor",Møre og Romsdal,automatisering,10 - 50,860000.0,1
+33.0,4.0,10.0,konsulent,Oslo,testing,500 - 1.000,1000000.0,1
+28.0,2.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,620000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Vestland,frontend,over 10.000,800000.0,0
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,app,100 - 500,850000.0,1
+28.0,2.0,5.0,konsulent,Rogaland,testing,over 10.000,850000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,900000.0,1
+28.0,3.0,8.0,"in-house, privat sektor",Oslo,app,50 - 100,1000000.0,1
+43.0,4.0,22.0,konsulent,Rogaland,ledelse/administrativt,10 - 50,1400000.0,1
+33.0,5.0,8.0,konsulent,Oslo,frontend,100 - 500,1125000.0,1
+33.0,5.0,8.0,"in-house, privat sektor",Oslo,backend,100 - 500,1010000.0,0
+33.0,4.0,7.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,900000.0,0
+28.0,3.0,2.0,konsulent,Innlandet,fullstack,10 - 50,600000.0,1
+43.0,5.0,20.0,"in-house, privat sektor",Oslo,backend,10 - 50,1200000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Rogaland,backend,50 - 100,850000.0,0
+28.0,7.0,4.0,"in-house, privat sektor",Oslo,frontend,50 - 100,695000.0,0
+53.0,8.0,26.0,konsulent,Oslo,fullstack,10 - 50,1300000.0,1
+23.0,3.0,1.0,konsulent,Vestland,devops,500 - 1.000,490000.0,0
+33.0,3.0,9.0,konsulent,Oslo,app,10 - 50,900000.0,1
+33.0,2.0,11.0,"in-house, privat sektor",Rogaland,fullstack,under 10,925000.0,1
+33.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,over 10.000,888000.0,0
+38.0,5.0,11.0,"in-house, privat sektor",Viken,backend,100 - 500,801000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,755000.0,0
+28.0,5.0,3.0,"in-house, privat sektor",Troms og Finnmark,data science,500 - 1.000,730000.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,100 - 500,670000.0,0
+28.0,3.0,3.0,konsulent,Oslo,frontend,1.000 - 10.000,630000.0,0
+33.0,3.0,9.0,konsulent,Oslo,app,50 - 100,970000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,500000.0,0
+33.0,5.0,6.0,konsulent,Oslo,backend,100 - 500,980000.0,0
+33.0,3.0,8.0,konsulent,Oslo,app,10 - 50,1500000.0,1
+53.0,7.0,25.0,konsulent,Oslo,ledelse/administrativt,100 - 500,1050000.0,0
+33.0,5.0,5.0,"in-house, privat sektor",Viken,data science,10 - 50,750000.0,1
+33.0,3.0,8.0,konsulent,Oslo,frontend,50 - 100,1050000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,955000.0,1
+28.0,3.0,0.0,konsulent,Oslo,backend,100 - 500,550000.0,1
+28.0,3.0,12.0,konsulent,Vestfold og Telemark,sikkerhet,100 - 500,600000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,785000.0,1
+38.0,5.0,14.0,konsulent,Viken,ledelse/administrativt,100 - 500,1400000.0,1
+23.0,2.0,6.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,700000.0,0
+43.0,3.0,23.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,10 - 50,1000000.0,1
+28.0,1.0,2.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,680000.0,1
+53.0,4.0,30.0,"in-house, offentlig/kommunal sektor",Oslo,devops,1.000 - 10.000,1030000.0,1
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,UX / design,over 10.000,860000.0,0
+38.0,0.0,20.0,"in-house, privat sektor",Vestland,ingen av disse,10 - 50,611000.0,1
+48.0,4.0,22.0,konsulent,Oslo,arkitektur,10 - 50,1310000.0,1
+43.0,4.0,19.0,"in-house, privat sektor",Innlandet,backend,100 - 500,800000.0,0
+28.0,5.0,1.0,konsulent,Oslo,UX / design,over 10.000,570000.0,0
+38.0,3.0,12.0,konsulent,Møre og Romsdal,fullstack,100 - 500,790000.0,1
+33.0,4.0,12.0,"in-house, privat sektor",Oslo,UX / design,1.000 - 10.000,820000.0,1
+28.0,5.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,backend,100 - 500,600000.0,0
+28.0,2.0,1.0,"in-house, offentlig/kommunal sektor",Vestland,frontend,10 - 50,545000.0,0
+33.0,3.0,1.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,650000.0,1
+43.0,3.0,15.0,konsulent,Trøndelag,fullstack,10 - 50,1200000.0,0
+38.0,3.0,13.0,konsulent,Oslo,app,1.000 - 10.000,980000.0,0
+28.0,5.0,4.0,konsulent,Trøndelag,backend,100 - 500,780000.0,1
+33.0,6.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,UX / design,1.000 - 10.000,650000.0,0
+33.0,3.0,7.0,konsulent,Oslo,devops,500 - 1.000,1065000.0,0
+33.0,0.0,3.0,"in-house, privat sektor",Møre og Romsdal,fullstack,10 - 50,450000.0,0
+28.0,3.0,15.0,"in-house, privat sektor",Viken,frontend,1.000 - 10.000,550000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Viken,fullstack,500 - 1.000,560000.0,0
+28.0,3.0,1.0,konsulent,Vestland,fullstack,100 - 500,580000.0,0
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,data science,100 - 500,940000.0,1
+33.0,6.0,6.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,880000.0,1
+43.0,4.0,21.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,885000.0,1
+33.0,3.0,11.0,"in-house, privat sektor",Oslo,UX / design,100 - 500,750000.0,1
+28.0,3.0,1.0,konsulent,Oslo,app,1.000 - 10.000,590000.0,0
+43.0,3.0,20.0,"in-house, privat sektor",Oslo,fullstack,over 10.000,840000.0,1
+23.0,2.0,3.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,630000.0,0
+33.0,3.0,7.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,1200000.0,0
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,fullstack,under 10,600000.0,0
+33.0,1.0,2.0,"in-house, privat sektor",Oslo,testing,10 - 50,850000.0,1
+28.0,5.0,4.0,konsulent,Rogaland,UX / design,50 - 100,775000.0,1
+33.0,3.0,3.0,konsulent,Oslo,app,10 - 50,850000.0,1
+33.0,5.0,19.0,"in-house, privat sektor",Trøndelag,ingen av disse,100 - 500,580000.0,0
+33.0,3.0,10.0,konsulent,Vestland,fullstack,10 - 50,1005000.0,0
+48.0,6.0,20.0,"in-house, privat sektor",Oslo,programvare,50 - 100,1100000.0,0
+48.0,5.0,25.0,"in-house, privat sektor",Oslo,frontend,50 - 100,1250000.0,0
+33.0,5.0,12.0,"in-house, privat sektor",Vestland,arkitektur,1.000 - 10.000,1008500.0,1
+28.0,3.0,2.0,konsulent,Oslo,app,1.000 - 10.000,570000.0,0
+38.0,3.0,4.0,konsulent,Vestland,backend,50 - 100,980000.0,1
+38.0,3.0,1.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,520000.0,1
+43.0,3.0,10.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,under 10,750000.0,1
+38.0,5.0,15.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,1050000.0,1
+43.0,0.0,8.0,konsulent,Oslo,fullstack,10 - 50,920000.0,1
+33.0,5.0,6.0,konsulent,Oslo,backend,1.000 - 10.000,750000.0,0
+43.0,1.0,3.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,580000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,720000.0,0
+38.0,3.0,5.0,frilans / selvstendig næringsdrivende,Innlandet,UX / design,under 10,450000.0,0
+33.0,2.0,3.0,konsulent,Rogaland,devops,1.000 - 10.000,840000.0,1
+33.0,6.0,10.0,"in-house, privat sektor",Viken,frontend,50 - 100,1000000.0,1
+23.0,5.0,1.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,650000.0,1
+48.0,0.0,0.0,konsulent,Viken,backend,10 - 50,500000.0,1
+28.0,0.0,11.0,"in-house, privat sektor",Oslo,ingen av disse,1.000 - 10.000,800000.0,1
+28.0,3.0,1.0,konsulent,Oslo,sikkerhet,100 - 500,560000.0,0
+38.0,3.0,15.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,900000.0,1
+33.0,4.0,5.0,"in-house, privat sektor",Viken,backend,500 - 1.000,730000.0,1
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,800000.0,0
+28.0,2.0,2.0,konsulent,Rogaland,programvare,100 - 500,560000.0,1
+53.0,5.0,29.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,1200000.0,1
+38.0,3.0,14.0,"in-house, offentlig/kommunal sektor",Oslo,sikkerhet,1.000 - 10.000,770000.0,0
+43.0,6.0,15.0,konsulent,Viken,frontend,10 - 50,890000.0,0
+23.0,4.0,0.0,konsulent,Trøndelag,fullstack,100 - 500,570000.0,1
+28.0,0.0,5.0,"in-house, privat sektor",Vestland,frontend,50 - 100,730000.0,1
+23.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,app,500 - 1.000,630000.0,0
+43.0,3.0,20.0,konsulent,Vestfold og Telemark,fullstack,1.000 - 10.000,720000.0,0
+23.0,3.0,1.0,konsulent,Oslo,fullstack,1.000 - 10.000,555000.0,0
+23.0,4.0,1.0,"in-house, privat sektor",Oslo,devops,500 - 1.000,740000.0,0
+38.0,5.0,19.0,konsulent,Viken,backend,100 - 500,1300000.0,1
+33.0,0.0,13.0,"in-house, privat sektor",Oslo,fullstack,under 10,500000.0,0
+33.0,4.0,2.0,konsulent,Oslo,sikkerhet,1.000 - 10.000,670000.0,0
+28.0,3.0,4.0,konsulent,Oslo,fullstack,100 - 500,870000.0,0
+38.0,3.0,15.0,"in-house, privat sektor",Rogaland,ingen av disse,500 - 1.000,600000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,650000.0,0
+53.0,5.0,22.0,"in-house, offentlig/kommunal sektor",Viken,fullstack,100 - 500,1030000.0,1
+43.0,5.0,19.0,"in-house, privat sektor",Oslo,frontend,over 10.000,1600000.0,1
+28.0,5.0,6.0,"in-house, privat sektor",Vestfold og Telemark,ledelse/administrativt,500 - 1.000,820000.0,0
+33.0,3.0,8.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,870000.0,1
+48.0,1.0,31.0,frilans / selvstendig næringsdrivende,Oslo,programvare,under 10,1500000.0,1
+33.0,4.0,9.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,970000.0,0
+33.0,3.0,6.0,konsulent,Vestland,frontend,10 - 50,1000000.0,1
+48.0,4.0,21.0,konsulent,Oslo,ledelse/administrativt,1.000 - 10.000,1050000.0,1
+23.0,0.0,3.0,"in-house, privat sektor",Oslo,programvare,10 - 50,510000.0,0
+28.0,5.0,1.0,konsulent,Vestland,app,50 - 100,1080000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Møre og Romsdal,fullstack,50 - 100,500000.0,0
+48.0,4.0,22.0,konsulent,Rogaland,sikkerhet,50 - 100,800000.0,0
+53.0,3.0,33.0,"in-house, privat sektor",Oslo,programvare,500 - 1.000,1200000.0,1
+33.0,3.0,5.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,1600000.0,1
+33.0,3.0,9.0,"in-house, offentlig/kommunal sektor",Viken,devops,500 - 1.000,805000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Innlandet,fullstack,100 - 500,530000.0,0
+48.0,5.0,23.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,901000.0,0
+28.0,3.0,4.0,konsulent,Vestland,backend,10 - 50,1100000.0,1
+48.0,6.0,24.0,"in-house, privat sektor",Innlandet,fullstack,50 - 100,880000.0,0
+43.0,3.0,17.0,konsulent,Oslo,frontend,1.000 - 10.000,950000.0,1
+28.0,3.0,0.0,konsulent,Oslo,programvare,1.000 - 10.000,530000.0,0
+38.0,3.0,10.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,850000.0,1
+38.0,0.0,20.0,konsulent,Oslo,ingen av disse,1.000 - 10.000,600000.0,0
+43.0,0.0,25.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,100 - 500,1000000.0,1
+48.0,5.0,10.0,"in-house, privat sektor",Trøndelag,UX / design,under 10,480000.0,0
+38.0,5.0,12.0,konsulent,Oslo,ledelse/administrativt,1.000 - 10.000,1000000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,1100000.0,1
+33.0,4.0,7.0,konsulent,Vestland,backend,10 - 50,950000.0,1
+33.0,3.0,8.0,"in-house, privat sektor",Oslo,testing,under 10,1000000.0,1
+28.0,3.0,7.0,"in-house, privat sektor",Oslo,ingen av disse,under 10,850000.0,1
+28.0,5.0,0.0,konsulent,Agder,automatisering,1.000 - 10.000,595000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Nordland,frontend,10 - 50,760000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,devops,100 - 500,550000.0,0
+28.0,5.0,5.0,konsulent,Oslo,backend,under 10,1450000.0,1
+33.0,0.0,7.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,700000.0,0
+33.0,2.0,3.0,"in-house, privat sektor",Innlandet,backend,100 - 500,633000.0,0
+28.0,0.0,3.0,"in-house, privat sektor",Møre og Romsdal,backend,1.000 - 10.000,630000.0,1
+38.0,3.0,19.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1100000.0,1
+23.0,3.0,5.0,konsulent,Oslo,fullstack,10 - 50,530000.0,0
+58.0,5.0,25.0,"in-house, privat sektor",Oslo,automatisering,10 - 50,650000.0,0
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,devops,10 - 50,920000.0,1
+28.0,6.0,4.0,konsulent,Oslo,backend,100 - 500,780000.0,1
+23.0,5.0,2.0,konsulent,Oslo,fullstack,100 - 500,670000.0,1
+23.0,0.0,1.0,"in-house, privat sektor",Troms og Finnmark,fullstack,under 10,450000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Viken,fullstack,over 10.000,820000.0,0
+43.0,5.0,19.0,"in-house, privat sektor",Oslo,devops,100 - 500,1050000.0,1
+23.0,3.0,0.0,konsulent,Oslo,fullstack,100 - 500,600000.0,1
+33.0,0.0,10.0,konsulent,Rogaland,fullstack,100 - 500,1200000.0,1
+33.0,4.0,4.0,"in-house, privat sektor",Nordland,backend,100 - 500,700000.0,0
+38.0,3.0,19.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,930000.0,1
+17.5,1.0,0.0,"in-house, privat sektor",Trøndelag,programvare,10 - 50,360000.0,0
+38.0,3.0,14.0,konsulent,Oslo,frontend,10 - 50,1300000.0,1
+43.0,3.0,10.0,"in-house, privat sektor",Nordland,fullstack,1.000 - 10.000,600000.0,0
+28.0,3.0,5.0,konsulent,Oslo,backend,100 - 500,1150000.0,1
+23.0,3.0,5.0,"in-house, privat sektor",Viken,fullstack,10 - 50,700000.0,1
+28.0,6.0,4.0,konsulent,Oslo,frontend,1.000 - 10.000,700000.0,1
+33.0,5.0,5.0,konsulent,Oslo,fullstack,100 - 500,827000.0,0
+33.0,4.0,8.0,"in-house, privat sektor",Innlandet,testing,500 - 1.000,724500.0,1
+43.0,3.0,15.0,"in-house, privat sektor",Oslo,data science,100 - 500,920000.0,1
+38.0,0.0,4.0,"in-house, offentlig/kommunal sektor",Trøndelag,ingen av disse,100 - 500,520000.0,0
+33.0,3.0,11.0,konsulent,Oslo,backend,50 - 100,1050000.0,0
+28.0,1.0,5.0,"in-house, privat sektor",Oslo,backend,10 - 50,700000.0,0
+33.0,2.0,11.0,konsulent,Agder,fullstack,under 10,550000.0,0
+28.0,6.0,6.0,"in-house, privat sektor",Viken,sikkerhet,over 10.000,750000.0,1
+33.0,1.0,6.0,konsulent,Agder,frontend,50 - 100,650000.0,0
+43.0,3.0,23.0,"in-house, privat sektor",Oslo,ledelse/administrativt,1.000 - 10.000,2000000.0,1
+28.0,5.0,5.0,konsulent,Rogaland,programvare,1.000 - 10.000,800000.0,0
+43.0,3.0,19.0,"in-house, privat sektor",Vestland,backend,500 - 1.000,1056000.0,1
+38.0,5.0,15.0,frilans / selvstendig næringsdrivende,Vestland,fullstack,under 10,1600000.0,1
+28.0,5.0,2.0,konsulent,Vestland,backend,50 - 100,800000.0,1
+38.0,0.0,13.0,"in-house, privat sektor",Rogaland,fullstack,50 - 100,1040000.0,1
+43.0,3.0,15.0,konsulent,Oslo,frontend,10 - 50,1150000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,100 - 500,860000.0,1
+38.0,5.0,9.0,konsulent,Oslo,backend,100 - 500,1100000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Oslo,data science,10 - 50,650000.0,0
+33.0,3.0,9.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,724000.0,0
+33.0,2.0,3.0,"in-house, privat sektor",Trøndelag,backend,100 - 500,660000.0,1
+43.0,3.0,18.0,konsulent,Oslo,ledelse/administrativt,10 - 50,1000000.0,0
+28.0,3.0,3.0,"in-house, privat sektor",Vestland,fullstack,500 - 1.000,700000.0,0
+33.0,0.0,6.0,"in-house, privat sektor",Oslo,fullstack,under 10,667000.0,0
+28.0,5.0,5.0,"in-house, privat sektor",utlandet,fullstack,50 - 100,2100000.0,1
+23.0,5.0,2.0,konsulent,Oslo,backend,100 - 500,650000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,data science,1.000 - 10.000,820000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Nordland,fullstack,10 - 50,640000.0,1
+28.0,3.0,6.0,konsulent,Agder,frontend,50 - 100,1000000.0,1
+38.0,5.0,12.0,konsulent,Oslo,fullstack,500 - 1.000,1110000.0,1
+33.0,5.0,4.0,konsulent,Oslo,fullstack,1.000 - 10.000,760000.0,0
+38.0,2.0,19.0,konsulent,Vestland,devops,10 - 50,1100000.0,1
+33.0,5.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,data science,1.000 - 10.000,715000.0,0
+38.0,5.0,13.0,konsulent,Oslo,frontend,50 - 100,1044000.0,1
+23.0,3.0,0.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,530000.0,0
+33.0,5.0,5.0,konsulent,Trøndelag,fullstack,10 - 50,1021000.0,1
+33.0,5.0,8.0,konsulent,Oslo,sikkerhet,1.000 - 10.000,870000.0,0
+23.0,5.0,2.0,konsulent,Trøndelag,data science,1.000 - 10.000,655000.0,0
+38.0,4.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,testing,500 - 1.000,500000.0,0
+23.0,2.0,5.0,konsulent,Trøndelag,devops,1.000 - 10.000,900000.0,1
+28.0,3.0,5.0,"in-house, offentlig/kommunal sektor",Vestland,automatisering,100 - 500,700000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,backend,under 10,745000.0,1
+33.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Viken,ingen av disse,1.000 - 10.000,600000.0,0
+33.0,3.0,11.0,"in-house, privat sektor",Rogaland,fullstack,1.000 - 10.000,850000.0,1
+58.0,2.0,35.0,"in-house, privat sektor",Agder,ledelse/administrativt,10 - 50,930000.0,1
+38.0,3.0,11.0,"in-house, privat sektor",Oslo,backend,10 - 50,900000.0,0
+48.0,10.0,13.0,konsulent,Oslo,frontend,50 - 100,1200000.0,1
+28.0,3.0,1.0,konsulent,Oslo,backend,10 - 50,580000.0,0
+23.0,3.0,3.0,konsulent,Møre og Romsdal,fullstack,50 - 100,580000.0,1
+28.0,5.0,3.0,konsulent,Oslo,ledelse/administrativt,100 - 500,860000.0,0
+28.0,9.0,2.0,"in-house, privat sektor",Vestland,ingen av disse,over 10.000,900000.0,1
+38.0,5.0,15.0,"in-house, privat sektor",Trøndelag,backend,10 - 50,960000.0,0
+33.0,5.0,7.0,konsulent,Oslo,backend,50 - 100,900000.0,1
+38.0,5.0,11.0,konsulent,Vestland,backend,50 - 100,1250000.0,1
+38.0,2.0,10.0,"in-house, privat sektor",Agder,ledelse/administrativt,10 - 50,950000.0,0
+38.0,4.0,15.0,"in-house, privat sektor",Viken,fullstack,100 - 500,1220000.0,1
+33.0,4.0,0.0,"in-house, privat sektor",Viken,fullstack,under 10,350000.0,0
+23.0,3.0,3.0,"in-house, privat sektor",Troms og Finnmark,frontend,50 - 100,700000.0,1
+28.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Rogaland,ingen av disse,1.000 - 10.000,435000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Trøndelag,backend,1.000 - 10.000,1450000.0,1
+28.0,3.0,10.0,"in-house, privat sektor",Oslo,UX / design,10 - 50,650000.0,0
+23.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,620000.0,1
+63.0,6.0,37.0,"in-house, privat sektor",Nordland,arkitektur,10 - 50,950000.0,1
+53.0,7.0,28.0,konsulent,Oslo,ledelse/administrativt,10 - 50,1520000.0,1
+33.0,5.0,2.0,"in-house, privat sektor",Oslo,frontend,10 - 50,650000.0,1
+23.0,3.0,1.0,konsulent,Oslo,fullstack,100 - 500,700000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Viken,fullstack,50 - 100,570000.0,1
+28.0,4.0,6.0,"in-house, offentlig/kommunal sektor",Oslo,ingen av disse,10 - 50,520000.0,0
+33.0,4.0,11.0,"in-house, privat sektor",Innlandet,backend,100 - 500,915000.0,1
+43.0,3.0,23.0,konsulent,Rogaland,fullstack,100 - 500,1200000.0,1
+53.0,3.0,30.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,1200000.0,1
+28.0,3.0,1.0,konsulent,Oslo,fullstack,1.000 - 10.000,605000.0,1
+48.0,3.0,29.0,"in-house, offentlig/kommunal sektor",Nordland,ingen av disse,1.000 - 10.000,1200000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,750000.0,0
+38.0,4.0,16.0,"in-house, privat sektor",Viken,ledelse/administrativt,1.000 - 10.000,940000.0,0
+33.0,0.0,11.0,konsulent,Rogaland,fullstack,10 - 50,851000.0,0
+53.0,0.0,24.0,"in-house, privat sektor",Oslo,fullstack,under 10,1160000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,500000.0,0
+23.0,4.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,backend,100 - 500,735000.0,1
+43.0,0.0,24.0,konsulent,Oslo,arkitektur,10 - 50,800000.0,0
+43.0,9.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1250000.0,1
+23.0,5.0,1.0,konsulent,Oslo,fullstack,100 - 500,630000.0,0
+28.0,5.0,1.0,"in-house, privat sektor",Oslo,backend,100 - 500,780000.0,1
+48.0,5.0,26.0,"in-house, privat sektor",Viken,arkitektur,1.000 - 10.000,1270000.0,1
+23.0,3.0,1.0,konsulent,Trøndelag,automatisering,10 - 50,575000.0,1
+33.0,3.0,0.0,konsulent,Oslo,frontend,100 - 500,550000.0,0
+33.0,2.0,8.0,"in-house, privat sektor",Oslo,backend,100 - 500,840000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,500000.0,1
+38.0,1.0,10.0,"in-house, privat sektor",Oslo,frontend,10 - 50,880000.0,1
+43.0,3.0,2.0,"in-house, privat sektor",Oslo,frontend,10 - 50,500000.0,0
+23.0,3.0,1.0,konsulent,Oslo,fullstack,1.000 - 10.000,600000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Oslo,backend,over 10.000,720000.0,1
+28.0,5.0,2.0,konsulent,Vestland,backend,1.000 - 10.000,640000.0,0
+33.0,3.0,5.0,"in-house, offentlig/kommunal sektor",Agder,frontend,over 10.000,880000.0,1
+23.0,3.0,25.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,620000.0,0
+28.0,0.0,10.0,"in-house, privat sektor",Oslo,sikkerhet,500 - 1.000,1650000.0,1
+28.0,5.0,1.0,konsulent,Oslo,frontend,100 - 500,628000.0,0
+28.0,3.0,5.0,konsulent,Oslo,backend,100 - 500,900000.0,1
+38.0,10.0,8.0,"in-house, privat sektor",Troms og Finnmark,data science,50 - 100,900000.0,0
+23.0,0.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,500000.0,0
+33.0,3.0,7.0,"in-house, privat sektor",Oslo,fullstack,under 10,760000.0,1
+28.0,0.0,1.0,"in-house, privat sektor",Troms og Finnmark,fullstack,10 - 50,352000.0,0
+23.0,3.0,1.0,"in-house, privat sektor",Nordland,UX / design,10 - 50,470000.0,0
+28.0,4.0,3.0,"in-house, privat sektor",Oslo,automatisering,over 10.000,570000.0,0
+33.0,0.0,10.0,"in-house, privat sektor",Vestland,ledelse/administrativt,1.000 - 10.000,660000.0,0
+43.0,4.0,10.0,"in-house, privat sektor",Vestland,fullstack,50 - 100,800000.0,0
+43.0,5.0,26.0,"in-house, privat sektor",Vestland,embedded/IOT/maskinvare,under 10,860000.0,0
+33.0,2.0,6.0,"in-house, privat sektor",Oslo,frontend,10 - 50,830000.0,1
+28.0,4.0,5.0,konsulent,Oslo,backend,over 10.000,800000.0,0
+28.0,3.0,5.0,konsulent,Oslo,fullstack,50 - 100,680000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Møre og Romsdal,fullstack,over 10.000,610000.0,0
+33.0,0.0,4.0,"in-house, privat sektor",Trøndelag,automatisering,10 - 50,950000.0,1
+33.0,5.0,10.0,"in-house, privat sektor",Oslo,data science,over 10.000,1260000.0,1
+38.0,3.0,16.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,1010000.0,1
+38.0,3.0,12.0,"in-house, privat sektor",Møre og Romsdal,programvare,100 - 500,800000.0,0
+38.0,3.0,9.0,konsulent,Oslo,ledelse/administrativt,100 - 500,950000.0,0
+28.0,3.0,6.0,konsulent,Oslo,frontend,1.000 - 10.000,785000.0,0
+33.0,3.0,0.0,"in-house, privat sektor",Møre og Romsdal,embedded/IOT/maskinvare,over 10.000,570000.0,0
+33.0,5.0,5.0,"in-house, privat sektor",Oslo,backend,50 - 100,1020000.0,1
+48.0,2.0,35.0,"in-house, offentlig/kommunal sektor",Innlandet,sikkerhet,500 - 1.000,730000.0,0
+28.0,5.0,2.0,konsulent,Oslo,fullstack,100 - 500,735000.0,1
+28.0,0.0,2.0,"in-house, privat sektor",Vestland,frontend,under 10,400000.0,0
+33.0,5.0,10.0,konsulent,Oslo,arkitektur,under 10,2200000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Vestland,frontend,10 - 50,680000.0,1
+28.0,5.0,1.0,"in-house, privat sektor",Vestland,app,10 - 50,650000.0,1
+43.0,5.0,22.0,konsulent,Innlandet,backend,100 - 500,810000.0,1
+33.0,5.0,5.0,konsulent,Oslo,arkitektur,1.000 - 10.000,900000.0,0
+33.0,3.0,5.0,"in-house, privat sektor",Vestland,automatisering,100 - 500,720000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,970000.0,1
+38.0,5.0,20.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,800000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Vestland,backend,1.000 - 10.000,700000.0,0
+48.0,3.0,25.0,"in-house, privat sektor",Vestfold og Telemark,arkitektur,10 - 50,850000.0,1
+53.0,7.0,18.0,konsulent,Oslo,backend,1.000 - 10.000,1010000.0,0
+43.0,3.0,18.0,"in-house, privat sektor",Agder,ledelse/administrativt,500 - 1.000,1100000.0,1
+38.0,5.0,16.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,1552000.0,1
+28.0,5.0,5.0,konsulent,Oslo,fullstack,500 - 1.000,920000.0,1
+33.0,3.0,8.0,konsulent,Vestland,fullstack,500 - 1.000,1100000.0,1
+28.0,2.0,2.0,"in-house, privat sektor",Nordland,frontend,10 - 50,460000.0,0
+33.0,5.0,5.0,konsulent,Oslo,frontend,500 - 1.000,790000.0,0
+28.0,5.0,4.0,konsulent,Oslo,frontend,100 - 500,1200000.0,1
+23.0,5.0,2.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,720000.0,1
+28.0,5.0,5.0,konsulent,Oslo,backend,100 - 500,920000.0,0
+43.0,4.0,15.0,"in-house, offentlig/kommunal sektor",Vestland,databaser,100 - 500,750000.0,0
+23.0,5.0,0.0,konsulent,Oslo,frontend,1.000 - 10.000,600000.0,1
+33.0,0.0,6.0,konsulent,Rogaland,ledelse/administrativt,1.000 - 10.000,1000000.0,1
+38.0,5.0,16.0,"in-house, privat sektor",Oslo,sikkerhet,500 - 1.000,1100000.0,1
+48.0,2.0,10.0,"in-house, privat sektor",utlandet,devops,50 - 100,1220000.0,1
+38.0,4.0,22.0,"in-house, privat sektor",Oslo,ledelse/administrativt,under 10,650000.0,0
+23.0,0.0,4.0,konsulent,Viken,app,under 10,360000.0,0
+28.0,3.0,5.0,konsulent,Rogaland,fullstack,100 - 500,920000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,730000.0,0
+23.0,3.0,5.0,konsulent,Oslo,frontend,1.000 - 10.000,820000.0,1
+38.0,5.0,16.0,"in-house, privat sektor",Oslo,ledelse/administrativt,500 - 1.000,1258000.0,1
+43.0,3.0,6.0,"in-house, privat sektor",Møre og Romsdal,backend,500 - 1.000,680000.0,0
+28.0,3.0,3.0,konsulent,Viken,fullstack,1.000 - 10.000,820000.0,0
+28.0,5.0,4.0,konsulent,Agder,databaser,100 - 500,660000.0,0
+33.0,3.0,3.0,"in-house, privat sektor",Oslo,frontend,100 - 500,650000.0,0
+38.0,5.0,11.0,"in-house, privat sektor",Vestfold og Telemark,backend,50 - 100,750000.0,0
+33.0,2.0,8.0,"in-house, offentlig/kommunal sektor",Vestland,backend,under 10,860000.0,0
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,630000.0,0
+23.0,5.0,1.0,konsulent,Trøndelag,fullstack,10 - 50,615000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Møre og Romsdal,fullstack,50 - 100,530000.0,1
+28.0,3.0,1.0,konsulent,Oslo,frontend,1.000 - 10.000,565000.0,0
+38.0,3.0,2.0,konsulent,Vestland,devops,1.000 - 10.000,635000.0,0
+43.0,5.0,16.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,652000.0,0
+28.0,5.0,1.0,konsulent,Oslo,fullstack,500 - 1.000,670000.0,1
+43.0,3.0,18.0,konsulent,Vestland,fullstack,10 - 50,1255000.0,1
+33.0,0.0,17.0,"in-house, privat sektor",Viken,frontend,10 - 50,750000.0,0
+28.0,3.0,5.0,konsulent,Oslo,UX / design,100 - 500,825000.0,1
+43.0,6.0,18.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,1000000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1200000.0,1
+48.0,3.0,25.0,"in-house, privat sektor",Rogaland,fullstack,1.000 - 10.000,1100000.0,1
+53.0,0.0,25.0,konsulent,Oslo,frontend,100 - 500,1200000.0,1
+33.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,data science,100 - 500,613100.0,0
+28.0,3.0,5.0,"in-house, privat sektor",Agder,fullstack,10 - 50,730000.0,0
+28.0,3.0,5.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,2000000.0,1
+43.0,5.0,15.0,"in-house, privat sektor",Viken,programvare,10 - 50,765000.0,0
+63.0,4.0,45.0,"in-house, privat sektor",Vestland,backend,500 - 1.000,950000.0,1
+48.0,5.0,25.0,"in-house, privat sektor",Agder,backend,50 - 100,950000.0,1
+53.0,3.0,30.0,konsulent,Oslo,backend,under 10,1400000.0,1
+38.0,5.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,640000.0,1
+28.0,3.0,10.0,"in-house, privat sektor",Oslo,automatisering,10 - 50,700000.0,0
+33.0,4.0,2.0,konsulent,Oslo,frontend,over 10.000,670000.0,1
+28.0,5.0,5.0,konsulent,Oslo,data science,over 10.000,870000.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,over 10.000,597000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,over 10.000,650000.0,1
+38.0,5.0,15.0,konsulent,Oslo,backend,10 - 50,1300000.0,1
+28.0,6.0,10.0,"in-house, privat sektor",Agder,frontend,100 - 500,574000.0,0
+23.0,3.0,0.0,konsulent,Oslo,backend,1.000 - 10.000,520000.0,0
+43.0,3.0,23.0,"in-house, offentlig/kommunal sektor",Oslo,devops,100 - 500,833500.0,0
+48.0,2.0,3.0,"in-house, privat sektor",Møre og Romsdal,automatisering,1.000 - 10.000,1000000.0,0
+28.0,5.0,4.0,konsulent,Oslo,fullstack,over 10.000,752000.0,0
+23.0,5.0,3.0,konsulent,Oslo,devops,1.000 - 10.000,520000.0,0
+28.0,3.0,0.0,"in-house, privat sektor",Oslo,backend,50 - 100,570000.0,1
+28.0,3.0,8.0,"in-house, privat sektor",Vestland,frontend,100 - 500,860000.0,1
+48.0,4.0,8.0,"in-house, privat sektor",Oslo,backend,100 - 500,850000.0,0
+33.0,5.0,8.0,"in-house, privat sektor",Oslo,arkitektur,500 - 1.000,950000.0,1
+53.0,5.0,25.0,"in-house, privat sektor",Rogaland,backend,10 - 50,1100000.0,1
+23.0,3.0,0.0,konsulent,Oslo,frontend,500 - 1.000,575000.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,500 - 1.000,700000.0,1
+33.0,4.0,10.0,"in-house, privat sektor",Oslo,frontend,100 - 500,980000.0,0
+28.0,3.0,5.0,konsulent,Møre og Romsdal,fullstack,1.000 - 10.000,670000.0,0
+58.0,4.0,35.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1200000.0,1
+28.0,2.0,0.0,konsulent,Agder,frontend,10 - 50,585000.0,1
+33.0,5.0,7.0,konsulent,Viken,embedded/IOT/maskinvare,100 - 500,850000.0,1
+33.0,3.0,3.0,konsulent,Agder,backend,over 10.000,620000.0,0
+48.0,4.0,21.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,856250.0,1
+38.0,3.0,13.0,konsulent,utlandet,ingen av disse,50 - 100,1663076.0,1
+28.0,5.0,0.0,konsulent,Agder,fullstack,over 10.000,550000.0,1
+28.0,7.0,7.0,"in-house, privat sektor",Møre og Romsdal,programvare,10 - 50,550000.0,0
+28.0,1.0,2.0,konsulent,Oslo,sikkerhet,1.000 - 10.000,569000.0,0
+43.0,4.0,25.0,"in-house, privat sektor",Vestfold og Telemark,ledelse/administrativt,100 - 500,1500000.0,0
+43.0,3.0,20.0,"in-house, privat sektor",Vestland,automatisering,1.000 - 10.000,1000000.0,0
+43.0,5.0,17.0,"in-house, privat sektor",Innlandet,backend,100 - 500,960000.0,1
+38.0,5.0,9.0,"in-house, privat sektor",Trøndelag,fullstack,under 10,450000.0,0
+28.0,5.0,3.0,"in-house, privat sektor",Trøndelag,data science,100 - 500,648000.0,0
+28.0,3.0,2.0,konsulent,Vestland,devops,over 10.000,620000.0,0
+33.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Rogaland,devops,100 - 500,930000.0,1
+38.0,5.0,10.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,1036000.0,0
+28.0,5.0,2.0,konsulent,Oslo,backend,10 - 50,1200000.0,1
+33.0,3.0,7.0,konsulent,Oslo,fullstack,500 - 1.000,950000.0,1
+33.0,3.0,4.0,konsulent,Agder,fullstack,10 - 50,845000.0,1
+33.0,5.0,5.0,konsulent,Oslo,backend,100 - 500,1100000.0,1
+48.0,3.0,15.0,konsulent,Oslo,sikkerhet,50 - 100,1500000.0,1
+38.0,3.0,22.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,1175000.0,1
+28.0,6.0,6.0,konsulent,Rogaland,backend,10 - 50,700000.0,1
+28.0,3.0,2.0,konsulent,Oslo,fullstack,100 - 500,600000.0,0
+23.0,2.0,1.0,konsulent,Rogaland,backend,1.000 - 10.000,650000.0,1
+28.0,4.0,4.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,462000.0,0
+48.0,4.0,27.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,50 - 100,870000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Oslo,frontend,100 - 500,625000.0,1
+38.0,3.0,5.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,930000.0,0
+23.0,3.0,1.0,"in-house, privat sektor",Oslo,sikkerhet,1.000 - 10.000,540000.0,1
+23.0,5.0,0.0,konsulent,Rogaland,ingen av disse,500 - 1.000,600000.0,1
+38.0,5.0,11.0,"in-house, privat sektor",Trøndelag,backend,100 - 500,850000.0,1
+28.0,4.0,7.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,50 - 100,710000.0,1
+43.0,5.0,20.0,"in-house, privat sektor",Oslo,fullstack,under 10,986000.0,0
+23.0,5.0,0.0,konsulent,Oslo,data science,10 - 50,650000.0,1
+28.0,0.0,6.0,konsulent,Trøndelag,ingen av disse,500 - 1.000,650000.0,0
+33.0,4.0,6.0,konsulent,Oslo,devops,1.000 - 10.000,830000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Viken,backend,50 - 100,780000.0,1
+48.0,3.0,25.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,100 - 500,800000.0,0
+43.0,3.0,22.0,konsulent,Oslo,backend,10 - 50,1350000.0,0
+28.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,725000.0,1
+33.0,0.0,0.0,"in-house, offentlig/kommunal sektor",Nordland,frontend,100 - 500,570000.0,0
+43.0,1.0,18.0,"in-house, privat sektor",Møre og Romsdal,fullstack,under 10,850000.0,1
+48.0,4.0,27.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,700000.0,1
+28.0,5.0,2.0,konsulent,Oslo,arkitektur,1.000 - 10.000,698000.0,0
+23.0,4.0,0.0,"in-house, privat sektor",Trøndelag,frontend,10 - 50,500000.0,1
+23.0,0.0,2.0,"in-house, privat sektor",Viken,devops,under 10,450000.0,0
+23.0,3.0,3.0,"in-house, privat sektor",Rogaland,backend,100 - 500,705000.0,0
+38.0,3.0,3.0,konsulent,Oslo,backend,100 - 500,750000.0,1
+48.0,5.0,22.0,"in-house, privat sektor",Trøndelag,devops,100 - 500,1074500.0,1
+38.0,0.0,0.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,sikkerhet,10 - 50,400000.0,0
+33.0,5.0,5.0,konsulent,Oslo,frontend,10 - 50,940000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,frontend,100 - 500,840000.0,1
+38.0,0.0,2.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,900000.0,1
+48.0,0.0,20.0,konsulent,Vestland,backend,100 - 500,500000.0,1
+28.0,3.0,8.0,konsulent,Oslo,backend,10 - 50,1100000.0,1
+33.0,3.0,9.0,konsulent,Oslo,fullstack,under 10,855000.0,1
+33.0,3.0,8.0,konsulent,Vestland,app,50 - 100,1100000.0,1
+38.0,5.0,6.0,konsulent,Oslo,ingen av disse,over 10.000,650000.0,1
+33.0,5.0,6.0,konsulent,Rogaland,fullstack,500 - 1.000,1100000.0,1
+43.0,5.0,20.0,"in-house, privat sektor",Oslo,backend,50 - 100,1060000.0,0
+53.0,5.0,21.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,950000.0,1
+38.0,0.0,0.0,"in-house, privat sektor",Trøndelag,programvare,50 - 100,400000.0,0
+43.0,4.0,16.0,konsulent,Møre og Romsdal,backend,10 - 50,1300000.0,1
+53.0,5.0,22.0,"in-house, privat sektor",Oslo,backend,10 - 50,900000.0,1
+28.0,3.0,3.0,konsulent,Viken,backend,1.000 - 10.000,680000.0,1
+28.0,2.0,2.0,"in-house, privat sektor",Viken,frontend,10 - 50,691000.0,1
+33.0,5.0,8.0,"in-house, privat sektor",Oslo,arkitektur,10 - 50,1100000.0,0
+38.0,0.0,13.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,880000.0,1
+33.0,3.0,3.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,777000.0,0
+33.0,2.0,1.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,under 10,500000.0,0
+53.0,5.0,30.0,"in-house, privat sektor",Rogaland,arkitektur,50 - 100,1050000.0,0
+48.0,0.0,23.0,konsulent,Oslo,arkitektur,10 - 50,1150000.0,0
+28.0,5.0,1.0,konsulent,Oslo,sikkerhet,1.000 - 10.000,560000.0,1
+33.0,5.0,9.0,konsulent,Agder,fullstack,1.000 - 10.000,825000.0,0
+28.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,backend,500 - 1.000,780000.0,1
+38.0,0.0,17.0,konsulent,Oslo,ingen av disse,10 - 50,760000.0,1
+28.0,0.0,2.0,"in-house, privat sektor",Oslo,frontend,100 - 500,600000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,550000.0,0
+38.0,5.0,7.0,konsulent,Oslo,fullstack,500 - 1.000,2200000.0,1
+43.0,3.0,15.0,"in-house, privat sektor",Vestland,fullstack,under 10,830000.0,0
+38.0,3.0,8.0,"in-house, privat sektor",Troms og Finnmark,devops,100 - 500,726000.0,0
+38.0,3.0,10.0,konsulent,Oslo,backend,100 - 500,1300000.0,1
+33.0,3.0,10.0,konsulent,Oslo,testing,10 - 50,1250000.0,0
+33.0,3.0,4.0,"in-house, privat sektor",Vestland,fullstack,500 - 1.000,665000.0,0
+23.0,5.0,1.0,konsulent,Agder,data science,50 - 100,600000.0,1
+53.0,0.0,30.0,"in-house, privat sektor",Oslo,devops,over 10.000,1050000.0,1
+33.0,0.0,4.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,550000.0,0
+33.0,3.0,3.0,"in-house, privat sektor",Oslo,programvare,500 - 1.000,600000.0,0
+53.0,4.0,25.0,"in-house, privat sektor",Oslo,programvare,over 10.000,1700000.0,0
+38.0,5.0,15.0,"in-house, privat sektor",Vestland,arkitektur,1.000 - 10.000,850000.0,1
+28.0,2.0,10.0,konsulent,Rogaland,automatisering,1.000 - 10.000,485000.0,0
+28.0,3.0,5.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,750000.0,1
+38.0,5.0,15.0,konsulent,Vestland,fullstack,under 10,750000.0,1
+33.0,5.0,9.0,konsulent,Oslo,backend,100 - 500,835000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,backend,over 10.000,950000.0,1
+33.0,2.0,11.0,"in-house, privat sektor",Vestland,backend,over 10.000,880000.0,0
+28.0,3.0,4.0,konsulent,Oslo,backend,100 - 500,811000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Agder,backend,10 - 50,780000.0,1
+48.0,2.0,25.0,"in-house, privat sektor",Vestland,backend,100 - 500,775000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Agder,automatisering,50 - 100,758000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,810000.0,1
+48.0,6.0,15.0,konsulent,Oslo,backend,1.000 - 10.000,975000.0,0
+33.0,3.0,0.0,"in-house, privat sektor",Trøndelag,fullstack,1.000 - 10.000,600000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,over 10.000,700000.0,1
+38.0,2.0,8.0,konsulent,Vestland,fullstack,10 - 50,750000.0,1
+38.0,5.0,14.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,780000.0,0
+38.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,backend,over 10.000,680000.0,1
+33.0,5.0,5.0,konsulent,Oslo,backend,100 - 500,915000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,1.000 - 10.000,667000.0,1
+38.0,3.0,12.0,"in-house, privat sektor",Møre og Romsdal,fullstack,10 - 50,650000.0,0
+28.0,5.0,1.0,konsulent,Oslo,backend,10 - 50,700000.0,0
+38.0,5.0,14.0,"in-house, privat sektor",Viken,ledelse/administrativt,over 10.000,850000.0,0
+28.0,5.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,over 10.000,711300.0,1
+33.0,3.0,4.0,konsulent,Oslo,devops,1.000 - 10.000,900000.0,0
+38.0,3.0,4.0,konsulent,Vestland,testing,100 - 500,760000.0,1
+28.0,3.0,4.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,1700000.0,1
+28.0,3.0,8.0,"in-house, privat sektor",Oslo,ledelse/administrativt,50 - 100,725000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Oslo,frontend,under 10,750000.0,1
+58.0,3.0,33.0,"in-house, privat sektor",Trøndelag,fullstack,over 10.000,970000.0,1
+23.0,5.0,2.0,konsulent,Oslo,backend,100 - 500,684000.0,1
+28.0,5.0,3.0,konsulent,Agder,fullstack,10 - 50,630000.0,1
+38.0,0.0,7.0,konsulent,Vestfold og Telemark,fullstack,100 - 500,1100000.0,1
+48.0,3.0,23.0,"in-house, offentlig/kommunal sektor",Innlandet,fullstack,1.000 - 10.000,837332.0,0
+38.0,3.0,4.0,konsulent,Oslo,testing,over 10.000,750000.0,1
+23.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,701000.0,0
+28.0,3.0,3.0,konsulent,Trøndelag,sikkerhet,1.000 - 10.000,605000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,770000.0,1
+33.0,7.0,5.0,"in-house, offentlig/kommunal sektor",Nordland,data science,50 - 100,750000.0,1
+28.0,6.0,4.0,frilans / selvstendig næringsdrivende,Nordland,backend,under 10,440000.0,0
+28.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,backend,1.000 - 10.000,450000.0,1
+28.0,6.0,2.0,"in-house, privat sektor",Oslo,data science,50 - 100,760000.0,1
+38.0,4.0,14.0,"in-house, offentlig/kommunal sektor",Oslo,backend,500 - 1.000,955000.0,1
+28.0,4.0,5.0,"in-house, privat sektor",Oslo,backend,100 - 500,770000.0,1
+53.0,5.0,26.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,1550000.0,1
+43.0,4.0,4.0,"in-house, privat sektor",Viken,backend,10 - 50,600000.0,1
+38.0,2.0,6.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,805000.0,1
+33.0,5.0,13.0,konsulent,Oslo,frontend,over 10.000,925000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Oslo,backend,10 - 50,800000.0,0
+28.0,3.0,6.0,"in-house, privat sektor",Troms og Finnmark,ledelse/administrativt,50 - 100,700000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Trøndelag,backend,100 - 500,600000.0,1
+33.0,5.0,13.0,konsulent,Innlandet,UX / design,10 - 50,750000.0,1
+28.0,3.0,3.0,konsulent,Oslo,backend,1.000 - 10.000,755000.0,1
+28.0,4.0,1.0,konsulent,Oslo,fullstack,100 - 500,840000.0,1
+28.0,5.0,6.0,konsulent,Oslo,fullstack,500 - 1.000,920000.0,0
+58.0,5.0,41.0,"in-house, privat sektor",Trøndelag,fullstack,over 10.000,1100000.0,1
+38.0,3.0,10.0,konsulent,Trøndelag,frontend,50 - 100,954000.0,1
+33.0,0.0,4.0,"in-house, privat sektor",Oslo,backend,under 10,800000.0,1
+28.0,5.0,2.0,konsulent,Vestland,data science,100 - 500,640000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Vestland,fullstack,50 - 100,950000.0,0
+43.0,5.0,17.0,konsulent,Oslo,sikkerhet,10 - 50,1400000.0,1
+38.0,5.0,11.0,"in-house, privat sektor",Nordland,fullstack,10 - 50,840000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,798000.0,0
+33.0,3.0,5.0,konsulent,Oslo,backend,100 - 500,843774.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Oslo,backend,100 - 500,1100000.0,1
+28.0,3.0,5.0,konsulent,Oslo,backend,100 - 500,1100000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,700000.0,0
+17.5,1.0,1.0,"in-house, privat sektor",Agder,ingen av disse,under 10,450000.0,1
+23.0,2.0,0.0,"in-house, privat sektor",Oslo,backend,over 10.000,850000.0,0
+23.0,3.0,2.0,konsulent,Viken,frontend,under 10,620000.0,0
+33.0,4.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,data science,1.000 - 10.000,634000.0,0
+33.0,0.0,3.0,"in-house, privat sektor",Oslo,backend,10 - 50,700000.0,1
+17.5,0.0,0.0,"in-house, privat sektor",Viken,backend,over 10.000,650000.0,1
+23.0,5.0,1.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,627000.0,1
+38.0,3.0,12.0,"in-house, privat sektor",Viken,frontend,500 - 1.000,800000.0,1
+23.0,3.0,5.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,900000.0,1
+53.0,4.0,28.0,konsulent,Oslo,arkitektur,10 - 50,1100000.0,1
+38.0,5.0,11.0,konsulent,Oslo,backend,100 - 500,1300000.0,1
+43.0,3.0,22.0,konsulent,Rogaland,devops,under 10,1500000.0,1
+28.0,5.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,data science,500 - 1.000,700000.0,0
+48.0,5.0,28.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,1100000.0,0
+38.0,0.0,7.0,"in-house, privat sektor",Troms og Finnmark,UX / design,50 - 100,700000.0,1
+28.0,4.0,4.0,konsulent,Oslo,frontend,100 - 500,900000.0,1
+38.0,3.0,11.0,konsulent,Vestland,arkitektur,10 - 50,850000.0,1
+28.0,3.0,4.0,konsulent,Oslo,fullstack,under 10,1290000.0,1
+33.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,745000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Vestland,frontend,100 - 500,725000.0,1
+38.0,4.0,5.0,"in-house, privat sektor",Rogaland,backend,under 10,715000.0,0
+38.0,0.0,15.0,konsulent,Innlandet,UX / design,10 - 50,860000.0,0
+28.0,3.0,2.0,konsulent,Oslo,app,100 - 500,700000.0,1
+33.0,2.0,8.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,920000.0,1
+33.0,3.0,5.0,konsulent,Oslo,backend,50 - 100,1100000.0,0
+28.0,3.0,5.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,2300000.0,1
+53.0,5.0,26.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,1250000.0,1
+23.0,5.0,1.0,konsulent,Oslo,frontend,100 - 500,595000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,sikkerhet,1.000 - 10.000,750000.0,1
+38.0,5.0,10.0,konsulent,Oslo,automatisering,over 10.000,780000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,500 - 1.000,800000.0,1
+33.0,5.0,8.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,1000000.0,1
+48.0,3.0,21.0,"in-house, privat sektor",Vestland,backend,100 - 500,900000.0,0
+23.0,5.0,5.0,konsulent,Oslo,fullstack,100 - 500,965000.0,1
+28.0,5.0,4.0,konsulent,Oslo,devops,1.000 - 10.000,670000.0,0
+28.0,3.0,2.0,konsulent,Oslo,sikkerhet,10 - 50,820000.0,0
+48.0,3.0,17.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,900000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Nordland,sikkerhet,100 - 500,880000.0,1
+38.0,3.0,10.0,"in-house, privat sektor",Oslo,UX / design,500 - 1.000,950000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,690000.0,1
+28.0,5.0,2.0,konsulent,Trøndelag,fullstack,over 10.000,630000.0,0
+33.0,5.0,9.0,konsulent,Oslo,backend,100 - 500,1300000.0,1
+33.0,3.0,7.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,over 10.000,900000.0,1
+43.0,3.0,1.0,"in-house, privat sektor",Troms og Finnmark,programvare,100 - 500,572000.0,0
+33.0,7.0,7.0,konsulent,Trøndelag,fullstack,500 - 1.000,1065000.0,1
+33.0,1.0,5.0,"in-house, privat sektor",Oslo,programvare,1.000 - 10.000,900000.0,1
+48.0,5.0,21.0,"in-house, privat sektor",Møre og Romsdal,ledelse/administrativt,10 - 50,1200000.0,1
+43.0,0.0,16.0,konsulent,Oslo,ingen av disse,100 - 500,1000000.0,1
+58.0,5.0,30.0,"in-house, privat sektor",Oslo,ingen av disse,over 10.000,800000.0,0
+28.0,7.0,1.0,"in-house, privat sektor",Trøndelag,programvare,1.000 - 10.000,625000.0,1
+28.0,4.0,4.0,konsulent,Oslo,frontend,100 - 500,686000.0,0
+53.0,2.0,23.0,"in-house, offentlig/kommunal sektor",Vestland,devops,500 - 1.000,860000.0,0
+38.0,5.0,6.0,konsulent,Oslo,backend,100 - 500,1155000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Agder,ledelse/administrativt,1.000 - 10.000,1350000.0,1
+33.0,5.0,2.0,"in-house, privat sektor",Vestland,ingen av disse,10 - 50,675000.0,0
+33.0,5.0,11.0,"in-house, privat sektor",Oslo,fullstack,under 10,840000.0,0
+28.0,3.0,7.0,"in-house, privat sektor",Oslo,devops,100 - 500,750000.0,0
+38.0,1.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,660000.0,0
+33.0,5.0,8.0,konsulent,Oslo,fullstack,500 - 1.000,1050000.0,1
+33.0,5.0,9.0,konsulent,Oslo,backend,100 - 500,806000.0,1
+38.0,5.0,11.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,1020000.0,1
+33.0,3.0,12.0,konsulent,Oslo,databaser,10 - 50,720000.0,1
+43.0,0.0,23.0,"in-house, privat sektor",Oslo,ingen av disse,50 - 100,960000.0,1
+38.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,800000.0,1
+33.0,3.0,3.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,1.000 - 10.000,650000.0,0
+38.0,5.0,6.0,"in-house, privat sektor",Vestland,testing,10 - 50,750000.0,1
+33.0,3.0,5.0,konsulent,Møre og Romsdal,embedded/IOT/maskinvare,10 - 50,700000.0,1
+33.0,0.0,12.0,"in-house, offentlig/kommunal sektor",Rogaland,data science,100 - 500,680000.0,1
+28.0,4.0,3.0,konsulent,Oslo,frontend,10 - 50,840000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Viken,backend,100 - 500,950000.0,1
+38.0,3.0,10.0,"in-house, privat sektor",Viken,ledelse/administrativt,1.000 - 10.000,900000.0,1
+38.0,5.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,50 - 100,1380000.0,1
+28.0,5.0,4.0,konsulent,Oslo,fullstack,10 - 50,900000.0,1
+33.0,8.0,8.0,"in-house, offentlig/kommunal sektor",Oslo,programvare,100 - 500,690000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Innlandet,backend,500 - 1.000,707000.0,1
+28.0,5.0,5.0,konsulent,Oslo,backend,1.000 - 10.000,830000.0,0
+38.0,3.0,12.0,konsulent,Rogaland,fullstack,50 - 100,1200000.0,1
+28.0,3.0,4.0,konsulent,Rogaland,fullstack,100 - 500,655000.0,1
+43.0,3.0,15.0,konsulent,Oslo,arkitektur,under 10,1300000.0,1
+33.0,5.0,9.0,frilans / selvstendig næringsdrivende,Trøndelag,fullstack,under 10,1750000.0,1
+28.0,5.0,1.0,konsulent,Trøndelag,frontend,50 - 100,700000.0,1
+33.0,5.0,7.0,"in-house, privat sektor",Rogaland,automatisering,100 - 500,720000.0,0
+38.0,5.0,9.0,"in-house, privat sektor",Oslo,backend,500 - 1.000,710000.0,0
+38.0,3.0,16.0,"in-house, privat sektor",Vestland,frontend,1.000 - 10.000,1029500.0,0
+43.0,4.0,22.0,"in-house, privat sektor",Rogaland,arkitektur,under 10,936000.0,1
+23.0,5.0,0.0,konsulent,Oslo,frontend,100 - 500,650000.0,0
+38.0,3.0,15.0,"in-house, privat sektor",Vestland,devops,50 - 100,970000.0,1
+33.0,0.0,6.0,"in-house, privat sektor",Vestfold og Telemark,ledelse/administrativt,10 - 50,900000.0,0
+33.0,5.0,5.0,"in-house, privat sektor",Trøndelag,embedded/IOT/maskinvare,500 - 1.000,800000.0,0
+28.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,50 - 100,580000.0,1
+23.0,5.0,0.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,662000.0,1
+38.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,over 10.000,790000.0,1
+28.0,5.0,2.0,konsulent,Oslo,ledelse/administrativt,over 10.000,700000.0,1
+38.0,3.0,13.0,konsulent,Rogaland,backend,100 - 500,1250000.0,1
+33.0,5.0,11.0,"in-house, privat sektor",Viken,embedded/IOT/maskinvare,100 - 500,850000.0,1
+28.0,4.0,4.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,753800.0,0
+48.0,5.0,17.0,"in-house, privat sektor",Nordland,backend,under 10,756000.0,0
+38.0,3.0,0.0,"in-house, privat sektor",Nordland,backend,100 - 500,600000.0,1
+23.0,2.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,app,100 - 500,630000.0,1
+33.0,3.0,9.0,"in-house, offentlig/kommunal sektor",Agder,backend,over 10.000,840000.0,1
+28.0,3.0,0.0,"in-house, privat sektor",Oslo,data science,10 - 50,500000.0,1
+48.0,4.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,815000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,frontend,50 - 100,705000.0,0
+23.0,3.0,0.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,500 - 1.000,550000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,app,1.000 - 10.000,800000.0,0
+33.0,3.0,8.0,"in-house, offentlig/kommunal sektor",Viken,ingen av disse,1.000 - 10.000,600000.0,1
+33.0,5.0,11.0,"in-house, privat sektor",Oslo,ledelse/administrativt,50 - 100,1200000.0,1
+28.0,3.0,2.0,konsulent,Vestland,fullstack,50 - 100,1100000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Oslo,backend,under 10,1000000.0,1
+33.0,3.0,5.0,"in-house, privat sektor",Oslo,backend,50 - 100,780000.0,0
+48.0,6.0,18.0,konsulent,Oslo,backend,1.000 - 10.000,1100000.0,0
+28.0,3.0,6.0,konsulent,Rogaland,backend,100 - 500,736000.0,1
+23.0,3.0,2.0,konsulent,Vestland,fullstack,100 - 500,800000.0,1
+28.0,3.0,1.0,konsulent,Oslo,backend,100 - 500,690000.0,1
+38.0,0.0,10.0,konsulent,Oslo,testing,50 - 100,1100000.0,0
+23.0,3.0,0.0,"in-house, privat sektor",Agder,UX / design,100 - 500,400000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Vestland,fullstack,500 - 1.000,750000.0,0
+28.0,5.0,4.0,konsulent,Oslo,frontend,100 - 500,796000.0,0
+28.0,3.0,7.0,"in-house, offentlig/kommunal sektor",Innlandet,frontend,100 - 500,725000.0,1
+33.0,5.0,4.0,konsulent,Trøndelag,automatisering,100 - 500,800000.0,1
+43.0,5.0,13.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,ledelse/administrativt,100 - 500,800000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,backend,50 - 100,555000.0,1
+33.0,8.0,7.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,720000.0,0
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,680000.0,1
+38.0,5.0,15.0,"in-house, privat sektor",Nordland,arkitektur,1.000 - 10.000,1100000.0,1
+23.0,0.0,0.0,"in-house, privat sektor",Oslo,ingen av disse,50 - 100,516000.0,0
+33.0,5.0,0.0,"in-house, privat sektor",Oslo,data science,100 - 500,620000.0,1
+33.0,1.0,5.0,"in-house, privat sektor",Agder,fullstack,10 - 50,540000.0,1
+33.0,5.0,9.0,konsulent,Oslo,arkitektur,1.000 - 10.000,870000.0,1
+33.0,5.0,5.0,konsulent,Oslo,frontend,under 10,900000.0,1
+38.0,3.0,14.0,"in-house, privat sektor",Vestland,ledelse/administrativt,500 - 1.000,1100000.0,0
+38.0,3.0,9.0,"in-house, privat sektor",Nordland,frontend,under 10,540000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,730000.0,1
+48.0,5.0,25.0,"in-house, privat sektor",Vestfold og Telemark,arkitektur,50 - 100,1700000.0,1
+28.0,5.0,1.0,konsulent,Oslo,ledelse/administrativt,10 - 50,770000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,devops,100 - 500,730000.0,1
+33.0,4.0,1.0,"in-house, privat sektor",Nordland,embedded/IOT/maskinvare,under 10,600000.0,1
+38.0,5.0,20.0,konsulent,Oslo,frontend,100 - 500,900000.0,0
+38.0,1.0,8.0,"in-house, privat sektor",Vestland,ingen av disse,10 - 50,500000.0,0
+28.0,0.0,9.0,"in-house, privat sektor",Innlandet,fullstack,under 10,975000.0,0
+28.0,3.0,10.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,750000.0,0
+33.0,0.0,5.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,over 10.000,500640.0,0
+33.0,6.0,15.0,"in-house, offentlig/kommunal sektor",Vestland,backend,1.000 - 10.000,650000.0,1
+63.0,4.0,38.0,"in-house, privat sektor",Oslo,automatisering,1.000 - 10.000,1100000.0,1
+33.0,5.0,4.0,konsulent,Oslo,fullstack,10 - 50,900000.0,1
+33.0,0.0,16.0,"in-house, privat sektor",Viken,ledelse/administrativt,50 - 100,960000.0,1
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,1900000.0,0
+48.0,4.0,25.0,"in-house, offentlig/kommunal sektor",Agder,ingen av disse,1.000 - 10.000,500000.0,0
+23.0,5.0,1.0,konsulent,Vestland,data science,1.000 - 10.000,570000.0,1
+38.0,3.0,10.0,konsulent,Møre og Romsdal,backend,50 - 100,750000.0,0
+28.0,3.0,3.0,konsulent,Oslo,backend,10 - 50,730000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,programvare,over 10.000,630000.0,1
+28.0,5.0,1.0,konsulent,Rogaland,backend,500 - 1.000,680000.0,1
+28.0,5.0,25.0,konsulent,Oslo,ledelse/administrativt,100 - 500,725000.0,1
+23.0,3.0,2.0,konsulent,Vestland,fullstack,100 - 500,850000.0,1
+33.0,4.0,2.0,"in-house, privat sektor",Troms og Finnmark,automatisering,100 - 500,550000.0,0
+33.0,5.0,3.0,"in-house, privat sektor",Oslo,data science,under 10,650000.0,1
+38.0,3.0,4.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,100 - 500,580000.0,0
+28.0,5.0,3.0,konsulent,Oslo,fullstack,100 - 500,800000.0,1
+43.0,0.0,1.0,"in-house, privat sektor",Vestland,ingen av disse,1.000 - 10.000,425000.0,0
+33.0,3.0,6.0,"in-house, privat sektor",Vestland,backend,100 - 500,830000.0,1
+28.0,3.0,0.0,konsulent,Oslo,programvare,1.000 - 10.000,530000.0,0
+28.0,3.0,5.0,konsulent,Oslo,devops,50 - 100,1350000.0,1
+38.0,5.0,16.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,1800000.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,500 - 1.000,780000.0,0
+38.0,3.0,6.0,"in-house, privat sektor",Møre og Romsdal,frontend,50 - 100,650000.0,0
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,850000.0,1
+33.0,5.0,3.0,"in-house, privat sektor",Trøndelag,ledelse/administrativt,10 - 50,900000.0,1
+58.0,3.0,36.0,"in-house, privat sektor",Viken,backend,500 - 1.000,720000.0,1
+23.0,2.0,7.0,"in-house, offentlig/kommunal sektor",Oslo,devops,over 10.000,700000.0,1
+38.0,3.0,3.0,konsulent,Innlandet,backend,10 - 50,680000.0,1
+53.0,0.0,25.0,"in-house, offentlig/kommunal sektor",Viken,fullstack,100 - 500,700000.0,1
+28.0,5.0,3.0,konsulent,Rogaland,app,500 - 1.000,750000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Nordland,arkitektur,1.000 - 10.000,817000.0,1
+28.0,5.0,1.0,konsulent,Oslo,fullstack,100 - 500,777000.0,1
+33.0,3.0,1.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,480000.0,0
+38.0,1.0,5.0,konsulent,Oslo,fullstack,50 - 100,740000.0,1
+38.0,5.0,9.0,"in-house, privat sektor",Innlandet,programvare,100 - 500,800000.0,0
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,690000.0,1
+38.0,5.0,14.0,"in-house, privat sektor",Viken,fullstack,1.000 - 10.000,850000.0,0
+33.0,3.0,10.0,"in-house, privat sektor",Trøndelag,fullstack,100 - 500,800000.0,1
+43.0,5.0,20.0,"in-house, privat sektor",utlandet,arkitektur,over 10.000,1000000.0,1
+48.0,5.0,25.0,"in-house, offentlig/kommunal sektor",Nordland,ledelse/administrativt,1.000 - 10.000,700000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Oslo,frontend,10 - 50,820000.0,0
+43.0,5.0,19.0,"in-house, privat sektor",Agder,devops,100 - 500,1050000.0,0
+38.0,3.0,15.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,680000.0,0
+28.0,0.0,3.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,500000.0,0
+23.0,4.0,1.0,"in-house, privat sektor",Oslo,backend,100 - 500,640000.0,0
+23.0,5.0,25.0,konsulent,Rogaland,fullstack,1.000 - 10.000,725000.0,1
+43.0,2.0,22.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,100 - 500,1040000.0,1
+28.0,5.0,4.0,konsulent,Vestland,backend,10 - 50,800000.0,1
+43.0,3.0,19.0,"in-house, privat sektor",Trøndelag,fullstack,100 - 500,783000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Rogaland,fullstack,500 - 1.000,575250.0,1
+48.0,0.0,23.0,konsulent,Rogaland,frontend,1.000 - 10.000,830000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,645000.0,0
+38.0,5.0,10.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,956000.0,1
+28.0,2.0,8.0,"in-house, privat sektor",Trøndelag,frontend,under 10,560000.0,0
+28.0,3.0,1.0,konsulent,Trøndelag,ingen av disse,1.000 - 10.000,568000.0,0
+53.0,3.0,30.0,konsulent,Rogaland,automatisering,100 - 500,1150000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Innlandet,databaser,50 - 100,600000.0,0
+33.0,3.0,10.0,frilans / selvstendig næringsdrivende,Oslo,frontend,50 - 100,2100000.0,1
+28.0,0.0,4.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,550000.0,0
+48.0,3.0,23.0,konsulent,Oslo,fullstack,100 - 500,1360000.0,1
+23.0,0.0,4.0,"in-house, privat sektor",Rogaland,frontend,under 10,550000.0,1
+38.0,4.0,10.0,"in-house, privat sektor",Oslo,frontend,100 - 500,810000.0,0
+43.0,6.0,18.0,konsulent,Oslo,fullstack,100 - 500,1100000.0,0
+63.0,2.0,39.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1100000.0,1
+43.0,4.0,19.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,750000.0,0
+38.0,0.0,15.0,"in-house, privat sektor",Rogaland,sikkerhet,1.000 - 10.000,950000.0,0
+33.0,5.0,0.0,konsulent,Vestland,frontend,1.000 - 10.000,630000.0,1
+48.0,6.0,18.0,"in-house, offentlig/kommunal sektor",Viken,ingen av disse,50 - 100,615000.0,0
+38.0,3.0,15.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,1000000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",utlandet,programvare,100 - 500,850000.0,0
+28.0,3.0,7.0,"in-house, privat sektor",Viken,automatisering,10 - 50,1200000.0,1
+33.0,3.0,7.0,"in-house, privat sektor",Oslo,frontend,100 - 500,935000.0,1
+28.0,5.0,4.0,konsulent,Vestland,ledelse/administrativt,1.000 - 10.000,730000.0,0
+28.0,5.0,4.0,konsulent,Møre og Romsdal,frontend,500 - 1.000,600000.0,0
+38.0,0.0,5.0,"in-house, privat sektor",Rogaland,frontend,10 - 50,950000.0,1
+28.0,4.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,app,1.000 - 10.000,710000.0,1
+48.0,8.0,18.0,konsulent,Oslo,backend,1.000 - 10.000,1017000.0,1
+33.0,5.0,6.0,konsulent,Oslo,data science,100 - 500,760000.0,1
+43.0,3.0,3.0,frilans / selvstendig næringsdrivende,Rogaland,data science,100 - 500,1150000.0,1
+33.0,3.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,100 - 500,790000.0,0
+43.0,0.0,1.0,konsulent,Viken,programvare,100 - 500,450000.0,0
+23.0,2.0,5.0,"in-house, privat sektor",Oslo,ingen av disse,100 - 500,550000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Møre og Romsdal,frontend,under 10,540000.0,0
+38.0,1.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,backend,over 10.000,596000.0,0
+33.0,3.0,0.0,"in-house, privat sektor",Trøndelag,app,10 - 50,650000.0,1
+38.0,5.0,18.0,konsulent,Trøndelag,automatisering,1.000 - 10.000,820000.0,1
+28.0,0.0,7.0,"in-house, privat sektor",Nordland,backend,10 - 50,906000.0,1
+33.0,3.0,2.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,700000.0,1
+33.0,5.0,6.0,"in-house, offentlig/kommunal sektor",Rogaland,backend,500 - 1.000,950000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,devops,100 - 500,800000.0,1
+43.0,0.0,5.0,"in-house, privat sektor",Oslo,frontend,100 - 500,700000.0,0
+33.0,4.0,7.0,konsulent,Oslo,fullstack,50 - 100,980000.0,1
+58.0,5.0,25.0,konsulent,Oslo,ledelse/administrativt,10 - 50,1700000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,automatisering,1.000 - 10.000,650000.0,0
+38.0,3.0,15.0,konsulent,Oslo,backend,500 - 1.000,1050000.0,1
+33.0,0.0,3.0,"in-house, privat sektor",Oslo,testing,10 - 50,1200000.0,1
+28.0,5.0,1.0,"in-house, privat sektor",Agder,UX / design,100 - 500,610000.0,1
+38.0,3.0,16.0,"in-house, privat sektor",Vestfold og Telemark,programvare,10 - 50,900000.0,1
+28.0,0.0,0.0,"in-house, privat sektor",Oslo,frontend,100 - 500,600000.0,1
+48.0,6.0,22.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,1000000.0,0
+23.0,5.0,2.0,konsulent,Oslo,frontend,1.000 - 10.000,650000.0,0
+33.0,3.0,5.0,konsulent,Agder,fullstack,100 - 500,800000.0,1
+53.0,3.0,36.0,konsulent,Vestland,sikkerhet,100 - 500,700000.0,0
+33.0,3.0,2.0,"in-house, privat sektor",Oslo,app,1.000 - 10.000,770000.0,1
+38.0,5.0,10.0,konsulent,Oslo,ledelse/administrativt,500 - 1.000,950000.0,1
+53.0,5.0,26.0,"in-house, privat sektor",Viken,embedded/IOT/maskinvare,100 - 500,1200000.0,0
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,backend,500 - 1.000,800000.0,1
+43.0,4.0,13.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,800000.0,0
+53.0,5.0,32.0,"in-house, privat sektor",Oslo,sikkerhet,500 - 1.000,1300000.0,1
+38.0,3.0,16.0,konsulent,Oslo,frontend,100 - 500,1300000.0,0
+33.0,3.0,2.0,konsulent,Oslo,fullstack,1.000 - 10.000,640000.0,1
+38.0,3.0,16.0,konsulent,Rogaland,fullstack,100 - 500,1500000.0,1
+23.0,5.0,0.0,"in-house, privat sektor",Viken,backend,1.000 - 10.000,610000.0,1
+38.0,5.0,13.0,"in-house, privat sektor",Viken,fullstack,100 - 500,1000000.0,0
+38.0,4.0,8.0,konsulent,Oslo,frontend,100 - 500,700000.0,0
+28.0,3.0,8.0,"in-house, privat sektor",Viken,frontend,10 - 50,800000.0,1
+28.0,3.0,0.0,"in-house, privat sektor",Oslo,backend,50 - 100,530000.0,1
+33.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,650000.0,0
+38.0,3.0,16.0,konsulent,Trøndelag,fullstack,10 - 50,980000.0,1
+28.0,5.0,3.0,konsulent,Trøndelag,fullstack,10 - 50,1100000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,515000.0,0
+33.0,0.0,5.0,"in-house, privat sektor",Viken,fullstack,10 - 50,610000.0,0
+28.0,5.0,7.0,"in-house, privat sektor",Viken,fullstack,1.000 - 10.000,1000000.0,0
+33.0,5.0,6.0,"in-house, offentlig/kommunal sektor",Vestland,backend,100 - 500,700200.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,650000.0,1
+38.0,3.0,4.0,konsulent,Vestland,testing,10 - 50,910602.0,1
+33.0,5.0,9.0,konsulent,Rogaland,fullstack,1.000 - 10.000,860000.0,1
+53.0,5.0,24.0,"in-house, privat sektor",Rogaland,fullstack,100 - 500,1350000.0,1
+28.0,3.0,6.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,100 - 500,750000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Trøndelag,fullstack,100 - 500,700000.0,1
+28.0,5.0,8.0,"in-house, privat sektor",Innlandet,ledelse/administrativt,10 - 50,1000000.0,1
+43.0,0.0,10.0,konsulent,Vestfold og Telemark,fullstack,under 10,425000.0,1
+28.0,2.0,3.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,700000.0,1
+33.0,5.0,4.0,"in-house, privat sektor",Oslo,testing,1.000 - 10.000,700000.0,1
+43.0,5.0,16.0,"in-house, privat sektor",Vestland,backend,500 - 1.000,975000.0,1
+48.0,4.0,25.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,1150000.0,1
+33.0,0.0,1.0,"in-house, privat sektor",Trøndelag,frontend,under 10,530000.0,0
+38.0,4.0,15.0,konsulent,Oslo,UX / design,100 - 500,930000.0,1
+33.0,3.0,4.0,konsulent,Oslo,backend,1.000 - 10.000,710000.0,1
+58.0,3.0,35.0,"in-house, privat sektor",Oslo,sikkerhet,1.000 - 10.000,860000.0,1
+28.0,5.0,2.0,konsulent,Oslo,app,500 - 1.000,780000.0,1
+28.0,3.0,3.0,konsulent,Trøndelag,backend,50 - 100,1000000.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,790000.0,0
+38.0,0.0,20.0,konsulent,Trøndelag,devops,500 - 1.000,1100000.0,1
+17.5,0.0,1.0,konsulent,Rogaland,frontend,10 - 50,380000.0,0
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,480000.0,0
+38.0,5.0,11.0,konsulent,Oslo,backend,1.000 - 10.000,991613.0,1
+38.0,3.0,20.0,"in-house, privat sektor",Trøndelag,embedded/IOT/maskinvare,10 - 50,1200000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,750000.0,1
+38.0,5.0,18.0,konsulent,Viken,fullstack,1.000 - 10.000,1127000.0,0
+48.0,4.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,680000.0,0
+33.0,3.0,1.0,"in-house, privat sektor",Oslo,fullstack,over 10.000,550000.0,0
+43.0,1.0,8.0,"in-house, privat sektor",Oslo,backend,500 - 1.000,850000.0,1
+28.0,0.0,3.0,konsulent,Oslo,backend,100 - 500,750000.0,1
+28.0,5.0,3.0,konsulent,Trøndelag,fullstack,10 - 50,705000.0,1
+38.0,3.0,3.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,560000.0,1
+43.0,5.0,18.0,konsulent,Oslo,fullstack,10 - 50,1400000.0,1
+33.0,4.0,7.0,"in-house, privat sektor",Vestland,backend,over 10.000,750000.0,0
+33.0,3.0,2.0,"in-house, privat sektor",Oslo,backend,50 - 100,643000.0,0
+23.0,3.0,3.0,"in-house, privat sektor",Viken,frontend,10 - 50,550000.0,0
+23.0,3.0,4.0,"in-house, privat sektor",Oslo,ingen av disse,100 - 500,750000.0,1
+28.0,3.0,1.0,konsulent,Oslo,fullstack,1.000 - 10.000,650000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Troms og Finnmark,data science,100 - 500,627000.0,0
+48.0,5.0,15.0,konsulent,Oslo,ledelse/administrativt,10 - 50,1350000.0,1
+23.0,4.0,6.0,konsulent,Rogaland,frontend,10 - 50,630000.0,1
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,frontend,10 - 50,825000.0,1
+33.0,3.0,11.0,konsulent,Oslo,fullstack,50 - 100,1400000.0,1
+23.0,5.0,1.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,636000.0,0
+38.0,3.0,16.0,"in-house, privat sektor",Oslo,arkitektur,100 - 500,1300000.0,1
+33.0,5.0,6.0,konsulent,Oslo,fullstack,1.000 - 10.000,860000.0,0
+28.0,0.0,11.0,"in-house, privat sektor",Viken,sikkerhet,under 10,470000.0,1
+28.0,6.0,1.0,konsulent,Oslo,backend,over 10.000,590000.0,0
+53.0,0.0,36.0,frilans / selvstendig næringsdrivende,Oslo,ingen av disse,under 10,750000.0,1
+38.0,3.0,10.0,"in-house, offentlig/kommunal sektor",Agder,fullstack,over 10.000,935300.0,1
+28.0,5.0,2.0,konsulent,Oslo,databaser,100 - 500,723000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Nordland,fullstack,10 - 50,700000.0,0
+48.0,5.0,25.0,"in-house, privat sektor",Trøndelag,programvare,100 - 500,1000000.0,1
+28.0,5.0,1.0,"in-house, privat sektor",Viken,frontend,50 - 100,650000.0,1
+23.0,3.0,0.0,konsulent,Oslo,frontend,100 - 500,596000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,800000.0,0
+28.0,3.0,8.0,konsulent,Oslo,backend,100 - 500,850000.0,0
+38.0,2.0,3.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,800000.0,1
+33.0,8.0,10.0,"in-house, privat sektor",Trøndelag,programvare,under 10,800000.0,1
+43.0,2.0,26.0,"in-house, privat sektor",Oslo,ledelse/administrativt,1.000 - 10.000,1500000.0,0
+33.0,5.0,9.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,1700000.0,1
+48.0,3.0,25.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,720000.0,1
+28.0,3.0,2.0,konsulent,utlandet,sikkerhet,over 10.000,850000.0,1
+28.0,5.0,1.0,konsulent,Oslo,backend,100 - 500,642000.0,1
+33.0,3.0,5.0,"in-house, privat sektor",Oslo,databaser,10 - 50,785000.0,0
+33.0,2.0,2.0,"in-house, privat sektor",Vestfold og Telemark,frontend,under 10,625000.0,1
+38.0,0.0,15.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,10 - 50,960000.0,0
+28.0,5.0,1.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,550000.0,0
+38.0,4.0,4.0,"in-house, offentlig/kommunal sektor",Rogaland,frontend,1.000 - 10.000,640000.0,1
+28.0,6.0,2.0,"in-house, privat sektor",Oslo,frontend,100 - 500,600000.0,0
+38.0,3.0,7.0,konsulent,Oslo,fullstack,50 - 100,1025000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Innlandet,fullstack,10 - 50,615000.0,1
+43.0,3.0,15.0,"in-house, privat sektor",Møre og Romsdal,fullstack,over 10.000,910000.0,1
+33.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,700000.0,1
+33.0,4.0,0.0,"in-house, privat sektor",Viken,devops,10 - 50,645000.0,1
+43.0,2.0,2.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,automatisering,10 - 50,510000.0,1
+28.0,5.0,1.0,konsulent,Oslo,fullstack,50 - 100,595000.0,1
+53.0,4.0,25.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,1000000.0,1
+38.0,2.0,18.0,"in-house, privat sektor",Rogaland,automatisering,500 - 1.000,1005000.0,1
+38.0,1.0,15.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,800000.0,0
+43.0,6.0,16.0,konsulent,Oslo,backend,100 - 500,1300000.0,1
+48.0,6.0,22.0,"in-house, offentlig/kommunal sektor",Oslo,data science,100 - 500,800000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Trøndelag,ledelse/administrativt,100 - 500,885000.0,0
+23.0,3.0,1.0,"in-house, privat sektor",Oslo,backend,100 - 500,600000.0,1
+23.0,3.0,4.0,konsulent,Vestland,fullstack,50 - 100,950000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,frontend,100 - 500,597000.0,0
+38.0,3.0,15.0,"in-house, privat sektor",Viken,arkitektur,500 - 1.000,1100000.0,1
+28.0,5.0,6.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,910000.0,1
+38.0,3.0,10.0,"in-house, privat sektor",utlandet,ledelse/administrativt,1.000 - 10.000,780000.0,1
+38.0,1.0,11.0,"in-house, privat sektor",Oslo,backend,100 - 500,900000.0,1
+33.0,5.0,10.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,650000.0,1
+38.0,2.0,3.0,"in-house, privat sektor",Vestfold og Telemark,backend,10 - 50,710000.0,1
+23.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,650000.0,0
+23.0,3.0,1.0,konsulent,Vestland,fullstack,100 - 500,675000.0,1
+48.0,5.0,18.0,konsulent,Oslo,arkitektur,over 10.000,1290000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,800000.0,0
+33.0,5.0,11.0,"in-house, offentlig/kommunal sektor",Nordland,frontend,1.000 - 10.000,600000.0,1
+28.0,0.0,2.0,"in-house, privat sektor",Oslo,ledelse/administrativt,over 10.000,530000.0,0
+28.0,4.0,4.0,konsulent,Vestland,app,100 - 500,810000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",utlandet,fullstack,100 - 500,1155000.0,1
+33.0,3.0,9.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1400000.0,1
+23.0,5.0,2.0,konsulent,Oslo,frontend,100 - 500,620000.0,0
+33.0,5.0,6.0,"in-house, offentlig/kommunal sektor",Oslo,UX / design,500 - 1.000,870000.0,1
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,770000.0,0
+33.0,5.0,9.0,konsulent,Oslo,backend,100 - 500,930000.0,1
+33.0,5.0,8.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,950000.0,1
+43.0,5.0,17.0,konsulent,Oslo,backend,10 - 50,2200000.0,1
+48.0,3.0,23.0,"in-house, privat sektor",Trøndelag,fullstack,50 - 100,807500.0,0
+33.0,1.0,0.0,konsulent,Oslo,sikkerhet,10 - 50,540000.0,0
+28.0,6.0,3.0,konsulent,Oslo,UX / design,100 - 500,720000.0,1
+28.0,4.0,4.0,"in-house, privat sektor",Vestfold og Telemark,arkitektur,10 - 50,610000.0,0
+38.0,3.0,7.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,1100000.0,1
+33.0,2.0,1.0,"in-house, privat sektor",Trøndelag,frontend,10 - 50,510000.0,0
+33.0,0.0,13.0,"in-house, privat sektor",Rogaland,sikkerhet,1.000 - 10.000,950000.0,1
+38.0,5.0,15.0,"in-house, offentlig/kommunal sektor",Agder,devops,1.000 - 10.000,816000.0,1
+28.0,3.0,2.0,konsulent,Oslo,fullstack,under 10,400000.0,0
+23.0,1.0,0.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,500000.0,1
+43.0,1.0,10.0,"in-house, privat sektor",Oslo,UX / design,100 - 500,620000.0,0
+38.0,5.0,10.0,"in-house, privat sektor",Oslo,automatisering,500 - 1.000,1000000.0,0
+48.0,4.0,23.0,"in-house, privat sektor",Troms og Finnmark,arkitektur,1.000 - 10.000,776000.0,0
+33.0,3.0,6.0,konsulent,Trøndelag,backend,50 - 100,1100000.0,1
+43.0,5.0,16.0,konsulent,Oslo,fullstack,10 - 50,1300000.0,1
+33.0,0.0,4.0,"in-house, privat sektor",Nordland,ledelse/administrativt,10 - 50,890000.0,1
+33.0,3.0,8.0,"in-house, offentlig/kommunal sektor",Møre og Romsdal,ingen av disse,1.000 - 10.000,530000.0,0
+28.0,3.0,2.0,konsulent,Oslo,fullstack,100 - 500,740000.0,1
+28.0,5.0,2.0,konsulent,Vestland,backend,1.000 - 10.000,635000.0,0
+43.0,9.0,17.0,konsulent,Oslo,arkitektur,100 - 500,1250000.0,1
+33.0,3.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,50 - 100,1400000.0,1
+33.0,3.0,12.0,"in-house, privat sektor",Oslo,frontend,100 - 500,820000.0,1
+33.0,5.0,11.0,konsulent,Oslo,frontend,500 - 1.000,1000000.0,1
+28.0,3.0,0.0,"in-house, privat sektor",Agder,backend,100 - 500,515000.0,1
+48.0,0.0,2.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,450000.0,0
+28.0,1.0,2.0,konsulent,Oslo,data science,100 - 500,500000.0,0
+38.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,backend,10 - 50,622700.0,0
+33.0,5.0,9.0,konsulent,Oslo,backend,10 - 50,1200000.0,1
+38.0,5.0,10.0,"in-house, privat sektor",Viken,embedded/IOT/maskinvare,1.000 - 10.000,847000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,820000.0,1
+28.0,3.0,4.0,konsulent,Oslo,backend,under 10,880000.0,1
+28.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,590000.0,1
+28.0,5.0,0.0,"in-house, privat sektor",Vestland,fullstack,1.000 - 10.000,650000.0,1
+33.0,2.0,0.0,"in-house, privat sektor",Agder,frontend,1.000 - 10.000,640000.0,1
+38.0,2.0,17.0,"in-house, offentlig/kommunal sektor",Trøndelag,ledelse/administrativt,1.000 - 10.000,545000.0,0
+38.0,2.0,20.0,"in-house, privat sektor",Trøndelag,ingen av disse,under 10,950000.0,0
+38.0,2.0,10.0,konsulent,Viken,ingen av disse,100 - 500,576000.0,0
+48.0,6.0,24.0,"in-house, offentlig/kommunal sektor",Oslo,ingen av disse,1.000 - 10.000,710000.0,0
+43.0,0.0,19.0,konsulent,Oslo,frontend,50 - 100,870000.0,1
+33.0,3.0,4.0,konsulent,Oslo,backend,under 10,840000.0,1
+33.0,3.0,9.0,konsulent,Oslo,fullstack,over 10.000,750000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,573000.0,0
+33.0,5.0,9.0,konsulent,Oslo,fullstack,10 - 50,1000000.0,1
+28.0,5.0,10.0,konsulent,Oslo,frontend,50 - 100,1400000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,automatisering,under 10,690000.0,1
+23.0,0.0,6.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1000000.0,1
+38.0,4.0,12.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,975000.0,0
+23.0,3.0,2.0,konsulent,Trøndelag,fullstack,100 - 500,720000.0,0
+28.0,0.0,0.0,konsulent,Vestland,fullstack,10 - 50,525000.0,0
+28.0,5.0,0.0,konsulent,Oslo,frontend,1.000 - 10.000,630000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,frontend,100 - 500,720000.0,1
+33.0,0.0,2.0,konsulent,Rogaland,frontend,10 - 50,720000.0,1
+38.0,3.0,7.0,"in-house, privat sektor",Trøndelag,fullstack,under 10,700000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,750000.0,1
+28.0,1.0,5.0,"in-house, privat sektor",Troms og Finnmark,fullstack,50 - 100,450000.0,0
+38.0,3.0,12.0,konsulent,Oslo,backend,10 - 50,1300000.0,1
+38.0,4.0,2.0,"in-house, privat sektor",Viken,backend,under 10,445000.0,0
+38.0,3.0,3.0,"in-house, privat sektor",Oslo,frontend,100 - 500,664000.0,0
+28.0,6.0,4.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,660000.0,1
+33.0,5.0,5.0,konsulent,Oslo,backend,1.000 - 10.000,970000.0,0
+58.0,8.0,36.0,"in-house, privat sektor",Vestfold og Telemark,ingen av disse,500 - 1.000,600000.0,0
+48.0,6.0,25.0,"in-house, privat sektor",Viken,fullstack,over 10.000,1200000.0,0
+33.0,0.0,11.0,"in-house, privat sektor",Trøndelag,fullstack,under 10,820000.0,1
+38.0,3.0,11.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,605000.0,0
+23.0,5.0,0.0,"in-house, privat sektor",Viken,programvare,over 10.000,620000.0,1
+23.0,5.0,0.0,konsulent,Trøndelag,data science,1.000 - 10.000,600000.0,1
+33.0,3.0,9.0,konsulent,Oslo,arkitektur,1.000 - 10.000,1074000.0,1
+33.0,0.0,5.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,730000.0,0
+28.0,5.0,0.0,konsulent,Møre og Romsdal,fullstack,under 10,640000.0,0
+48.0,3.0,25.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,over 10.000,780000.0,0
+43.0,3.0,18.0,konsulent,Oslo,programvare,1.000 - 10.000,900000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,468000.0,1
+38.0,3.0,10.0,"in-house, offentlig/kommunal sektor",Innlandet,sikkerhet,1.000 - 10.000,700000.0,0
+33.0,0.0,0.0,"in-house, privat sektor",Oslo,frontend,over 10.000,700000.0,0
+48.0,7.0,19.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,880000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,1300000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,backend,100 - 500,750000.0,0
+43.0,3.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,sikkerhet,100 - 500,900000.0,1
+33.0,5.0,7.0,konsulent,Oslo,sikkerhet,100 - 500,1000000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Oslo,arkitektur,over 10.000,1500000.0,1
+53.0,0.0,15.0,"in-house, privat sektor",Viken,fullstack,10 - 50,1000000.0,1
+38.0,5.0,10.0,konsulent,Viken,fullstack,1.000 - 10.000,900000.0,0
+48.0,3.0,20.0,"in-house, privat sektor",Vestland,fullstack,under 10,500000.0,1
+43.0,2.0,25.0,"in-house, privat sektor",Oslo,fullstack,under 10,830000.0,0
+43.0,0.0,22.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,1044000.0,1
+38.0,3.0,5.0,"in-house, privat sektor",Oslo,backend,100 - 500,660000.0,0
+33.0,3.0,12.0,"in-house, privat sektor",Trøndelag,UX / design,100 - 500,915000.0,0
+38.0,2.0,20.0,frilans / selvstendig næringsdrivende,Rogaland,ingen av disse,under 10,525000.0,1
+38.0,5.0,10.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,900000.0,0
+33.0,2.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,743000.0,0
+43.0,7.0,15.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,1100000.0,1
+23.0,5.0,0.0,konsulent,Oslo,fullstack,500 - 1.000,630000.0,0
+33.0,5.0,8.0,konsulent,Møre og Romsdal,fullstack,1.000 - 10.000,1000000.0,1
+48.0,5.0,24.0,konsulent,Trøndelag,ledelse/administrativt,over 10.000,1100000.0,0
+23.0,3.0,0.0,konsulent,Oslo,fullstack,100 - 500,555000.0,1
+33.0,5.0,8.0,konsulent,Oslo,backend,over 10.000,900000.0,1
+28.0,4.0,5.0,"in-house, privat sektor",Vestland,frontend,under 10,900000.0,1
+28.0,5.0,6.0,konsulent,Oslo,fullstack,500 - 1.000,975000.0,1
+43.0,6.0,16.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,over 10.000,900000.0,0
+23.0,3.0,1.0,"in-house, privat sektor",Vestland,backend,1.000 - 10.000,550000.0,0
+38.0,3.0,8.0,"in-house, privat sektor",Oslo,data science,1.000 - 10.000,865000.0,1
+28.0,3.0,2.0,konsulent,Agder,fullstack,over 10.000,735000.0,1
+48.0,3.0,26.0,"in-house, privat sektor",Møre og Romsdal,backend,over 10.000,850000.0,1
+28.0,3.0,2.0,konsulent,Viken,fullstack,under 10,600000.0,1
+48.0,1.0,23.0,"in-house, privat sektor",Agder,sikkerhet,1.000 - 10.000,1020000.0,1
+48.0,0.0,0.0,konsulent,Vestfold og Telemark,backend,10 - 50,500000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,over 10.000,710000.0,1
+53.0,3.0,25.0,konsulent,Vestfold og Telemark,fullstack,1.000 - 10.000,1000000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,670000.0,1
+33.0,5.0,2.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,600000.0,0
+38.0,5.0,16.0,konsulent,Trøndelag,arkitektur,100 - 500,1300000.0,1
+43.0,4.0,22.0,"in-house, privat sektor",Viken,programvare,1.000 - 10.000,732652.0,1
+33.0,3.0,1.0,"in-house, privat sektor",Oslo,app,1.000 - 10.000,624000.0,0
+48.0,3.0,23.0,konsulent,Oslo,fullstack,100 - 500,1050000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Oslo,ledelse/administrativt,50 - 100,1700000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Trøndelag,frontend,50 - 100,1000000.0,0
+33.0,5.0,2.0,"in-house, privat sektor",Innlandet,frontend,1.000 - 10.000,480000.0,0
+43.0,5.0,17.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,875000.0,0
+43.0,4.0,20.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,50 - 100,1020000.0,1
+33.0,3.0,12.0,"in-house, privat sektor",Oslo,backend,50 - 100,1000020.0,1
+33.0,0.0,1.0,konsulent,Oslo,backend,100 - 500,520000.0,0
+23.0,0.0,9.0,"in-house, offentlig/kommunal sektor",Trøndelag,arkitektur,1.000 - 10.000,800000.0,1
+28.0,3.0,4.0,konsulent,Oslo,app,100 - 500,720000.0,1
+38.0,3.0,17.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,950000.0,1
+48.0,5.0,25.0,"in-house, privat sektor",Vestland,backend,50 - 100,985000.0,0
+33.0,4.0,15.0,"in-house, privat sektor",Trøndelag,arkitektur,1.000 - 10.000,900000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,10 - 50,1200000.0,1
+58.0,4.0,25.0,"in-house, privat sektor",Oslo,automatisering,over 10.000,1150000.0,0
+38.0,5.0,8.0,"in-house, offentlig/kommunal sektor",Rogaland,programvare,over 10.000,703400.0,1
+28.0,3.0,2.0,konsulent,Oslo,fullstack,10 - 50,690000.0,1
+33.0,3.0,2.0,konsulent,Trøndelag,backend,100 - 500,645000.0,0
+23.0,3.0,1.0,konsulent,Oslo,frontend,100 - 500,580000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Troms og Finnmark,frontend,under 10,600000.0,0
+33.0,4.0,5.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,750000.0,1
+28.0,3.0,8.0,"in-house, offentlig/kommunal sektor",Nordland,devops,500 - 1.000,740000.0,1
+43.0,4.0,6.0,konsulent,Vestfold og Telemark,backend,50 - 100,785000.0,1
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,100 - 500,765000.0,1
+38.0,4.0,15.0,"in-house, privat sektor",Vestland,frontend,100 - 500,709000.0,0
+38.0,0.0,4.0,"in-house, privat sektor",Møre og Romsdal,fullstack,over 10.000,700000.0,0
+38.0,5.0,10.0,konsulent,Oslo,fullstack,500 - 1.000,1045000.0,1
+28.0,4.0,8.0,konsulent,Oslo,fullstack,1.000 - 10.000,862000.0,0
+53.0,3.0,33.0,"in-house, privat sektor",Møre og Romsdal,arkitektur,1.000 - 10.000,1100000.0,1
+28.0,4.0,12.0,konsulent,utlandet,devops,1.000 - 10.000,1000000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Viken,frontend,10 - 50,600000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Oslo,app,50 - 100,590000.0,0
+48.0,7.0,23.0,konsulent,Vestland,backend,100 - 500,1300000.0,1
+53.0,3.0,27.0,"in-house, privat sektor",Rogaland,backend,100 - 500,915000.0,1
+38.0,0.0,14.0,konsulent,Trøndelag,sikkerhet,100 - 500,750000.0,1
+48.0,3.0,25.0,frilans / selvstendig næringsdrivende,Viken,arkitektur,under 10,2500000.0,1
+38.0,0.0,16.0,"in-house, offentlig/kommunal sektor",Innlandet,arkitektur,100 - 500,1000000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Vestland,backend,100 - 500,990000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,1.000 - 10.000,2950000.0,1
+38.0,0.0,6.0,"in-house, privat sektor",Oslo,frontend,10 - 50,875000.0,0
+33.0,0.0,15.0,konsulent,Rogaland,fullstack,50 - 100,1400000.0,1
+33.0,3.0,7.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,backend,100 - 500,590000.0,0
+28.0,4.0,5.0,konsulent,Oslo,fullstack,50 - 100,840000.0,1
+28.0,5.0,0.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,750000.0,1
+23.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Trøndelag,ingen av disse,100 - 500,550000.0,0
+23.0,2.0,2.0,"in-house, privat sektor",Møre og Romsdal,UX / design,under 10,500000.0,1
+28.0,0.0,6.0,konsulent,Vestland,fullstack,100 - 500,780000.0,1
+33.0,3.0,6.0,konsulent,Oslo,frontend,100 - 500,1250000.0,1
+28.0,5.0,5.0,konsulent,Vestland,frontend,over 10.000,650000.0,0
+48.0,4.0,25.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,780000.0,0
+33.0,2.0,0.0,"in-house, privat sektor",Vestland,frontend,10 - 50,650000.0,1
+38.0,5.0,11.0,"in-house, privat sektor",Vestland,backend,500 - 1.000,1000000.0,1
+43.0,3.0,18.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1200000.0,1
+23.0,1.0,1.0,"in-house, privat sektor",Rogaland,frontend,10 - 50,500000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Nordland,fullstack,100 - 500,600000.0,1
+33.0,5.0,7.0,konsulent,Viken,backend,1.000 - 10.000,850000.0,1
+28.0,4.0,8.0,konsulent,Vestfold og Telemark,databaser,500 - 1.000,498000.0,0
+38.0,8.0,10.0,konsulent,Møre og Romsdal,data science,10 - 50,890000.0,1
+23.0,4.0,6.0,"in-house, privat sektor",Oslo,programvare,50 - 100,808000.0,1
+38.0,4.0,10.0,"in-house, privat sektor",Troms og Finnmark,ledelse/administrativt,under 10,990000.0,1
+33.0,5.0,9.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1100000.0,1
+28.0,3.0,4.0,konsulent,Møre og Romsdal,frontend,10 - 50,750000.0,1
+53.0,5.0,27.0,"in-house, privat sektor",Innlandet,fullstack,100 - 500,924000.0,0
+43.0,5.0,17.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,1.000 - 10.000,560000.0,0
+23.0,0.0,2.0,"in-house, privat sektor",Oslo,fullstack,over 10.000,610000.0,1
+23.0,3.0,1.0,konsulent,Oslo,fullstack,1.000 - 10.000,700000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,800000.0,1
+33.0,3.0,4.0,konsulent,Oslo,fullstack,1.000 - 10.000,890000.0,0
+33.0,0.0,15.0,"in-house, privat sektor",Rogaland,fullstack,50 - 100,1200000.0,1
+28.0,3.0,2.0,konsulent,Oslo,fullstack,100 - 500,700000.0,1
+33.0,5.0,9.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,750000.0,0
+48.0,3.0,11.0,konsulent,Møre og Romsdal,fullstack,over 10.000,875000.0,1
+38.0,6.0,17.0,"in-house, privat sektor",Oslo,automatisering,1.000 - 10.000,1300000.0,0
+28.0,3.0,1.0,konsulent,Oslo,backend,over 10.000,598500.0,0
+28.0,5.0,7.0,konsulent,Oslo,devops,500 - 1.000,930000.0,1
+23.0,3.0,2.0,konsulent,Trøndelag,fullstack,over 10.000,630000.0,0
+33.0,3.0,12.0,"in-house, privat sektor",Oslo,app,50 - 100,980000.0,1
+33.0,4.0,5.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,720000.0,0
+28.0,2.0,0.0,"in-house, privat sektor",Oslo,frontend,100 - 500,570000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,1.000 - 10.000,650000.0,1
+28.0,5.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,backend,500 - 1.000,700000.0,0
+38.0,6.0,4.0,"in-house, privat sektor",Oslo,data science,over 10.000,1000000.0,1
+23.0,3.0,3.0,"in-house, privat sektor",Møre og Romsdal,backend,10 - 50,650000.0,0
+23.0,2.0,0.0,konsulent,Oslo,app,100 - 500,500000.0,0
+38.0,5.0,11.0,konsulent,Rogaland,fullstack,over 10.000,950000.0,1
+48.0,3.0,27.0,"in-house, privat sektor",Trøndelag,backend,1.000 - 10.000,1000000.0,0
+38.0,3.0,12.0,"in-house, privat sektor",Oslo,backend,over 10.000,850000.0,0
+43.0,3.0,24.0,"in-house, privat sektor",Agder,sikkerhet,1.000 - 10.000,940000.0,0
+28.0,4.0,3.0,konsulent,Oslo,fullstack,under 10,1200000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,627000.0,0
+33.0,5.0,5.0,"in-house, privat sektor",Agder,fullstack,500 - 1.000,770000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Rogaland,frontend,10 - 50,700000.0,1
+33.0,5.0,7.0,konsulent,Oslo,frontend,100 - 500,830000.0,0
+43.0,3.0,17.0,"in-house, privat sektor",Vestland,sikkerhet,500 - 1.000,940000.0,1
+43.0,4.0,14.0,"in-house, privat sektor",Vestland,arkitektur,over 10.000,1500000.0,0
+28.0,3.0,4.0,konsulent,Viken,backend,1.000 - 10.000,600000.0,1
+43.0,7.0,12.0,konsulent,Oslo,sikkerhet,1.000 - 10.000,1200000.0,0
+33.0,6.0,8.0,konsulent,Oslo,devops,50 - 100,1425000.0,1
+23.0,3.0,0.0,konsulent,Oslo,arkitektur,10 - 50,600000.0,1
+48.0,6.0,23.0,"in-house, privat sektor",Møre og Romsdal,backend,500 - 1.000,750000.0,1
+43.0,3.0,20.0,"in-house, privat sektor",Vestfold og Telemark,ledelse/administrativt,50 - 100,1600000.0,0
+28.0,3.0,3.0,"in-house, privat sektor",Rogaland,fullstack,under 10,750000.0,1
+33.0,2.0,10.0,"in-house, privat sektor",Oslo,frontend,100 - 500,800000.0,1
+33.0,3.0,6.0,konsulent,Agder,fullstack,50 - 100,700000.0,0
+38.0,3.0,17.0,"in-house, privat sektor",Viken,fullstack,10 - 50,1350000.0,1
+23.0,5.0,0.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,605000.0,1
+28.0,3.0,7.0,konsulent,Oslo,frontend,under 10,2000000.0,1
+23.0,3.0,1.0,konsulent,Oslo,fullstack,100 - 500,580000.0,0
+38.0,9.0,12.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1130000.0,1
+38.0,5.0,11.0,"in-house, privat sektor",utlandet,fullstack,1.000 - 10.000,1573000.0,1
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,850000.0,1
+28.0,3.0,3.0,konsulent,Viken,frontend,100 - 500,840000.0,1
+38.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Nordland,ingen av disse,100 - 500,550000.0,0
+28.0,3.0,2.0,"in-house, privat sektor",Nordland,fullstack,under 10,550000.0,0
+38.0,3.0,11.0,"in-house, privat sektor",Agder,backend,10 - 50,870000.0,1
+28.0,5.0,6.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,823000.0,1
+33.0,4.0,5.0,"in-house, privat sektor",Troms og Finnmark,fullstack,under 10,567000.0,1
+48.0,3.0,23.0,konsulent,Trøndelag,frontend,1.000 - 10.000,820000.0,1
+38.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Innlandet,backend,500 - 1.000,526000.0,0
+23.0,2.0,2.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,600000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Viken,fullstack,10 - 50,665000.0,1
+28.0,3.0,2.0,konsulent,Rogaland,frontend,10 - 50,650000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,ingen av disse,10 - 50,520000.0,0
+53.0,3.0,25.0,"in-house, privat sektor",Oslo,backend,100 - 500,850000.0,0
+28.0,5.0,2.0,konsulent,Oslo,frontend,100 - 500,675000.0,0
+33.0,5.0,10.0,"in-house, privat sektor",Vestland,app,500 - 1.000,1010000.0,1
+28.0,5.0,4.0,konsulent,Oslo,fullstack,50 - 100,830000.0,1
+43.0,5.0,16.0,"in-house, offentlig/kommunal sektor",Vestland,backend,over 10.000,1024200.0,1
+38.0,0.0,20.0,"in-house, privat sektor",Oslo,frontend,under 10,700000.0,0
+28.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,backend,500 - 1.000,850000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,639000.0,0
+28.0,1.0,6.0,"in-house, privat sektor",Viken,backend,under 10,585400.0,0
+38.0,1.0,5.0,"in-house, privat sektor",Agder,frontend,10 - 50,550000.0,0
+23.0,2.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,600000.0,1
+38.0,0.0,2.0,"in-house, privat sektor",Trøndelag,frontend,10 - 50,500000.0,0
+48.0,5.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,1.000 - 10.000,1100000.0,1
+38.0,1.0,5.0,"in-house, privat sektor",Agder,fullstack,1.000 - 10.000,770000.0,1
+43.0,5.0,15.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,1150000.0,1
+38.0,2.0,3.0,konsulent,Rogaland,frontend,10 - 50,540000.0,0
+38.0,5.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,690000.0,0
+28.0,3.0,0.0,konsulent,Oslo,fullstack,1.000 - 10.000,630000.0,1
+28.0,3.0,5.0,konsulent,Møre og Romsdal,backend,1.000 - 10.000,1000000.0,1
+48.0,0.0,27.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,900000.0,1
+23.0,3.0,3.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,615000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,frontend,over 10.000,750000.0,1
+38.0,5.0,13.0,"in-house, privat sektor",Innlandet,backend,100 - 500,870000.0,0
+38.0,0.0,5.0,"in-house, privat sektor",Viken,programvare,10 - 50,780000.0,1
+33.0,5.0,3.0,konsulent,Oslo,data science,100 - 500,850000.0,1
+23.0,5.0,0.0,"in-house, privat sektor",Oslo,data science,over 10.000,750000.0,1
+28.0,3.0,2.0,konsulent,Oslo,backend,1.000 - 10.000,665000.0,0
+33.0,3.0,3.0,"in-house, privat sektor",Viken,backend,10 - 50,700000.0,1
+28.0,5.0,4.0,konsulent,Vestland,frontend,100 - 500,1100000.0,1
+48.0,4.0,18.0,"in-house, privat sektor",Trøndelag,programvare,10 - 50,680000.0,1
+33.0,5.0,4.0,"in-house, privat sektor",Troms og Finnmark,ledelse/administrativt,100 - 500,880000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,100 - 500,840000.0,1
+23.0,4.0,1.0,"in-house, privat sektor",Viken,app,1.000 - 10.000,500000.0,0
+38.0,3.0,14.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,10 - 50,1050000.0,1
+33.0,5.0,10.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,1034000.0,1
+48.0,7.0,18.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,under 10,620000.0,0
+28.0,3.0,4.0,konsulent,Oslo,frontend,100 - 500,720000.0,1
+28.0,3.0,1.0,konsulent,Viken,fullstack,1.000 - 10.000,560000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,ingen av disse,500 - 1.000,500000.0,0
+33.0,3.0,12.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,724000.0,0
+28.0,3.0,11.0,konsulent,Rogaland,automatisering,50 - 100,800000.0,1
+28.0,5.0,0.0,"in-house, privat sektor",Møre og Romsdal,fullstack,50 - 100,500000.0,0
+28.0,3.0,4.0,konsulent,Oslo,frontend,1.000 - 10.000,600000.0,0
+43.0,5.0,15.0,konsulent,Møre og Romsdal,fullstack,50 - 100,850000.0,0
+28.0,2.0,0.0,konsulent,Trøndelag,data science,over 10.000,550000.0,0
+28.0,5.0,7.0,"in-house, privat sektor",Vestland,ledelse/administrativt,under 10,660000.0,0
+28.0,0.0,5.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,under 10,600000.0,0
+33.0,3.0,5.0,konsulent,Rogaland,ledelse/administrativt,50 - 100,629000.0,0
+33.0,5.0,7.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,100 - 500,825000.0,0
+38.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,670000.0,0
+33.0,0.0,10.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,998000.0,0
+38.0,5.0,13.0,"in-house, privat sektor",Trøndelag,fullstack,100 - 500,1119116.0,1
+33.0,3.0,2.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,559000.0,0
+38.0,3.0,11.0,"in-house, privat sektor",Oslo,automatisering,1.000 - 10.000,1000000.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,app,100 - 500,820000.0,0
+28.0,6.0,2.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,800000.0,1
+33.0,5.0,7.0,konsulent,Oslo,backend,100 - 500,1100000.0,1
+48.0,5.0,22.0,konsulent,Vestland,backend,50 - 100,1136000.0,1
+33.0,0.0,7.0,"in-house, privat sektor",Nordland,ledelse/administrativt,10 - 50,720000.0,1
+43.0,4.0,19.0,konsulent,Oslo,fullstack,10 - 50,1400000.0,1
+23.0,5.0,0.0,konsulent,Oslo,backend,500 - 1.000,610000.0,0
+33.0,3.0,10.0,"in-house, privat sektor",Agder,backend,10 - 50,740000.0,0
+23.0,3.0,4.0,"in-house, privat sektor",Troms og Finnmark,app,50 - 100,750000.0,0
+33.0,3.0,4.0,"in-house, privat sektor",Troms og Finnmark,fullstack,100 - 500,630000.0,0
+43.0,1.0,23.0,konsulent,Oslo,databaser,1.000 - 10.000,1300000.0,1
+48.0,5.0,23.0,konsulent,Oslo,app,10 - 50,1360000.0,1
+38.0,3.0,20.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,1070000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Rogaland,frontend,50 - 100,570000.0,0
+23.0,5.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,UX / design,100 - 500,630000.0,1
+38.0,5.0,16.0,konsulent,Oslo,fullstack,10 - 50,1600000.0,1
+28.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,over 10.000,626000.0,0
+38.0,5.0,15.0,"in-house, privat sektor",Trøndelag,ledelse/administrativt,100 - 500,1000000.0,1
+33.0,4.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,1.000 - 10.000,725000.0,0
+28.0,5.0,5.0,konsulent,Oslo,frontend,100 - 500,953000.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,660000.0,0
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,databaser,100 - 500,830000.0,1
+38.0,0.0,10.0,"in-house, privat sektor",Oslo,frontend,under 10,950000.0,1
+38.0,2.0,15.0,konsulent,Viken,devops,100 - 500,1050000.0,1
+38.0,3.0,11.0,konsulent,Oslo,devops,50 - 100,1100000.0,1
+28.0,5.0,1.0,konsulent,Vestland,backend,1.000 - 10.000,600000.0,0
+43.0,3.0,3.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,600000.0,0
+33.0,4.0,4.0,konsulent,Innlandet,fullstack,1.000 - 10.000,668000.0,1
+33.0,0.0,1.0,konsulent,Vestfold og Telemark,frontend,500 - 1.000,720000.0,0
+43.0,5.0,20.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,2950000.0,1
+23.0,3.0,4.0,konsulent,Innlandet,fullstack,under 10,550000.0,1
+23.0,2.0,0.0,"in-house, privat sektor",Møre og Romsdal,programvare,50 - 100,530000.0,0
+33.0,0.0,15.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,992748.0,1
+38.0,4.0,18.0,"in-house, privat sektor",Vestland,ledelse/administrativt,1.000 - 10.000,700000.0,0
+38.0,5.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,data science,over 10.000,570000.0,1
+43.0,3.0,16.0,konsulent,Oslo,arkitektur,10 - 50,910000.0,1
+28.0,5.0,5.0,"in-house, offentlig/kommunal sektor",Agder,backend,1.000 - 10.000,750000.0,1
+23.0,5.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,devops,500 - 1.000,725000.0,1
+23.0,3.0,5.0,konsulent,Vestland,fullstack,50 - 100,1520000.0,1
+38.0,0.0,21.0,konsulent,Oslo,arkitektur,100 - 500,1030000.0,1
+28.0,6.0,4.0,konsulent,Oslo,devops,100 - 500,960000.0,1
+28.0,5.0,2.0,konsulent,Vestland,backend,1.000 - 10.000,630000.0,0
+43.0,1.0,20.0,"in-house, privat sektor",Oslo,automatisering,10 - 50,880000.0,0
+38.0,5.0,14.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,945000.0,0
+28.0,3.0,7.0,"in-house, privat sektor",Oslo,app,500 - 1.000,756000.0,0
+23.0,5.0,1.0,konsulent,Oslo,UX / design,500 - 1.000,650000.0,1
+38.0,3.0,13.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,500 - 1.000,700000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Vestland,fullstack,1.000 - 10.000,675000.0,1
+23.0,5.0,2.0,konsulent,Oslo,backend,100 - 500,775000.0,1
+53.0,3.0,30.0,"in-house, privat sektor",Viken,ledelse/administrativt,100 - 500,840000.0,0
+23.0,5.0,1.0,"in-house, privat sektor",utlandet,fullstack,under 10,661000.0,1
+38.0,5.0,14.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1250000.0,1
+38.0,5.0,8.0,konsulent,Vestland,devops,over 10.000,670000.0,0
+33.0,5.0,5.0,"in-house, privat sektor",Troms og Finnmark,backend,100 - 500,675000.0,0
+38.0,0.0,5.0,"in-house, privat sektor",Rogaland,automatisering,100 - 500,522000.0,0
+48.0,3.0,25.0,"in-house, privat sektor",Møre og Romsdal,fullstack,under 10,750000.0,1
+23.0,3.0,3.0,konsulent,Oslo,backend,1.000 - 10.000,710000.0,1
+28.0,0.0,10.0,konsulent,Trøndelag,fullstack,under 10,700000.0,1
+38.0,0.0,17.0,"in-house, privat sektor",Trøndelag,backend,10 - 50,841500.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,730000.0,0
+38.0,10.0,8.0,"in-house, privat sektor",Rogaland,fullstack,over 10.000,1130000.0,1
+38.0,3.0,16.0,"in-house, privat sektor",Oslo,devops,over 10.000,1130000.0,1
+28.0,3.0,6.0,"in-house, offentlig/kommunal sektor",Trøndelag,backend,500 - 1.000,810000.0,0
+33.0,0.0,0.0,"in-house, privat sektor",Oslo,UX / design,50 - 100,500000.0,1
+48.0,5.0,5.0,"in-house, privat sektor",Troms og Finnmark,devops,100 - 500,690000.0,0
+28.0,5.0,2.0,konsulent,Oslo,data science,100 - 500,610000.0,0
+33.0,3.0,5.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,730000.0,0
+38.0,1.0,1.0,"in-house, privat sektor",Oslo,frontend,10 - 50,600000.0,1
+33.0,5.0,5.0,konsulent,Oslo,fullstack,10 - 50,825000.0,1
+43.0,5.0,15.0,konsulent,Oslo,backend,100 - 500,1060000.0,1
+33.0,3.0,13.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,1400000.0,1
+28.0,4.0,3.0,konsulent,Trøndelag,backend,100 - 500,790000.0,1
+28.0,3.0,1.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,500000.0,0
+28.0,3.0,5.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,750000.0,0
+33.0,7.0,8.0,konsulent,Oslo,ledelse/administrativt,1.000 - 10.000,970000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Vestland,frontend,under 10,600000.0,0
+43.0,3.0,10.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,500 - 1.000,780000.0,1
+48.0,9.0,19.0,"in-house, offentlig/kommunal sektor",Oslo,ingen av disse,1.000 - 10.000,550000.0,0
+33.0,4.0,5.0,"in-house, offentlig/kommunal sektor",Trøndelag,ledelse/administrativt,500 - 1.000,630000.0,0
+38.0,0.0,14.0,"in-house, privat sektor",Viken,ingen av disse,over 10.000,460000.0,0
+33.0,3.0,12.0,konsulent,Viken,fullstack,50 - 100,950000.0,1
+43.0,3.0,19.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,800000.0,0
+33.0,5.0,9.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,1150000.0,1
+28.0,3.0,7.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,750000.0,1
+38.0,5.0,14.0,"in-house, privat sektor",Oslo,arkitektur,100 - 500,1150000.0,0
+53.0,2.0,25.0,"in-house, privat sektor",Trøndelag,programvare,100 - 500,720000.0,0
+28.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,550000.0,1
+48.0,3.0,21.0,"in-house, privat sektor",Oslo,app,50 - 100,690000.0,0
+28.0,3.0,4.0,konsulent,Vestland,frontend,10 - 50,800000.0,1
+33.0,5.0,6.0,konsulent,Trøndelag,arkitektur,10 - 50,1200000.0,1
+38.0,3.0,14.0,konsulent,Viken,backend,100 - 500,1010000.0,1
+33.0,3.0,8.0,"in-house, privat sektor",Oslo,frontend,10 - 50,760000.0,1
+23.0,5.0,1.0,"in-house, privat sektor",Oslo,programvare,100 - 500,685000.0,0
+28.0,4.0,4.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,1050000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,backend,over 10.000,950000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,devops,100 - 500,800000.0,1
+38.0,3.0,16.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,ingen av disse,50 - 100,690000.0,0
+28.0,2.0,2.0,"in-house, privat sektor",Vestland,UX / design,10 - 50,360000.0,0
+33.0,3.0,5.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,devops,100 - 500,630000.0,0
+23.0,3.0,3.0,"in-house, privat sektor",Oslo,backend,100 - 500,800000.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,programvare,under 10,700000.0,0
+28.0,5.0,0.0,konsulent,Oslo,UX / design,500 - 1.000,610000.0,1
+38.0,5.0,8.0,konsulent,Oslo,backend,under 10,1000000.0,1
+28.0,5.0,4.0,konsulent,Oslo,backend,100 - 500,900000.0,0
+33.0,4.0,5.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,700000.0,0
+43.0,9.0,18.0,konsulent,Vestland,arkitektur,over 10.000,1030000.0,1
+33.0,4.0,15.0,"in-house, privat sektor",Rogaland,fullstack,100 - 500,1000000.0,1
+28.0,3.0,5.0,konsulent,Oslo,fullstack,1.000 - 10.000,855000.0,1
+28.0,5.0,1.0,konsulent,Oslo,backend,1.000 - 10.000,614000.0,1
+63.0,3.0,41.0,konsulent,Oslo,databaser,1.000 - 10.000,1300000.0,1
+53.0,8.0,25.0,"in-house, privat sektor",Trøndelag,programvare,100 - 500,830000.0,1
+38.0,0.0,11.0,konsulent,Oslo,data science,500 - 1.000,900000.0,1
+17.5,2.0,0.0,"in-house, privat sektor",Møre og Romsdal,frontend,100 - 500,420000.0,0
+33.0,3.0,7.0,"in-house, privat sektor",Trøndelag,programvare,10 - 50,723000.0,0
+58.0,0.0,37.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1500000.0,1
+33.0,3.0,1.0,konsulent,Trøndelag,frontend,10 - 50,550000.0,0
+43.0,4.0,20.0,"in-house, offentlig/kommunal sektor",Viken,fullstack,1.000 - 10.000,880000.0,0
+38.0,3.0,10.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,500 - 1.000,890000.0,1
+33.0,5.0,11.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,1.000 - 10.000,800000.0,1
+43.0,4.0,6.0,"in-house, privat sektor",Innlandet,backend,500 - 1.000,950000.0,1
+33.0,4.0,5.0,konsulent,Vestfold og Telemark,fullstack,100 - 500,1200000.0,1
+23.0,1.0,7.0,"in-house, privat sektor",utlandet,devops,100 - 500,940000.0,1
+28.0,5.0,1.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,900000.0,1
+28.0,5.0,4.0,konsulent,Oslo,frontend,100 - 500,770000.0,0
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,frontend,under 10,720000.0,1
+33.0,1.0,0.0,"in-house, offentlig/kommunal sektor",Vestland,frontend,500 - 1.000,687000.0,1
+28.0,2.0,7.0,"in-house, privat sektor",Vestland,ledelse/administrativt,under 10,947000.0,1
+33.0,2.0,4.0,"in-house, privat sektor",Troms og Finnmark,frontend,over 10.000,750000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Troms og Finnmark,fullstack,50 - 100,750000.0,0
+33.0,5.0,5.0,konsulent,Vestland,data science,10 - 50,750000.0,0
+38.0,3.0,7.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,500 - 1.000,720000.0,0
+33.0,3.0,7.0,"in-house, privat sektor",Viken,fullstack,100 - 500,690000.0,0
+33.0,5.0,1.0,"in-house, privat sektor",Vestland,automatisering,100 - 500,800000.0,1
+33.0,3.0,10.0,konsulent,Oslo,backend,10 - 50,1200000.0,1
+43.0,4.0,24.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,1050000.0,1
+28.0,0.0,1.0,"in-house, privat sektor",Innlandet,fullstack,100 - 500,350000.0,0
+38.0,3.0,14.0,konsulent,Oslo,arkitektur,100 - 500,1050000.0,1
+58.0,8.0,34.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,870000.0,1
+28.0,0.0,10.0,konsulent,Agder,programvare,10 - 50,1250000.0,1
+38.0,3.0,4.0,"in-house, privat sektor",Agder,backend,100 - 500,700000.0,1
+33.0,5.0,8.0,konsulent,Oslo,arkitektur,10 - 50,1400000.0,1
+28.0,3.0,1.0,konsulent,Oslo,fullstack,100 - 500,560000.0,0
+33.0,0.0,7.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,630000.0,1
+23.0,5.0,1.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,652000.0,0
+33.0,5.0,3.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,975000.0,1
+38.0,5.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,automatisering,1.000 - 10.000,761000.0,1
+33.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Trøndelag,fullstack,50 - 100,600500.0,0
+53.0,5.0,25.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,frontend,over 10.000,986000.0,1
+23.0,3.0,3.0,"in-house, privat sektor",Oslo,fullstack,under 10,530000.0,0
+48.0,4.0,25.0,"in-house, privat sektor",Møre og Romsdal,automatisering,100 - 500,850000.0,1
+38.0,5.0,13.0,"in-house, offentlig/kommunal sektor",Oslo,backend,10 - 50,874192.0,1
+38.0,4.0,10.0,"in-house, privat sektor",Viken,automatisering,10 - 50,800000.0,1
+43.0,3.0,23.0,"in-house, privat sektor",Viken,fullstack,under 10,1200000.0,1
+33.0,5.0,2.0,"in-house, privat sektor",Innlandet,fullstack,1.000 - 10.000,600000.0,1
+23.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,backend,over 10.000,650000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,arkitektur,over 10.000,790000.0,0
+28.0,0.0,7.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,850000.0,0
+33.0,0.0,3.0,"in-house, privat sektor",Oslo,backend,100 - 500,750000.0,1
+48.0,2.0,6.0,"in-house, privat sektor",Vestland,ingen av disse,10 - 50,500000.0,0
+33.0,5.0,5.0,konsulent,Oslo,fullstack,50 - 100,890000.0,1
+38.0,2.0,20.0,konsulent,Møre og Romsdal,arkitektur,1.000 - 10.000,1200000.0,1
+28.0,3.0,6.0,konsulent,Rogaland,frontend,1.000 - 10.000,895000.0,1
+33.0,4.0,9.0,"in-house, privat sektor",Oslo,programvare,over 10.000,750000.0,0
+28.0,3.0,5.0,konsulent,Trøndelag,fullstack,10 - 50,654000.0,1
+23.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,automatisering,over 10.000,574500.0,1
+23.0,0.0,3.0,"in-house, privat sektor",Viken,frontend,10 - 50,450000.0,1
+33.0,5.0,6.0,"in-house, privat sektor",Vestfold og Telemark,devops,50 - 100,875000.0,1
+43.0,3.0,23.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,970000.0,1
+23.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,550000.0,1
+38.0,4.0,12.0,konsulent,Oslo,ledelse/administrativt,50 - 100,1250000.0,1
+43.0,4.0,18.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,10 - 50,840000.0,1
+38.0,2.0,3.0,"in-house, privat sektor",Oslo,app,100 - 500,600000.0,0
+33.0,3.0,5.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,1400000.0,1
+28.0,3.0,4.0,konsulent,Oslo,frontend,500 - 1.000,820000.0,0
+23.0,3.0,3.0,"in-house, privat sektor",Oslo,frontend,100 - 500,720000.0,1
+28.0,3.0,3.0,"in-house, privat sektor",Rogaland,fullstack,1.000 - 10.000,600000.0,1
+38.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,723000.0,1
+33.0,5.0,7.0,konsulent,Oslo,frontend,100 - 500,930000.0,0
+48.0,7.0,20.0,frilans / selvstendig næringsdrivende,Vestland,fullstack,under 10,750000.0,1
+48.0,4.0,24.0,"in-house, privat sektor",Viken,arkitektur,50 - 100,1200000.0,1
+33.0,4.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,604000.0,0
+23.0,6.0,1.0,konsulent,Oslo,app,500 - 1.000,630000.0,1
+28.0,4.0,7.0,konsulent,Møre og Romsdal,frontend,50 - 100,700000.0,1
+28.0,3.0,6.0,konsulent,Vestland,fullstack,over 10.000,1000000.0,1
+38.0,5.0,12.0,"in-house, privat sektor",Oslo,backend,50 - 100,1030000.0,1
+33.0,5.0,9.0,"in-house, privat sektor",Oslo,data science,10 - 50,1900000.0,1
+28.0,3.0,4.0,konsulent,Møre og Romsdal,fullstack,50 - 100,565000.0,0
+48.0,3.0,22.0,"in-house, privat sektor",Innlandet,fullstack,1.000 - 10.000,860000.0,1
+38.0,3.0,12.0,konsulent,Oslo,frontend,50 - 100,1100000.0,1
+38.0,3.0,16.0,konsulent,Oslo,arkitektur,500 - 1.000,1000000.0,1
+53.0,5.0,30.0,konsulent,Oslo,sikkerhet,10 - 50,2000000.0,1
+48.0,4.0,24.0,konsulent,Møre og Romsdal,sikkerhet,1.000 - 10.000,1100000.0,1
+28.0,5.0,5.0,konsulent,Rogaland,arkitektur,1.000 - 10.000,800000.0,1
+33.0,5.0,8.0,"in-house, privat sektor",Rogaland,fullstack,100 - 500,1000000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,810000.0,1
+48.0,5.0,25.0,konsulent,Oslo,sikkerhet,50 - 100,1500000.0,1
+33.0,5.0,12.0,konsulent,Oslo,fullstack,10 - 50,1200000.0,1
+38.0,3.0,2.0,"in-house, privat sektor",Vestland,frontend,10 - 50,620000.0,1
+28.0,3.0,3.0,konsulent,Oslo,frontend,1.000 - 10.000,690000.0,0
+53.0,3.0,15.0,"in-house, privat sektor",Møre og Romsdal,fullstack,50 - 100,650000.0,0
+33.0,3.0,5.0,"in-house, privat sektor",Oslo,devops,100 - 500,668000.0,1
+38.0,7.0,14.0,konsulent,Oslo,fullstack,10 - 50,1300000.0,1
+23.0,5.0,1.0,konsulent,Oslo,databaser,1.000 - 10.000,650000.0,1
+33.0,9.0,5.0,"in-house, offentlig/kommunal sektor",Vestland,ingen av disse,1.000 - 10.000,710000.0,0
+38.0,5.0,11.0,konsulent,Innlandet,frontend,10 - 50,1060000.0,1
+53.0,0.0,36.0,konsulent,Agder,ingen av disse,1.000 - 10.000,980000.0,1
+28.0,5.0,5.0,konsulent,Oslo,fullstack,100 - 500,950000.0,1
+43.0,4.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,817400.0,0
+23.0,3.0,0.0,"in-house, privat sektor",Viken,arkitektur,1.000 - 10.000,550000.0,0
+28.0,5.0,1.0,"in-house, privat sektor",Trøndelag,data science,1.000 - 10.000,860000.0,1
+43.0,9.0,9.0,"in-house, offentlig/kommunal sektor",Oslo,programvare,1.000 - 10.000,600000.0,0
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,app,50 - 100,1000000.0,1
+53.0,4.0,28.0,konsulent,Oslo,arkitektur,1.000 - 10.000,1300000.0,1
+33.0,5.0,6.0,konsulent,Oslo,frontend,100 - 500,1000000.0,1
+33.0,3.0,9.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,950000.0,1
+28.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,10 - 50,560000.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,1.000 - 10.000,788000.0,1
+48.0,8.0,23.0,"in-house, offentlig/kommunal sektor",Oslo,arkitektur,100 - 500,1300000.0,1
+38.0,3.0,12.0,frilans / selvstendig næringsdrivende,Viken,programvare,under 10,1600000.0,1
+38.0,3.0,10.0,"in-house, privat sektor",Oslo,fullstack,under 10,775000.0,0
+33.0,5.0,8.0,konsulent,Oslo,fullstack,1.000 - 10.000,1040000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,devops,500 - 1.000,700000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Innlandet,ledelse/administrativt,50 - 100,1300000.0,1
+17.5,5.0,5.0,"in-house, offentlig/kommunal sektor",Agder,sikkerhet,1.000 - 10.000,500000.0,1
+48.0,3.0,25.0,"in-house, privat sektor",Agder,ledelse/administrativt,100 - 500,1300000.0,0
+28.0,3.0,0.0,"in-house, privat sektor",Oslo,app,under 10,560000.0,1
+33.0,3.0,6.0,konsulent,Oslo,fullstack,100 - 500,1400000.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Agder,backend,under 10,1200000.0,1
+23.0,0.0,4.0,"in-house, privat sektor",Trøndelag,backend,under 10,550000.0,1
+33.0,3.0,7.0,"in-house, offentlig/kommunal sektor",Oslo,backend,100 - 500,850000.0,1
+48.0,0.0,17.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,670000.0,0
+38.0,3.0,16.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,930000.0,1
+38.0,3.0,10.0,frilans / selvstendig næringsdrivende,Trøndelag,ledelse/administrativt,10 - 50,1500000.0,1
+43.0,5.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,UX / design,500 - 1.000,930000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Vestland,fullstack,50 - 100,650000.0,1
+38.0,5.0,15.0,"in-house, privat sektor",Møre og Romsdal,fullstack,100 - 500,926000.0,1
+43.0,2.0,13.0,konsulent,Vestland,backend,1.000 - 10.000,805000.0,1
+28.0,3.0,0.0,konsulent,Oslo,backend,500 - 1.000,585000.0,0
+23.0,4.0,1.0,"in-house, privat sektor",Trøndelag,backend,100 - 500,502000.0,1
+23.0,2.0,0.0,"in-house, privat sektor",Rogaland,frontend,10 - 50,480000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Vestland,backend,100 - 500,750000.0,1
+28.0,2.0,10.0,konsulent,Oslo,fullstack,10 - 50,650000.0,0
+43.0,3.0,20.0,"in-house, privat sektor",Viken,backend,1.000 - 10.000,875000.0,0
+33.0,1.0,1.0,"in-house, privat sektor",Agder,ingen av disse,under 10,500000.0,0
+28.0,5.0,6.0,"in-house, privat sektor",Trøndelag,fullstack,under 10,840000.0,1
+43.0,3.0,20.0,"in-house, privat sektor",utlandet,ledelse/administrativt,under 10,500000.0,0
+38.0,1.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,550000.0,0
+48.0,3.0,26.0,"in-house, privat sektor",Trøndelag,backend,500 - 1.000,950000.0,1
+43.0,2.0,23.0,"in-house, privat sektor",Oslo,data science,100 - 500,911000.0,1
+38.0,3.0,10.0,konsulent,Oslo,testing,1.000 - 10.000,850000.0,0
+33.0,3.0,4.0,"in-house, privat sektor",Oslo,frontend,100 - 500,704000.0,0
+38.0,5.0,10.0,konsulent,Oslo,backend,10 - 50,1900000.0,1
+48.0,3.0,23.0,"in-house, privat sektor",Trøndelag,fullstack,100 - 500,980000.0,1
+38.0,3.0,4.0,konsulent,Oslo,programvare,100 - 500,740000.0,1
+28.0,5.0,2.0,konsulent,Oslo,data science,1.000 - 10.000,750000.0,0
+28.0,5.0,3.0,konsulent,Oslo,fullstack,100 - 500,890000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,ingen av disse,10 - 50,400000.0,0
+38.0,0.0,15.0,"in-house, privat sektor",Vestfold og Telemark,backend,500 - 1.000,865000.0,1
+38.0,6.0,6.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,over 10.000,900000.0,1
+23.0,3.0,0.0,"in-house, privat sektor",Nordland,backend,100 - 500,600000.0,1
+28.0,4.0,7.0,konsulent,Oslo,app,100 - 500,800000.0,0
+43.0,5.0,15.0,konsulent,Nordland,ingen av disse,over 10.000,570000.0,0
+23.0,3.0,3.0,konsulent,Oslo,fullstack,10 - 50,750000.0,0
+43.0,1.0,24.0,"in-house, privat sektor",Oslo,backend,10 - 50,1350000.0,1
+23.0,1.0,1.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,ingen av disse,100 - 500,475000.0,1
+28.0,3.0,4.0,konsulent,Oslo,frontend,50 - 100,1200000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,650000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,735000.0,1
+48.0,3.0,19.0,"in-house, offentlig/kommunal sektor",Oslo,backend,100 - 500,890000.0,0
+38.0,5.0,11.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,910000.0,1
+43.0,3.0,20.0,"in-house, privat sektor",Oslo,ledelse/administrativt,500 - 1.000,1016320.0,1
+23.0,1.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,programvare,1.000 - 10.000,500000.0,1
+23.0,0.0,1.0,"in-house, privat sektor",Vestfold og Telemark,programvare,100 - 500,450000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Oslo,ledelse/administrativt,50 - 100,1200000.0,1
+28.0,3.0,7.0,konsulent,Vestfold og Telemark,fullstack,10 - 50,670000.0,1
+33.0,6.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,ingen av disse,under 10,500000.0,0
+28.0,3.0,3.0,konsulent,Oslo,UX / design,50 - 100,500000.0,0
+48.0,3.0,24.0,"in-house, offentlig/kommunal sektor",Nordland,arkitektur,500 - 1.000,740000.0,1
+33.0,7.0,9.0,"in-house, privat sektor",Trøndelag,data science,10 - 50,750000.0,1
+28.0,3.0,5.0,konsulent,Oslo,frontend,100 - 500,680000.0,0
+28.0,5.0,2.0,konsulent,Oslo,backend,100 - 500,670000.0,0
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,559000.0,0
+28.0,3.0,5.0,konsulent,Oslo,app,50 - 100,750000.0,0
+33.0,5.0,11.0,"in-house, privat sektor",Oslo,fullstack,under 10,875000.0,0
+38.0,0.0,9.0,"in-house, privat sektor",Oslo,devops,10 - 50,1200000.0,0
+38.0,0.0,2.0,"in-house, privat sektor",Vestland,frontend,1.000 - 10.000,640000.0,0
+43.0,0.0,20.0,"in-house, privat sektor",Viken,ledelse/administrativt,1.000 - 10.000,1300000.0,1
+38.0,3.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,920000.0,1
+38.0,3.0,11.0,konsulent,Oslo,fullstack,under 10,2300000.0,1
+38.0,5.0,13.0,konsulent,Rogaland,databaser,over 10.000,925000.0,1
+28.0,5.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,backend,100 - 500,695000.0,0
+28.0,3.0,1.0,konsulent,Oslo,backend,100 - 500,625000.0,1
+33.0,0.0,8.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,800000.0,0
+28.0,3.0,2.0,konsulent,Oslo,frontend,100 - 500,720000.0,1
+28.0,1.0,10.0,"in-house, privat sektor",Rogaland,automatisering,500 - 1.000,550000.0,1
+28.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,1.000 - 10.000,595000.0,0
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,backend,100 - 500,850000.0,1
+43.0,0.0,8.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,1000000.0,1
+43.0,5.0,16.0,konsulent,Innlandet,programvare,over 10.000,807000.0,0
+23.0,3.0,1.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,570000.0,0
+33.0,3.0,12.0,"in-house, privat sektor",Vestland,app,10 - 50,1070000.0,1
+53.0,7.0,28.0,konsulent,Agder,backend,1.000 - 10.000,1000000.0,1
+43.0,3.0,13.0,"in-house, privat sektor",Trøndelag,fullstack,500 - 1.000,800000.0,0
+33.0,3.0,2.0,konsulent,Oslo,frontend,50 - 100,780000.0,1
+38.0,4.0,8.0,"in-house, privat sektor",Oslo,ingen av disse,50 - 100,415000.0,0
+33.0,4.0,4.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,850000.0,1
+33.0,3.0,8.0,"in-house, privat sektor",Agder,backend,50 - 100,675000.0,0
+28.0,5.0,3.0,"in-house, offentlig/kommunal sektor",Trøndelag,app,50 - 100,750000.0,1
+38.0,3.0,6.0,konsulent,Oslo,frontend,10 - 50,850000.0,1
+43.0,4.0,15.0,"in-house, privat sektor",Troms og Finnmark,frontend,over 10.000,1000000.0,1
+38.0,1.0,3.0,"in-house, privat sektor",Nordland,fullstack,10 - 50,540000.0,0
+48.0,0.0,5.0,"in-house, privat sektor",Oslo,fullstack,under 10,700000.0,0
+43.0,0.0,13.0,"in-house, offentlig/kommunal sektor",Oslo,arkitektur,500 - 1.000,620000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Agder,frontend,100 - 500,595000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Viken,fullstack,10 - 50,760000.0,1
+33.0,0.0,14.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1100000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,frontend,10 - 50,700000.0,0
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,900000.0,1
+28.0,5.0,3.0,konsulent,Oslo,frontend,100 - 500,950000.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Trøndelag,backend,100 - 500,980000.0,1
+28.0,3.0,4.0,konsulent,Vestland,sikkerhet,1.000 - 10.000,820000.0,1
+33.0,3.0,9.0,"in-house, privat sektor",Oslo,arkitektur,over 10.000,1800000.0,1
+38.0,4.0,20.0,frilans / selvstendig næringsdrivende,Vestland,ingen av disse,under 10,900000.0,1
+28.0,3.0,5.0,konsulent,Rogaland,devops,500 - 1.000,740000.0,0
+33.0,3.0,6.0,konsulent,Oslo,frontend,50 - 100,1000000.0,1
+33.0,8.0,3.0,konsulent,Oslo,data science,1.000 - 10.000,690000.0,0
+38.0,0.0,15.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,720000.0,0
+43.0,5.0,18.0,konsulent,Viken,sikkerhet,under 10,1800000.0,0
+33.0,1.0,3.0,"in-house, privat sektor",Møre og Romsdal,fullstack,10 - 50,626000.0,1
+43.0,1.0,15.0,konsulent,Trøndelag,UX / design,1.000 - 10.000,900000.0,1
+33.0,5.0,4.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,670000.0,0
+38.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,data science,over 10.000,860000.0,1
+23.0,3.0,0.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,500000.0,0
+28.0,3.0,6.0,konsulent,Trøndelag,frontend,50 - 100,900000.0,1
+38.0,5.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,data science,100 - 500,720000.0,0
+38.0,5.0,12.0,konsulent,Trøndelag,fullstack,under 10,750000.0,0
+43.0,5.0,20.0,konsulent,Oslo,backend,50 - 100,1250000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Oslo,backend,100 - 500,860000.0,0
+38.0,0.0,13.0,"in-house, privat sektor",Trøndelag,backend,1.000 - 10.000,680000.0,0
+63.0,5.0,30.0,"in-house, offentlig/kommunal sektor",Viken,frontend,500 - 1.000,800000.0,0
+38.0,0.0,7.0,"in-house, privat sektor",Trøndelag,ledelse/administrativt,over 10.000,675000.0,1
+28.0,0.0,10.0,"in-house, privat sektor",Viken,ledelse/administrativt,1.000 - 10.000,1175000.0,1
+38.0,3.0,13.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,820000.0,0
+38.0,2.0,5.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,800000.0,1
+33.0,6.0,7.0,konsulent,Oslo,backend,under 10,1300000.0,1
+33.0,9.0,7.0,konsulent,Oslo,fullstack,100 - 500,920000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Innlandet,fullstack,10 - 50,500000.0,0
+38.0,4.0,15.0,konsulent,Viken,ingen av disse,1.000 - 10.000,510000.0,0
+33.0,3.0,7.0,"in-house, offentlig/kommunal sektor",Oslo,backend,500 - 1.000,661000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,600000.0,0
+38.0,6.0,19.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,891000.0,0
+28.0,3.0,5.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,backend,50 - 100,700000.0,1
+33.0,2.0,17.0,konsulent,Agder,backend,100 - 500,750000.0,1
+33.0,2.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,500 - 1.000,630000.0,1
+28.0,5.0,1.0,konsulent,Oslo,fullstack,100 - 500,630000.0,0
+23.0,3.0,2.0,konsulent,Oslo,fullstack,500 - 1.000,760000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Viken,fullstack,10 - 50,650000.0,0
+33.0,5.0,11.0,"in-house, privat sektor",Rogaland,fullstack,100 - 500,900000.0,0
+28.0,3.0,8.0,"in-house, privat sektor",Oslo,ledelse/administrativt,500 - 1.000,960000.0,1
+33.0,6.0,10.0,"in-house, privat sektor",Troms og Finnmark,fullstack,50 - 100,900000.0,1
+23.0,3.0,1.0,konsulent,Vestland,frontend,500 - 1.000,550000.0,0
+23.0,0.0,6.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,710000.0,1
+38.0,5.0,15.0,konsulent,Møre og Romsdal,backend,10 - 50,1400000.0,1
+48.0,5.0,17.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,945000.0,0
+33.0,5.0,7.0,"in-house, privat sektor",utlandet,ledelse/administrativt,1.000 - 10.000,900000.0,1
+33.0,3.0,6.0,frilans / selvstendig næringsdrivende,Vestfold og Telemark,fullstack,under 10,780000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,749000.0,1
+28.0,5.0,4.0,konsulent,Oslo,fullstack,500 - 1.000,835000.0,1
+23.0,3.0,0.0,konsulent,Oslo,fullstack,100 - 500,634000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,100 - 500,670000.0,1
+28.0,7.0,9.0,"in-house, privat sektor",Oslo,automatisering,100 - 500,910000.0,1
+38.0,3.0,15.0,konsulent,Oslo,ledelse/administrativt,50 - 100,850000.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,100 - 500,650000.0,0
+28.0,5.0,5.0,konsulent,Oslo,devops,100 - 500,950000.0,1
+43.0,0.0,13.0,konsulent,Oslo,devops,under 10,2000000.0,1
+33.0,0.0,10.0,konsulent,Oslo,ledelse/administrativt,10 - 50,850000.0,0
+28.0,3.0,3.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,775000.0,1
+33.0,3.0,2.0,konsulent,Rogaland,data science,500 - 1.000,620000.0,0
+33.0,5.0,2.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,780000.0,1
+43.0,2.0,23.0,frilans / selvstendig næringsdrivende,Viken,fullstack,under 10,1500000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Viken,fullstack,over 10.000,1060000.0,1
+17.5,2.0,5.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,725000.0,1
+33.0,3.0,9.0,konsulent,Trøndelag,frontend,under 10,730000.0,0
+33.0,4.0,5.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,875000.0,0
+38.0,5.0,12.0,"in-house, privat sektor",Oslo,ledelse/administrativt,over 10.000,2500000.0,1
+33.0,3.0,2.0,"in-house, privat sektor",Møre og Romsdal,fullstack,500 - 1.000,540000.0,0
+28.0,5.0,3.0,konsulent,Oslo,frontend,1.000 - 10.000,685000.0,1
+43.0,2.0,15.0,frilans / selvstendig næringsdrivende,Viken,fullstack,under 10,1500000.0,1
+33.0,5.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,750000.0,0
+28.0,0.0,0.0,"in-house, privat sektor",Oslo,frontend,10 - 50,525000.0,0
+28.0,3.0,6.0,konsulent,Vestland,fullstack,100 - 500,1250000.0,1
+28.0,5.0,4.0,konsulent,Oslo,sikkerhet,100 - 500,800000.0,0
+28.0,4.0,1.0,konsulent,Rogaland,fullstack,1.000 - 10.000,630000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Agder,frontend,10 - 50,600000.0,1
+28.0,0.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,over 10.000,1024000.0,1
+28.0,5.0,1.0,konsulent,Oslo,ingen av disse,100 - 500,700000.0,0
+28.0,5.0,3.0,konsulent,Oslo,frontend,10 - 50,1100000.0,1
+23.0,5.0,0.0,konsulent,Oslo,backend,50 - 100,630000.0,1
+28.0,3.0,9.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,10 - 50,650000.0,0
+48.0,5.0,25.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,950000.0,1
+28.0,4.0,4.0,konsulent,Rogaland,frontend,10 - 50,800000.0,1
+48.0,3.0,22.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,2000000.0,1
+28.0,6.0,0.0,konsulent,Rogaland,fullstack,100 - 500,750000.0,1
+33.0,5.0,9.0,konsulent,Vestfold og Telemark,frontend,over 10.000,845000.0,0
+28.0,0.0,4.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,750000.0,1
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,700000.0,1
+38.0,5.0,12.0,konsulent,Oslo,fullstack,100 - 500,1000000.0,1
+48.0,3.0,18.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,937000.0,0
+33.0,3.0,10.0,konsulent,Viken,app,10 - 50,1200000.0,1
+33.0,5.0,5.0,konsulent,Oslo,ledelse/administrativt,100 - 500,1400000.0,1
+33.0,3.0,6.0,konsulent,Rogaland,devops,100 - 500,870000.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Nordland,fullstack,500 - 1.000,567000.0,0
+23.0,2.0,5.0,"in-house, privat sektor",Oslo,sikkerhet,100 - 500,350000.0,1
+38.0,10.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,UX / design,1.000 - 10.000,720000.0,0
+43.0,0.0,15.0,konsulent,Oslo,fullstack,under 10,600000.0,0
+43.0,0.0,3.0,"in-house, privat sektor",Oslo,backend,10 - 50,610000.0,1
+23.0,3.0,0.0,konsulent,Viken,backend,100 - 500,530000.0,0
+33.0,3.0,10.0,konsulent,Vestfold og Telemark,ledelse/administrativt,10 - 50,800000.0,1
+33.0,3.0,7.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,800000.0,0
+28.0,3.0,4.0,konsulent,Innlandet,frontend,10 - 50,680000.0,1
+28.0,5.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,backend,100 - 500,615000.0,0
+48.0,4.0,20.0,"in-house, privat sektor",Oslo,ledelse/administrativt,over 10.000,1000000.0,1
+28.0,2.0,0.0,konsulent,Oslo,frontend,1.000 - 10.000,550000.0,0
+38.0,5.0,11.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1200000.0,1
+23.0,5.0,1.0,"in-house, privat sektor",Oslo,backend,10 - 50,700000.0,1
+23.0,2.0,1.0,"in-house, privat sektor",Viken,backend,10 - 50,360000.0,0
+33.0,4.0,7.0,"in-house, privat sektor",Oslo,ledelse/administrativt,1.000 - 10.000,830000.0,0
+38.0,7.0,10.0,"in-house, privat sektor",Oslo,UX / design,100 - 500,950000.0,1
+23.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,fullstack,1.000 - 10.000,510000.0,0
+28.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,593600.0,0
+33.0,5.0,8.0,konsulent,Oslo,devops,100 - 500,1445000.0,1
+38.0,5.0,16.0,"in-house, privat sektor",Viken,ledelse/administrativt,10 - 50,1000000.0,1
+33.0,5.0,13.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,800000.0,1
+28.0,0.0,1.0,konsulent,Vestland,fullstack,10 - 50,525000.0,0
+33.0,0.0,0.0,konsulent,Oslo,fullstack,1.000 - 10.000,564000.0,1
+48.0,3.0,5.0,"in-house, privat sektor",Innlandet,backend,10 - 50,600000.0,1
+38.0,7.0,7.0,konsulent,Oslo,data science,100 - 500,900000.0,1
+58.0,3.0,35.0,"in-house, privat sektor",Troms og Finnmark,data science,over 10.000,950000.0,0
+28.0,6.0,4.0,konsulent,Oslo,fullstack,10 - 50,875000.0,0
+28.0,3.0,2.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,600000.0,1
+48.0,4.0,24.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,850000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,programvare,500 - 1.000,730000.0,1
+38.0,3.0,15.0,konsulent,Oslo,backend,1.000 - 10.000,830000.0,0
+38.0,5.0,12.0,konsulent,Oslo,arkitektur,over 10.000,1450000.0,1
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,arkitektur,50 - 100,900000.0,1
+28.0,5.0,5.0,konsulent,Rogaland,frontend,100 - 500,1100000.0,1
+48.0,5.0,25.0,"in-house, privat sektor",Viken,fullstack,10 - 50,1300000.0,1
+28.0,5.0,4.0,konsulent,Vestland,fullstack,50 - 100,1000000.0,1
+38.0,3.0,2.0,konsulent,Agder,backend,10 - 50,698000.0,1
+33.0,0.0,3.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,860000.0,1
+28.0,5.0,4.0,konsulent,Oslo,frontend,100 - 500,630000.0,0
+28.0,3.0,5.0,konsulent,Vestfold og Telemark,fullstack,1.000 - 10.000,740000.0,1
+38.0,3.0,11.0,"in-house, privat sektor",Oslo,ledelse/administrativt,500 - 1.000,1013000.0,1
+28.0,5.0,2.0,konsulent,Trøndelag,frontend,100 - 500,670000.0,0
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Vestland,sikkerhet,1.000 - 10.000,560000.0,0
+43.0,3.0,25.0,"in-house, privat sektor",Viken,ingen av disse,1.000 - 10.000,578000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Trøndelag,data science,100 - 500,850000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Rogaland,backend,100 - 500,780000.0,1
+28.0,4.0,3.0,konsulent,Rogaland,devops,1.000 - 10.000,650000.0,1
+28.0,5.0,3.0,"in-house, privat sektor",Oslo,sikkerhet,over 10.000,650000.0,0
+33.0,3.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,50 - 100,710000.0,1
+33.0,1.0,4.0,"in-house, privat sektor",Viken,fullstack,1.000 - 10.000,810000.0,1
+23.0,6.0,1.0,konsulent,Oslo,fullstack,10 - 50,695000.0,1
+33.0,5.0,10.0,"in-house, privat sektor",Innlandet,backend,100 - 500,810000.0,0
+28.0,5.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,740000.0,1
+28.0,3.0,7.0,konsulent,Oslo,fullstack,100 - 500,850000.0,0
+28.0,6.0,2.0,"in-house, privat sektor",Oslo,programvare,100 - 500,700000.0,1
+38.0,4.0,3.0,konsulent,Oslo,frontend,100 - 500,700000.0,0
+23.0,3.0,0.0,konsulent,Oslo,frontend,1.000 - 10.000,550000.0,1
+33.0,3.0,11.0,konsulent,Oslo,backend,10 - 50,1250000.0,1
+43.0,3.0,23.0,"in-house, privat sektor",Oslo,programvare,100 - 500,830000.0,0
+33.0,5.0,9.0,konsulent,Oslo,frontend,100 - 500,1150000.0,1
+38.0,5.0,14.0,"in-house, offentlig/kommunal sektor",Oslo,programvare,100 - 500,900000.0,0
+38.0,0.0,4.0,"in-house, privat sektor",Oslo,backend,100 - 500,770000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Vestfold og Telemark,backend,10 - 50,550000.0,0
+23.0,0.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,sikkerhet,500 - 1.000,573000.0,0
+33.0,10.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,740000.0,0
+38.0,3.0,15.0,konsulent,Oslo,arkitektur,100 - 500,1100000.0,1
+33.0,5.0,10.0,konsulent,Oslo,backend,100 - 500,1200000.0,1
+48.0,3.0,24.0,"in-house, privat sektor",Viken,embedded/IOT/maskinvare,100 - 500,850000.0,1
+38.0,0.0,1.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,675000.0,1
+33.0,5.0,7.0,konsulent,Oslo,backend,100 - 500,820600.0,0
+33.0,3.0,11.0,konsulent,Oslo,fullstack,50 - 100,1075000.0,1
+33.0,5.0,6.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,10 - 50,750000.0,0
+28.0,2.0,4.0,"in-house, privat sektor",Oslo,frontend,100 - 500,540000.0,0
+28.0,3.0,0.0,konsulent,Oslo,backend,over 10.000,530000.0,1
+33.0,0.0,11.0,konsulent,Vestfold og Telemark,arkitektur,10 - 50,1400000.0,1
+28.0,5.0,3.0,konsulent,Oslo,frontend,50 - 100,735000.0,1
+33.0,3.0,8.0,konsulent,Oslo,frontend,100 - 500,840000.0,0
+33.0,3.0,0.0,"in-house, privat sektor",Oslo,data science,10 - 50,560000.0,0
+28.0,5.0,1.0,konsulent,Oslo,fullstack,50 - 100,735000.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Agder,arkitektur,500 - 1.000,1025000.0,1
+28.0,7.0,3.0,konsulent,Oslo,devops,1.000 - 10.000,503500.0,0
+23.0,5.0,1.0,konsulent,Trøndelag,frontend,10 - 50,650000.0,1
+48.0,5.0,26.0,"in-house, offentlig/kommunal sektor",Oslo,devops,1.000 - 10.000,1300000.0,1
+33.0,3.0,12.0,"in-house, privat sektor",Trøndelag,fullstack,100 - 500,770000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,data science,100 - 500,750000.0,0
+38.0,5.0,2.0,"in-house, privat sektor",Nordland,backend,50 - 100,800000.0,1
+23.0,3.0,0.0,konsulent,Vestfold og Telemark,frontend,under 10,480000.0,0
+48.0,3.0,24.0,"in-house, privat sektor",Vestfold og Telemark,databaser,100 - 500,900000.0,1
+28.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,516100.0,0
+28.0,5.0,5.0,konsulent,Oslo,backend,500 - 1.000,900000.0,1
+28.0,0.0,0.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,495000.0,0
+33.0,5.0,8.0,konsulent,Vestland,fullstack,100 - 500,1100000.0,1
+38.0,1.0,8.0,"in-house, offentlig/kommunal sektor",Agder,devops,1.000 - 10.000,690000.0,0
+28.0,5.0,0.0,konsulent,Oslo,backend,100 - 500,640000.0,1
+23.0,1.0,4.0,"in-house, offentlig/kommunal sektor",Nordland,ingen av disse,10 - 50,446000.0,0
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,500 - 1.000,610000.0,0
+33.0,3.0,14.0,"in-house, privat sektor",Viken,ingen av disse,100 - 500,350000.0,0
+48.0,3.0,20.0,"in-house, privat sektor",Vestland,fullstack,under 10,820000.0,1
+28.0,5.0,4.0,konsulent,Vestland,fullstack,50 - 100,1200000.0,0
+43.0,3.0,18.0,konsulent,Innlandet,arkitektur,100 - 500,1250000.0,1
+23.0,0.0,3.0,"in-house, privat sektor",Oslo,frontend,1.000 - 10.000,750000.0,1
+48.0,3.0,20.0,"in-house, privat sektor",Vestland,arkitektur,1.000 - 10.000,1100000.0,0
+38.0,0.0,11.0,konsulent,Rogaland,frontend,under 10,745000.0,1
+43.0,3.0,23.0,"in-house, privat sektor",Agder,fullstack,100 - 500,724722.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,100 - 500,710000.0,0
+48.0,4.0,24.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,1100000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Oslo,backend,100 - 500,670000.0,0
+28.0,0.0,4.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,687000.0,0
+38.0,5.0,15.0,konsulent,Oslo,devops,1.000 - 10.000,860000.0,0
+28.0,4.0,4.0,"in-house, privat sektor",Oslo,app,500 - 1.000,900000.0,1
+48.0,3.0,26.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,1100000.0,1
+23.0,3.0,3.0,konsulent,Rogaland,fullstack,under 10,504000.0,1
+28.0,5.0,1.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,800000.0,1
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,850000.0,0
+28.0,5.0,1.0,konsulent,Oslo,frontend,100 - 500,640000.0,1
+33.0,0.0,5.0,"in-house, privat sektor",Viken,fullstack,1.000 - 10.000,680000.0,0
+33.0,7.0,6.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,1050000.0,1
+28.0,0.0,3.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,525000.0,0
+23.0,5.0,1.0,konsulent,Trøndelag,fullstack,1.000 - 10.000,650000.0,0
+33.0,3.0,12.0,konsulent,Oslo,ledelse/administrativt,10 - 50,1287405.0,1
+33.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,100 - 500,590000.0,0
+43.0,5.0,26.0,"in-house, privat sektor",Vestland,backend,500 - 1.000,800000.0,0
+33.0,5.0,8.0,konsulent,Oslo,sikkerhet,1.000 - 10.000,1200000.0,1
+48.0,6.0,18.0,konsulent,Rogaland,ledelse/administrativt,1.000 - 10.000,1200000.0,0
+28.0,5.0,1.0,"in-house, privat sektor",Rogaland,frontend,1.000 - 10.000,630000.0,0
+28.0,6.0,5.0,"in-house, privat sektor",Trøndelag,fullstack,under 10,720000.0,1
+33.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,backend,over 10.000,840000.0,1
+33.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,50 - 100,1000000.0,1
+43.0,4.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,500 - 1.000,1100000.0,1
+28.0,6.0,2.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,1100000.0,0
+33.0,5.0,6.0,konsulent,Oslo,devops,100 - 500,1350000.0,1
+33.0,3.0,3.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,800000.0,1
+33.0,0.0,5.0,konsulent,Oslo,fullstack,500 - 1.000,920000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Viken,programvare,over 10.000,578000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Innlandet,ingen av disse,100 - 500,500000.0,0
+53.0,3.0,30.0,"in-house, privat sektor",Oslo,app,50 - 100,980000.0,1
+33.0,5.0,0.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,650000.0,1
+43.0,3.0,10.0,"in-house, privat sektor",Møre og Romsdal,frontend,100 - 500,660000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,930000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,UX / design,under 10,575000.0,0
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,1000000.0,1
+38.0,3.0,16.0,frilans / selvstendig næringsdrivende,Viken,fullstack,under 10,1100000.0,1
+28.0,2.0,2.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,880000.0,1
+28.0,3.0,7.0,konsulent,Møre og Romsdal,fullstack,50 - 100,680000.0,1
+38.0,3.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,10 - 50,759500.0,0
+28.0,6.0,4.0,"in-house, privat sektor",Oslo,ingen av disse,100 - 500,662000.0,0
+48.0,3.0,21.0,konsulent,Oslo,ledelse/administrativt,100 - 500,1000000.0,0
+28.0,5.0,3.0,konsulent,Oslo,frontend,100 - 500,800000.0,0
+33.0,4.0,5.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,840000.0,0
+33.0,5.0,5.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,100 - 500,860000.0,1
+43.0,3.0,9.0,konsulent,Oslo,backend,100 - 500,820000.0,1
+48.0,5.0,15.0,"in-house, offentlig/kommunal sektor",Innlandet,fullstack,10 - 50,925000.0,1
+33.0,3.0,11.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,1050000.0,1
+33.0,5.0,13.0,"in-house, privat sektor",Oslo,ledelse/administrativt,under 10,1200000.0,1
+48.0,3.0,25.0,"in-house, offentlig/kommunal sektor",Innlandet,ledelse/administrativt,1.000 - 10.000,850000.0,0
+38.0,0.0,6.0,"in-house, offentlig/kommunal sektor",Oslo,automatisering,1.000 - 10.000,780000.0,1
+38.0,3.0,19.0,konsulent,Oslo,backend,under 10,800000.0,1
+28.0,6.0,3.0,"in-house, privat sektor",Oslo,backend,over 10.000,830000.0,1
+33.0,3.0,1.0,"in-house, privat sektor",Oslo,frontend,under 10,620000.0,0
+43.0,3.0,6.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,900000.0,1
+38.0,4.0,3.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,500000.0,1
+48.0,3.0,27.0,"in-house, privat sektor",Innlandet,backend,50 - 100,960000.0,1
+23.0,6.0,1.0,konsulent,Oslo,fullstack,1.000 - 10.000,650000.0,1
+38.0,3.0,14.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,10 - 50,900000.0,0
+38.0,3.0,20.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,10 - 50,700000.0,0
+33.0,3.0,3.0,konsulent,Oslo,fullstack,100 - 500,810000.0,1
+23.0,3.0,1.0,konsulent,Oslo,ingen av disse,1.000 - 10.000,567000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Vestland,frontend,10 - 50,650000.0,0
+28.0,3.0,3.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,650000.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Møre og Romsdal,embedded/IOT/maskinvare,1.000 - 10.000,620000.0,0
+48.0,3.0,23.0,"in-house, offentlig/kommunal sektor",Viken,devops,100 - 500,810000.0,1
+28.0,3.0,6.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,670000.0,0
+33.0,0.0,1.0,"in-house, privat sektor",Trøndelag,frontend,under 10,480000.0,1
+23.0,0.0,1.0,"in-house, privat sektor",Oslo,databaser,10 - 50,500000.0,1
+33.0,0.0,6.0,"in-house, privat sektor",Oslo,frontend,over 10.000,725000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Trøndelag,fullstack,10 - 50,685000.0,1
+43.0,5.0,20.0,konsulent,Oslo,testing,50 - 100,1750000.0,1
+33.0,0.0,4.0,konsulent,Oslo,automatisering,10 - 50,850000.0,1
+28.0,5.0,3.0,konsulent,Oslo,fullstack,500 - 1.000,770000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Vestland,backend,over 10.000,620000.0,1
+28.0,5.0,1.0,konsulent,Viken,fullstack,1.000 - 10.000,600000.0,0
+38.0,5.0,15.0,"in-house, privat sektor",Vestland,backend,under 10,780000.0,1
+28.0,4.0,7.0,konsulent,Oslo,backend,50 - 100,961000.0,1
+33.0,3.0,8.0,konsulent,Vestfold og Telemark,frontend,100 - 500,800000.0,1
+23.0,5.0,0.0,konsulent,Oslo,fullstack,100 - 500,700000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Oslo,frontend,100 - 500,680000.0,0
+43.0,3.0,7.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,840000.0,1
+28.0,2.0,0.0,"in-house, privat sektor",Rogaland,frontend,10 - 50,550000.0,1
+38.0,5.0,8.0,"in-house, offentlig/kommunal sektor",Vestland,ingen av disse,over 10.000,600000.0,0
+48.0,3.0,12.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,937000.0,0
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,backend,100 - 500,669900.0,1
+33.0,3.0,11.0,"in-house, privat sektor",Rogaland,fullstack,500 - 1.000,760000.0,1
+43.0,0.0,16.0,"in-house, privat sektor",Agder,backend,10 - 50,850000.0,1
+33.0,7.0,5.0,"in-house, privat sektor",Viken,embedded/IOT/maskinvare,500 - 1.000,820000.0,1
+28.0,3.0,4.0,"in-house, offentlig/kommunal sektor",Nordland,fullstack,100 - 500,600000.0,1
+28.0,0.0,8.0,"in-house, privat sektor",Oslo,sikkerhet,50 - 100,900000.0,1
+28.0,3.0,5.0,konsulent,Oslo,fullstack,1.000 - 10.000,840000.0,1
+43.0,6.0,16.0,"in-house, privat sektor",Oslo,backend,100 - 500,1150000.0,0
+38.0,3.0,13.0,konsulent,Oslo,fullstack,500 - 1.000,1010000.0,1
+38.0,4.0,10.0,frilans / selvstendig næringsdrivende,Oslo,ledelse/administrativt,under 10,1000000.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Vestland,app,10 - 50,1050000.0,0
+33.0,5.0,8.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,2100000.0,1
+23.0,3.0,3.0,konsulent,Innlandet,fullstack,500 - 1.000,780000.0,0
+33.0,3.0,10.0,frilans / selvstendig næringsdrivende,Oslo,frontend,under 10,2330000.0,1
+53.0,4.0,24.0,"in-house, privat sektor",Oslo,fullstack,over 10.000,800000.0,0
+23.0,5.0,1.0,"in-house, privat sektor",Agder,embedded/IOT/maskinvare,under 10,550000.0,1
+48.0,5.0,15.0,konsulent,Oslo,UX / design,100 - 500,1140000.0,0
+28.0,5.0,1.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,650000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,data science,100 - 500,630000.0,1
+23.0,3.0,3.0,konsulent,Oslo,app,50 - 100,675000.0,0
+33.0,4.0,10.0,konsulent,Oslo,fullstack,500 - 1.000,1500000.0,1
+38.0,0.0,12.0,"in-house, privat sektor",Oslo,devops,100 - 500,880000.0,0
+33.0,3.0,7.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,950000.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,devops,1.000 - 10.000,700000.0,1
+33.0,2.0,10.0,"in-house, privat sektor",Rogaland,fullstack,500 - 1.000,900000.0,0
+38.0,5.0,5.0,frilans / selvstendig næringsdrivende,Oslo,data science,under 10,1400000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Vestland,backend,over 10.000,650000.0,1
+28.0,4.0,2.0,konsulent,Oslo,backend,100 - 500,620000.0,1
+43.0,8.0,23.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,950000.0,1
+38.0,3.0,12.0,konsulent,Oslo,fullstack,50 - 100,1016479.0,1
+38.0,3.0,14.0,konsulent,Oslo,app,10 - 50,865000.0,0
+28.0,6.0,1.0,konsulent,Oslo,fullstack,100 - 500,750000.0,1
+28.0,3.0,7.0,"in-house, privat sektor",Trøndelag,backend,over 10.000,690000.0,1
+28.0,0.0,9.0,"in-house, privat sektor",Rogaland,automatisering,100 - 500,800000.0,1
+48.0,2.0,25.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,1250000.0,0
+28.0,4.0,4.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,100 - 500,820000.0,1
+28.0,5.0,8.0,"in-house, offentlig/kommunal sektor",Viken,automatisering,under 10,750000.0,0
+28.0,5.0,4.0,konsulent,Oslo,ledelse/administrativt,100 - 500,770000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Rogaland,fullstack,under 10,650000.0,1
+33.0,2.0,2.0,"in-house, privat sektor",Vestland,frontend,100 - 500,660000.0,0
+28.0,2.0,4.0,konsulent,Oslo,frontend,10 - 50,600000.0,1
+38.0,0.0,16.0,"in-house, privat sektor",Trøndelag,fullstack,50 - 100,720000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,data science,1.000 - 10.000,725000.0,1
+33.0,3.0,3.0,konsulent,Oslo,UX / design,100 - 500,720000.0,1
+38.0,5.0,11.0,"in-house, privat sektor",Oslo,app,100 - 500,950000.0,1
+33.0,5.0,8.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,ingen av disse,1.000 - 10.000,600000.0,0
+28.0,3.0,3.0,konsulent,Oslo,backend,100 - 500,735000.0,0
+33.0,3.0,10.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,10 - 50,1100000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Oslo,backend,over 10.000,550000.0,0
+38.0,3.0,16.0,konsulent,Vestland,devops,1.000 - 10.000,1200000.0,1
+28.0,3.0,4.0,konsulent,Oslo,fullstack,under 10,1100000.0,1
+33.0,4.0,10.0,"in-house, privat sektor",Oslo,app,1.000 - 10.000,875000.0,0
+33.0,5.0,5.0,"in-house, privat sektor",Agder,databaser,100 - 500,730000.0,0
+48.0,4.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1000000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Oslo,app,100 - 500,575000.0,1
+28.0,3.0,2.0,konsulent,Oslo,backend,10 - 50,815000.0,1
+33.0,1.0,5.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,100 - 500,500000.0,0
+43.0,0.0,21.0,"in-house, privat sektor",Innlandet,fullstack,10 - 50,1000000.0,1
+28.0,5.0,5.0,"in-house, offentlig/kommunal sektor",Viken,sikkerhet,500 - 1.000,630000.0,0
+28.0,3.0,6.0,konsulent,Oslo,frontend,100 - 500,880000.0,1
+53.0,3.0,42.0,"in-house, privat sektor",Møre og Romsdal,backend,10 - 50,1130000.0,0
+28.0,0.0,6.0,"in-house, privat sektor",Agder,fullstack,50 - 100,761000.0,1
+28.0,5.0,4.0,konsulent,Oslo,fullstack,over 10.000,795000.0,1
+43.0,3.0,6.0,"in-house, privat sektor",Oslo,UX / design,100 - 500,900000.0,1
+33.0,4.0,4.0,konsulent,Viken,embedded/IOT/maskinvare,50 - 100,620000.0,1
+43.0,2.0,22.0,"in-house, privat sektor",Vestfold og Telemark,automatisering,over 10.000,920000.0,1
+33.0,5.0,5.0,"in-house, privat sektor",Nordland,fullstack,100 - 500,700004.0,0
+28.0,5.0,4.0,"in-house, privat sektor",Oslo,data science,500 - 1.000,950000.0,1
+23.0,2.0,7.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,615000.0,0
+28.0,5.0,3.0,konsulent,Oslo,fullstack,1.000 - 10.000,850000.0,1
+43.0,3.0,15.0,"in-house, privat sektor",Trøndelag,frontend,1.000 - 10.000,770000.0,0
+53.0,2.0,26.0,"in-house, privat sektor",Oslo,databaser,10 - 50,1050000.0,1
+23.0,3.0,1.0,konsulent,Oslo,fullstack,500 - 1.000,585000.0,1
+43.0,2.0,20.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,780000.0,1
+43.0,5.0,6.0,"in-house, privat sektor",Innlandet,fullstack,10 - 50,675000.0,0
+33.0,3.0,12.0,"in-house, privat sektor",Rogaland,fullstack,under 10,1230000.0,1
+28.0,3.0,6.0,konsulent,Vestfold og Telemark,frontend,10 - 50,720000.0,1
+33.0,5.0,6.0,konsulent,Trøndelag,frontend,50 - 100,900000.0,1
+28.0,3.0,4.0,konsulent,Trøndelag,fullstack,10 - 50,775000.0,1
+28.0,5.0,0.0,"in-house, privat sektor",Rogaland,fullstack,10 - 50,600000.0,1
+38.0,5.0,3.0,konsulent,Vestland,backend,100 - 500,800000.0,1
+38.0,2.0,13.0,"in-house, privat sektor",Møre og Romsdal,fullstack,10 - 50,1200000.0,1
+28.0,3.0,1.0,"in-house, privat sektor",Trøndelag,backend,500 - 1.000,540000.0,1
+28.0,5.0,7.0,frilans / selvstendig næringsdrivende,Viken,sikkerhet,under 10,800000.0,1
+23.0,3.0,0.0,"in-house, privat sektor",Viken,programvare,1.000 - 10.000,578000.0,0
+28.0,5.0,4.0,konsulent,Oslo,fullstack,10 - 50,880000.0,1
+33.0,0.0,4.0,konsulent,Vestland,fullstack,100 - 500,800000.0,1
+28.0,1.0,2.0,"in-house, privat sektor",Vestland,frontend,10 - 50,450000.0,0
+33.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,frontend,100 - 500,705000.0,1
+38.0,6.0,15.0,"in-house, privat sektor",Innlandet,fullstack,500 - 1.000,860000.0,1
+48.0,5.0,19.0,konsulent,Rogaland,embedded/IOT/maskinvare,under 10,1400000.0,1
+23.0,3.0,0.0,konsulent,Innlandet,frontend,10 - 50,575000.0,0
+53.0,3.0,24.0,konsulent,Viken,fullstack,100 - 500,962000.0,1
+38.0,0.0,4.0,"in-house, privat sektor",Oslo,frontend,under 10,680000.0,0
+23.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,testing,10 - 50,610000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,862000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,700000.0,1
+28.0,5.0,5.0,frilans / selvstendig næringsdrivende,utlandet,sikkerhet,50 - 100,2500000.0,1
+43.0,5.0,16.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,50 - 100,850000.0,0
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,programvare,500 - 1.000,605000.0,0
+48.0,4.0,25.0,frilans / selvstendig næringsdrivende,Viken,fullstack,under 10,950000.0,1
+38.0,5.0,18.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1300000.0,1
+28.0,4.0,6.0,konsulent,Oslo,frontend,50 - 100,1300000.0,1
+43.0,3.0,15.0,konsulent,Oslo,arkitektur,10 - 50,1550000.0,1
+38.0,5.0,14.0,konsulent,Oslo,fullstack,10 - 50,1300000.0,1
+33.0,3.0,3.0,konsulent,Oslo,automatisering,over 10.000,730000.0,0
+28.0,5.0,3.0,konsulent,Oslo,fullstack,10 - 50,950000.0,1
+28.0,5.0,2.0,konsulent,Oslo,frontend,100 - 500,730000.0,1
+38.0,8.0,13.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,900000.0,1
+38.0,0.0,16.0,"in-house, privat sektor",Oslo,data science,under 10,1000000.0,1
+48.0,9.0,20.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,895400.0,0
+33.0,3.0,13.0,"in-house, privat sektor",Vestland,fullstack,under 10,900000.0,1
+43.0,2.0,4.0,"in-house, privat sektor",Agder,fullstack,10 - 50,850000.0,1
+33.0,5.0,7.0,konsulent,Viken,backend,100 - 500,870000.0,1
+33.0,5.0,4.0,"in-house, privat sektor",Oslo,data science,50 - 100,835000.0,1
+63.0,5.0,40.0,konsulent,Oslo,arkitektur,under 10,1000000.0,1
+38.0,5.0,5.0,konsulent,Oslo,backend,500 - 1.000,985000.0,1
+43.0,8.0,15.0,"in-house, offentlig/kommunal sektor",Trøndelag,arkitektur,1.000 - 10.000,930000.0,1
+38.0,3.0,10.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,100 - 500,900000.0,1
+33.0,5.0,8.0,konsulent,Oslo,backend,100 - 500,1150000.0,0
+28.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Trøndelag,fullstack,500 - 1.000,600000.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,under 10,500000.0,1
+28.0,3.0,4.0,"in-house, privat sektor",Vestfold og Telemark,automatisering,100 - 500,475000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,frontend,10 - 50,900000.0,1
+28.0,7.0,5.0,"in-house, privat sektor",Agder,ingen av disse,100 - 500,500000.0,0
+33.0,9.0,1.0,"in-house, privat sektor",Troms og Finnmark,fullstack,100 - 500,640000.0,0
+28.0,4.0,6.0,"in-house, privat sektor",Oslo,devops,100 - 500,950000.0,1
+38.0,8.0,7.0,"in-house, privat sektor",Troms og Finnmark,backend,100 - 500,730000.0,1
+33.0,3.0,13.0,"in-house, privat sektor",Troms og Finnmark,fullstack,10 - 50,1090000.0,1
+33.0,6.0,4.0,"in-house, privat sektor",Oslo,data science,100 - 500,610000.0,0
+58.0,6.0,20.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,1100000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,app,500 - 1.000,650000.0,0
+43.0,3.0,13.0,"in-house, privat sektor",Møre og Romsdal,ingen av disse,1.000 - 10.000,950000.0,1
+38.0,3.0,10.0,konsulent,Trøndelag,arkitektur,100 - 500,740000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,700000.0,0
+33.0,3.0,6.0,"in-house, offentlig/kommunal sektor",Innlandet,app,100 - 500,683000.0,0
+33.0,3.0,8.0,konsulent,Oslo,app,50 - 100,950000.0,1
+28.0,7.0,4.0,"in-house, privat sektor",Oslo,ingen av disse,1.000 - 10.000,660000.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,backend,100 - 500,557648.0,1
+28.0,5.0,4.0,konsulent,Trøndelag,testing,1.000 - 10.000,700000.0,1
+33.0,0.0,4.0,"in-house, privat sektor",Oslo,frontend,100 - 500,750000.0,1
+53.0,2.0,15.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,764000.0,1
+43.0,4.0,3.0,"in-house, privat sektor",Viken,app,50 - 100,650000.0,0
+33.0,3.0,8.0,konsulent,Oslo,fullstack,1.000 - 10.000,770000.0,0
+33.0,0.0,14.0,"in-house, privat sektor",Vestland,ledelse/administrativt,10 - 50,950000.0,1
+23.0,5.0,0.0,konsulent,Trøndelag,ingen av disse,1.000 - 10.000,679000.0,1
+38.0,5.0,7.0,konsulent,Møre og Romsdal,data science,10 - 50,816000.0,1
+33.0,5.0,7.0,"in-house, privat sektor",Oslo,data science,50 - 100,1100000.0,0
+33.0,3.0,10.0,frilans / selvstendig næringsdrivende,Innlandet,devops,under 10,850000.0,1
+33.0,2.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1250000.0,1
+33.0,3.0,6.0,"in-house, privat sektor",Oslo,frontend,10 - 50,636000.0,1
+38.0,5.0,13.0,konsulent,Rogaland,fullstack,under 10,1300000.0,1
+48.0,3.0,24.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,950000.0,0
+28.0,3.0,5.0,konsulent,Oslo,fullstack,10 - 50,1000000.0,1
+48.0,3.0,21.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1150000.0,1
+33.0,5.0,6.0,konsulent,Vestland,UX / design,10 - 50,900000.0,1
+23.0,4.0,0.0,konsulent,Trøndelag,fullstack,10 - 50,530000.0,1
+33.0,0.0,0.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,520000.0,0
+33.0,5.0,10.0,"in-house, privat sektor",Rogaland,backend,over 10.000,1030000.0,1
+28.0,5.0,3.0,konsulent,Trøndelag,backend,under 10,800000.0,1
+28.0,3.0,5.0,"in-house, offentlig/kommunal sektor",Trøndelag,backend,500 - 1.000,680000.0,0
+33.0,0.0,12.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,1300000.0,1
+48.0,5.0,17.0,konsulent,Rogaland,ledelse/administrativt,1.000 - 10.000,990000.0,1
+28.0,5.0,1.0,"in-house, privat sektor",Viken,data science,over 10.000,625000.0,1
+43.0,5.0,17.0,konsulent,Vestland,fullstack,10 - 50,1050000.0,1
+43.0,4.0,18.0,konsulent,Viken,backend,1.000 - 10.000,1045000.0,1
+33.0,4.0,5.0,"in-house, privat sektor",Agder,frontend,500 - 1.000,858000.0,0
+48.0,2.0,25.0,konsulent,Oslo,fullstack,1.000 - 10.000,1000000.0,1
+23.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,660000.0,1
+43.0,3.0,18.0,"in-house, privat sektor",Oslo,UX / design,50 - 100,635000.0,0
+28.0,3.0,8.0,"in-house, offentlig/kommunal sektor",Innlandet,frontend,100 - 500,801000.0,1
+23.0,5.0,1.0,konsulent,Oslo,backend,100 - 500,684000.0,0
+28.0,5.0,6.0,"in-house, privat sektor",Viken,arkitektur,1.000 - 10.000,744000.0,0
+43.0,5.0,18.0,"in-house, privat sektor",Trøndelag,programvare,1.000 - 10.000,1300000.0,1
+33.0,0.0,4.0,"in-house, privat sektor",Oslo,automatisering,1.000 - 10.000,670000.0,0
+28.0,3.0,3.0,konsulent,Oslo,programvare,1.000 - 10.000,630000.0,0
+28.0,5.0,6.0,konsulent,Oslo,ledelse/administrativt,over 10.000,950000.0,1
+38.0,4.0,18.0,"in-house, offentlig/kommunal sektor",Trøndelag,ingen av disse,10 - 50,493000.0,0
+33.0,5.0,12.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,fullstack,1.000 - 10.000,710000.0,0
+33.0,5.0,6.0,"in-house, offentlig/kommunal sektor",Viken,sikkerhet,100 - 500,860000.0,1
+38.0,3.0,0.0,"in-house, privat sektor",Agder,fullstack,1.000 - 10.000,670000.0,1
+48.0,3.0,24.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,1200000.0,1
+33.0,4.0,6.0,"in-house, privat sektor",Viken,ledelse/administrativt,10 - 50,650000.0,1
+28.0,0.0,3.0,"in-house, privat sektor",Viken,app,50 - 100,710000.0,1
+43.0,0.0,10.0,"in-house, privat sektor",Rogaland,ingen av disse,100 - 500,415000.0,0
+23.0,3.0,2.0,"in-house, privat sektor",Vestfold og Telemark,backend,100 - 500,600000.0,0
+23.0,0.0,2.0,konsulent,Vestland,fullstack,10 - 50,520000.0,1
+33.0,3.0,7.0,"in-house, privat sektor",Viken,ledelse/administrativt,50 - 100,1010000.0,0
+33.0,6.0,12.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,fullstack,10 - 50,910000.0,1
+43.0,3.0,21.0,konsulent,Rogaland,backend,10 - 50,700000.0,0
+33.0,3.0,7.0,"in-house, privat sektor",Møre og Romsdal,frontend,100 - 500,520000.0,0
+33.0,6.0,1.0,"in-house, privat sektor",Agder,frontend,100 - 500,576000.0,1
+38.0,5.0,13.0,"in-house, privat sektor",Vestland,fullstack,500 - 1.000,1000000.0,1
+48.0,1.0,24.0,"in-house, privat sektor",Oslo,ledelse/administrativt,over 10.000,670000.0,0
+33.0,3.0,6.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,over 10.000,1319000.0,1
+33.0,3.0,5.0,konsulent,Vestland,fullstack,100 - 500,950000.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Rogaland,ledelse/administrativt,1.000 - 10.000,850000.0,1
+43.0,4.0,15.0,"in-house, privat sektor",Troms og Finnmark,arkitektur,50 - 100,1000000.0,1
+38.0,5.0,13.0,konsulent,Oslo,backend,under 10,1100000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,900000.0,0
+23.0,0.0,2.0,konsulent,Oslo,frontend,10 - 50,525000.0,0
+53.0,6.0,27.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,1.000 - 10.000,725000.0,1
+23.0,3.0,3.0,"in-house, privat sektor",Agder,fullstack,10 - 50,625000.0,1
+28.0,3.0,3.0,konsulent,Oslo,fullstack,1.000 - 10.000,620000.0,0
+28.0,3.0,3.0,konsulent,Oslo,programvare,1.000 - 10.000,650000.0,1
+33.0,5.0,10.0,frilans / selvstendig næringsdrivende,Oslo,app,under 10,2000000.0,1
+48.0,0.0,15.0,"in-house, privat sektor",Oslo,testing,over 10.000,760000.0,1
+43.0,6.0,16.0,"in-house, privat sektor",Vestland,arkitektur,1.000 - 10.000,924000.0,1
+43.0,0.0,16.0,"in-house, privat sektor",Trøndelag,backend,10 - 50,700000.0,1
+28.0,6.0,2.0,konsulent,Oslo,fullstack,1.000 - 10.000,642600.0,0
+48.0,6.0,25.0,konsulent,Oslo,frontend,100 - 500,1100000.0,1
+38.0,6.0,9.0,konsulent,Oslo,backend,50 - 100,1155000.0,1
+33.0,3.0,1.0,konsulent,Vestland,fullstack,100 - 500,570000.0,0
+28.0,4.0,6.0,konsulent,Vestland,frontend,10 - 50,500000.0,0
+38.0,7.0,10.0,"in-house, privat sektor",Viken,frontend,50 - 100,860000.0,1
+38.0,3.0,14.0,"in-house, privat sektor",Oslo,ledelse/administrativt,1.000 - 10.000,890000.0,0
+38.0,1.0,1.0,"in-house, privat sektor",Viken,frontend,1.000 - 10.000,680000.0,0
+53.0,3.0,29.0,konsulent,Oslo,fullstack,10 - 50,2500000.0,1
+28.0,2.0,8.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,450000.0,1
+43.0,4.0,17.0,"in-house, privat sektor",Agder,UX / design,1.000 - 10.000,745000.0,1
+43.0,5.0,17.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,100 - 500,970000.0,0
+38.0,3.0,5.0,konsulent,Rogaland,frontend,500 - 1.000,790000.0,0
+43.0,5.0,0.0,"in-house, privat sektor",Oslo,data science,500 - 1.000,500000.0,0
+33.0,3.0,12.0,konsulent,Oslo,arkitektur,10 - 50,1300000.0,1
+28.0,5.0,4.0,konsulent,Oslo,backend,1.000 - 10.000,800000.0,1
+33.0,3.0,8.0,"in-house, privat sektor",Oslo,backend,1.000 - 10.000,850000.0,0
+33.0,3.0,9.0,"in-house, offentlig/kommunal sektor",Viken,backend,500 - 1.000,710000.0,1
+38.0,3.0,12.0,"in-house, privat sektor",Oslo,backend,100 - 500,1050000.0,1
+23.0,5.0,1.0,konsulent,Oslo,fullstack,100 - 500,624900.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,550000.0,0
+33.0,3.0,4.0,"in-house, privat sektor",Vestland,fullstack,100 - 500,600000.0,0
+33.0,0.0,1.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,700000.0,1
+28.0,5.0,2.0,frilans / selvstendig næringsdrivende,Rogaland,fullstack,10 - 50,820800.0,0
+48.0,0.0,27.0,"in-house, offentlig/kommunal sektor",Vestfold og Telemark,fullstack,1.000 - 10.000,780000.0,0
+33.0,2.0,2.0,"in-house, privat sektor",Oslo,frontend,10 - 50,690000.0,0
+33.0,3.0,10.0,konsulent,Agder,fullstack,over 10.000,710000.0,1
+33.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,backend,over 10.000,544400.0,1
+28.0,6.0,1.0,"in-house, offentlig/kommunal sektor",Trøndelag,databaser,100 - 500,720000.0,1
+33.0,3.0,15.0,konsulent,Trøndelag,automatisering,100 - 500,726000.0,0
+23.0,3.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,app,1.000 - 10.000,627000.0,0
+33.0,3.0,5.0,"in-house, privat sektor",Oslo,backend,100 - 500,730000.0,0
+33.0,4.0,5.0,konsulent,Oslo,frontend,10 - 50,700000.0,1
+33.0,0.0,10.0,"in-house, privat sektor",Agder,ingen av disse,50 - 100,800000.0,1
+38.0,3.0,8.0,konsulent,Oslo,frontend,10 - 50,1200000.0,1
+33.0,5.0,12.0,konsulent,Rogaland,fullstack,100 - 500,1050000.0,1
+38.0,7.0,15.0,"in-house, privat sektor",Oslo,ingen av disse,1.000 - 10.000,650000.0,0
+28.0,4.0,6.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,950000.0,1
+38.0,3.0,10.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,980000.0,0
+33.0,5.0,6.0,konsulent,Viken,app,10 - 50,1000000.0,1
+33.0,6.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,ingen av disse,10 - 50,550000.0,0
+48.0,5.0,15.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,100 - 500,950000.0,1
+33.0,3.0,5.0,"in-house, privat sektor",Agder,backend,50 - 100,620000.0,0
+33.0,4.0,15.0,"in-house, privat sektor",Nordland,ingen av disse,50 - 100,800000.0,1
+28.0,6.0,0.0,konsulent,Oslo,devops,10 - 50,1020000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Vestfold og Telemark,frontend,1.000 - 10.000,650000.0,0
+38.0,3.0,13.0,"in-house, privat sektor",Vestfold og Telemark,frontend,10 - 50,1000000.0,1
+28.0,4.0,8.0,"in-house, privat sektor",Nordland,data science,100 - 500,680000.0,1
+43.0,5.0,11.0,konsulent,Oslo,backend,10 - 50,1400000.0,1
+48.0,3.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,backend,50 - 100,905000.0,1
+33.0,3.0,12.0,konsulent,Oslo,backend,10 - 50,960000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Oslo,app,100 - 500,700000.0,1
+38.0,1.0,15.0,konsulent,Oslo,sikkerhet,100 - 500,1200000.0,1
+33.0,5.0,2.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,800000.0,0
+53.0,5.0,33.0,"in-house, privat sektor",Trøndelag,embedded/IOT/maskinvare,100 - 500,1200000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,data science,1.000 - 10.000,680000.0,1
+28.0,5.0,4.0,konsulent,Rogaland,embedded/IOT/maskinvare,100 - 500,900000.0,1
+48.0,3.0,25.0,"in-house, privat sektor",Oslo,ledelse/administrativt,1.000 - 10.000,1000000.0,1
+43.0,0.0,10.0,konsulent,Oslo,arkitektur,10 - 50,1100000.0,1
+43.0,3.0,15.0,konsulent,Oslo,fullstack,100 - 500,750000.0,0
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,backend,100 - 500,700000.0,0
+43.0,4.0,14.0,"in-house, privat sektor",Oslo,frontend,10 - 50,1100000.0,1
+38.0,4.0,11.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,875000.0,1
+38.0,3.0,5.0,"in-house, privat sektor",Viken,ledelse/administrativt,10 - 50,1250000.0,1
+53.0,3.0,20.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,ingen av disse,50 - 100,603000.0,0
+28.0,2.0,1.0,"in-house, privat sektor",Oslo,frontend,100 - 500,610000.0,0
+28.0,3.0,8.0,"in-house, privat sektor",Oslo,frontend,10 - 50,1150000.0,1
+38.0,3.0,15.0,"in-house, privat sektor",Rogaland,fullstack,under 10,742000.0,1
+33.0,3.0,7.0,"in-house, privat sektor",Vestfold og Telemark,fullstack,100 - 500,830000.0,1
+28.0,3.0,3.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,over 10.000,604400.0,0
+28.0,5.0,1.0,"in-house, privat sektor",Oslo,testing,500 - 1.000,606000.0,1
+28.0,4.0,2.0,"in-house, offentlig/kommunal sektor",Oslo,data science,100 - 500,775000.0,1
+28.0,3.0,3.0,konsulent,Oslo,devops,over 10.000,605000.0,0
+23.0,3.0,3.0,konsulent,Oslo,fullstack,100 - 500,782000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Oslo,backend,100 - 500,800000.0,1
+33.0,3.0,5.0,"in-house, privat sektor",Innlandet,fullstack,100 - 500,750000.0,0
+48.0,6.0,23.0,"in-house, privat sektor",Trøndelag,devops,100 - 500,1022000.0,1
+28.0,3.0,6.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,1080000.0,0
+28.0,5.0,1.0,konsulent,Oslo,fullstack,10 - 50,695000.0,1
+38.0,9.0,8.0,"in-house, privat sektor",Vestland,backend,1.000 - 10.000,1037000.0,1
+33.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,700000.0,1
+28.0,5.0,1.0,konsulent,Oslo,UX / design,under 10,550000.0,1
+33.0,3.0,10.0,konsulent,Oslo,fullstack,50 - 100,1200000.0,0
+53.0,3.0,29.0,konsulent,Oslo,frontend,100 - 500,1050000.0,0
+43.0,3.0,20.0,"in-house, privat sektor",Oslo,fullstack,50 - 100,790000.0,1
+33.0,5.0,6.0,konsulent,Oslo,fullstack,100 - 500,936000.0,1
+38.0,3.0,12.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,630000.0,0
+28.0,3.0,0.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,600000.0,1
+33.0,6.0,4.0,"in-house, offentlig/kommunal sektor",Vestland,data science,1.000 - 10.000,740000.0,1
+43.0,4.0,15.0,"in-house, privat sektor",Vestland,embedded/IOT/maskinvare,10 - 50,860000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Agder,fullstack,100 - 500,560000.0,0
+33.0,5.0,6.0,"in-house, privat sektor",Troms og Finnmark,fullstack,100 - 500,800000.0,1
+33.0,0.0,12.0,"in-house, privat sektor",Oslo,ledelse/administrativt,10 - 50,750000.0,0
+43.0,5.0,18.0,"in-house, privat sektor",Viken,automatisering,500 - 1.000,892000.0,0
+38.0,5.0,9.0,konsulent,Oslo,devops,10 - 50,1000000.0,1
+28.0,2.0,5.0,"in-house, privat sektor",Trøndelag,UX / design,under 10,600000.0,0
+28.0,3.0,0.0,konsulent,Oslo,fullstack,100 - 500,555000.0,0
+28.0,3.0,0.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,650000.0,1
+48.0,5.0,22.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,3500000.0,1
+33.0,6.0,8.0,frilans / selvstendig næringsdrivende,Oslo,fullstack,under 10,1000000.0,1
+58.0,7.0,30.0,"in-house, privat sektor",Oslo,fullstack,100 - 500,1040000.0,1
+38.0,0.0,15.0,"in-house, privat sektor",Oslo,devops,1.000 - 10.000,1000000.0,1
+48.0,3.0,27.0,"in-house, offentlig/kommunal sektor",Møre og Romsdal,arkitektur,500 - 1.000,1100000.0,1
+28.0,5.0,0.0,konsulent,Rogaland,fullstack,10 - 50,540000.0,1
+28.0,0.0,5.0,"in-house, privat sektor",Oslo,frontend,500 - 1.000,905000.0,1
+33.0,3.0,4.0,"in-house, privat sektor",Rogaland,fullstack,1.000 - 10.000,750000.0,1
+28.0,3.0,2.0,konsulent,Oslo,fullstack,1.000 - 10.000,662500.0,0
+43.0,7.0,15.0,"in-house, offentlig/kommunal sektor",Trøndelag,ledelse/administrativt,10 - 50,840000.0,1
+28.0,1.0,5.0,"in-house, privat sektor",Trøndelag,frontend,100 - 500,450000.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Vestland,ingen av disse,1.000 - 10.000,460000.0,0
+33.0,2.0,8.0,konsulent,Oslo,sikkerhet,10 - 50,950000.0,1
+48.0,3.0,2.0,"in-house, privat sektor",Møre og Romsdal,backend,1.000 - 10.000,587000.0,1
+28.0,4.0,2.0,"in-house, privat sektor",Vestland,backend,500 - 1.000,700000.0,0
+28.0,0.0,13.0,"in-house, privat sektor",Innlandet,sikkerhet,10 - 50,456000.0,1
+38.0,0.0,15.0,"in-house, privat sektor",Oslo,ledelse/administrativt,500 - 1.000,1500000.0,1
+38.0,5.0,11.0,"in-house, privat sektor",Trøndelag,embedded/IOT/maskinvare,1.000 - 10.000,1650000.0,1
+33.0,6.0,8.0,konsulent,Oslo,automatisering,50 - 100,1600000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Nordland,fullstack,10 - 50,520000.0,1
+33.0,5.0,15.0,"in-house, privat sektor",Vestland,ledelse/administrativt,1.000 - 10.000,1500000.0,0
+23.0,3.0,1.0,"in-house, privat sektor",Agder,frontend,10 - 50,650000.0,1
+28.0,3.0,6.0,"in-house, privat sektor",Troms og Finnmark,backend,50 - 100,650000.0,0
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,500 - 1.000,840000.0,0
+33.0,5.0,8.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,500 - 1.000,820000.0,1
+43.0,3.0,14.0,konsulent,Oslo,backend,10 - 50,1180000.0,1
+43.0,0.0,20.0,konsulent,Vestfold og Telemark,frontend,10 - 50,750000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Oslo,programvare,500 - 1.000,650000.0,1
+33.0,6.0,10.0,"in-house, privat sektor",Agder,fullstack,over 10.000,650000.0,0
+28.0,2.0,4.0,konsulent,Vestfold og Telemark,frontend,50 - 100,575000.0,0
+43.0,4.0,10.0,"in-house, privat sektor",Oslo,fullstack,1.000 - 10.000,810000.0,1
+38.0,10.0,10.0,konsulent,Oslo,fullstack,50 - 100,1004500.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,ledelse/administrativt,over 10.000,1400000.0,1
+28.0,3.0,6.0,konsulent,Agder,backend,100 - 500,950000.0,1
+38.0,3.0,11.0,"in-house, privat sektor",Oslo,backend,100 - 500,935000.0,1
+43.0,5.0,15.0,frilans / selvstendig næringsdrivende,Agder,backend,under 10,780000.0,1
+28.0,5.0,2.0,konsulent,Oslo,fullstack,500 - 1.000,1200000.0,1
+38.0,0.0,21.0,"in-house, privat sektor",Oslo,databaser,500 - 1.000,785596.0,0
+33.0,3.0,12.0,"in-house, offentlig/kommunal sektor",Oslo,ledelse/administrativt,100 - 500,714000.0,1
+28.0,3.0,6.0,"in-house, offentlig/kommunal sektor",Vestland,fullstack,100 - 500,725000.0,0
+23.0,4.0,8.0,"in-house, privat sektor",Vestland,ingen av disse,1.000 - 10.000,1100000.0,1
+43.0,5.0,17.0,"in-house, privat sektor",Agder,ledelse/administrativt,10 - 50,980000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Nordland,fullstack,10 - 50,702000.0,1
+43.0,5.0,18.0,"in-house, privat sektor",Oslo,fullstack,under 10,1100000.0,0
+33.0,3.0,10.0,"in-house, privat sektor",Vestland,programvare,500 - 1.000,764960.0,0
+23.0,0.0,3.0,"in-house, privat sektor",Rogaland,fullstack,100 - 500,575000.0,0
+38.0,5.0,14.0,"in-house, privat sektor",Oslo,embedded/IOT/maskinvare,10 - 50,1000000.0,1
+38.0,2.0,6.0,"in-house, privat sektor",Oslo,UX / design,10 - 50,760000.0,0
+38.0,5.0,10.0,"in-house, offentlig/kommunal sektor",Agder,ledelse/administrativt,1.000 - 10.000,720000.0,1
+38.0,0.0,12.0,konsulent,Trøndelag,backend,50 - 100,950000.0,1
+28.0,4.0,0.0,konsulent,Oslo,fullstack,100 - 500,585000.0,0
+38.0,5.0,13.0,"in-house, privat sektor",Viken,frontend,1.000 - 10.000,890000.0,0
+43.0,6.0,18.0,"in-house, offentlig/kommunal sektor",Rogaland,ledelse/administrativt,100 - 500,750000.0,0
+23.0,5.0,1.0,konsulent,Oslo,fullstack,500 - 1.000,630000.0,0
+28.0,0.0,5.0,konsulent,Oslo,frontend,10 - 50,1100000.0,1
+23.0,3.0,1.0,"in-house, privat sektor",Viken,fullstack,50 - 100,526500.0,0
+28.0,3.0,2.0,"in-house, privat sektor",Rogaland,fullstack,1.000 - 10.000,680000.0,1
+23.0,3.0,2.0,konsulent,Rogaland,backend,100 - 500,700000.0,1
+33.0,5.0,6.0,konsulent,Oslo,ledelse/administrativt,10 - 50,975000.0,1
+28.0,3.0,3.0,konsulent,Vestfold og Telemark,ingen av disse,100 - 500,1300000.0,1
+38.0,3.0,3.0,"in-house, privat sektor",Viken,frontend,1.000 - 10.000,750000.0,1
+28.0,5.0,2.0,"in-house, privat sektor",Troms og Finnmark,backend,100 - 500,670000.0,1
+38.0,8.0,14.0,"in-house, offentlig/kommunal sektor",Trøndelag,backend,100 - 500,864000.0,0
+28.0,5.0,3.0,konsulent,Oslo,fullstack,100 - 500,820000.0,1
+28.0,3.0,1.0,"in-house, offentlig/kommunal sektor",Oslo,fullstack,1.000 - 10.000,547500.0,1
+43.0,1.0,24.0,"in-house, offentlig/kommunal sektor",Oslo,backend,1.000 - 10.000,750000.0,0
+23.0,3.0,1.0,konsulent,Viken,fullstack,1.000 - 10.000,500000.0,0
+38.0,8.0,0.0,konsulent,Vestland,backend,100 - 500,700000.0,1
+28.0,5.0,0.0,konsulent,Oslo,fullstack,500 - 1.000,610000.0,0
+28.0,3.0,4.0,konsulent,Trøndelag,fullstack,100 - 500,830000.0,1
+28.0,3.0,1.0,konsulent,Rogaland,fullstack,50 - 100,570000.0,0
+28.0,3.0,5.0,konsulent,Vestland,fullstack,1.000 - 10.000,720000.0,0
+23.0,2.0,7.0,"in-house, privat sektor",Oslo,automatisering,100 - 500,560000.0,0
+28.0,5.0,4.0,konsulent,Oslo,arkitektur,100 - 500,950000.0,0
+23.0,5.0,3.0,konsulent,Trøndelag,fullstack,10 - 50,615000.0,0
+23.0,0.0,3.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,700000.0,0
+33.0,6.0,6.0,"in-house, offentlig/kommunal sektor",Trøndelag,fullstack,100 - 500,620000.0,0
+33.0,5.0,7.0,konsulent,Vestland,fullstack,100 - 500,1200000.0,1
+48.0,6.0,16.0,"in-house, privat sektor",Oslo,backend,10 - 50,930000.0,0
+28.0,3.0,5.0,konsulent,Oslo,frontend,100 - 500,735000.0,1
+48.0,3.0,23.0,konsulent,Trøndelag,ingen av disse,1.000 - 10.000,800000.0,0
+28.0,3.0,1.0,"in-house, privat sektor",Oslo,fullstack,under 10,550000.0,1
+28.0,5.0,1.0,konsulent,Oslo,fullstack,100 - 500,615000.0,1
+23.0,3.0,2.0,"in-house, privat sektor",Viken,ledelse/administrativt,10 - 50,1000000.0,1
+28.0,4.0,7.0,"in-house, privat sektor",Rogaland,frontend,100 - 500,750000.0,0
+43.0,7.0,17.0,konsulent,Trøndelag,sikkerhet,over 10.000,1250000.0,1
+33.0,5.0,9.0,frilans / selvstendig næringsdrivende,Rogaland,fullstack,over 10.000,3000000.0,1
+28.0,3.0,5.0,"in-house, privat sektor",Vestland,fullstack,50 - 100,700000.0,1
+38.0,5.0,12.0,"in-house, privat sektor",Oslo,arkitektur,1.000 - 10.000,900000.0,0
+28.0,0.0,4.0,"in-house, privat sektor",Rogaland,fullstack,1.000 - 10.000,620000.0,0
+38.0,3.0,2.0,konsulent,Oslo,frontend,100 - 500,575000.0,0
+38.0,5.0,11.0,konsulent,Oslo,ledelse/administrativt,100 - 500,1460000.0,1
+33.0,2.0,12.0,"in-house, privat sektor",utlandet,fullstack,100 - 500,1248000.0,1
+23.0,3.0,4.0,konsulent,Rogaland,fullstack,1.000 - 10.000,760000.0,1
+33.0,5.0,6.0,"in-house, privat sektor",Oslo,data science,under 10,875000.0,1
+28.0,3.0,2.0,"in-house, privat sektor",Oslo,databaser,100 - 500,644000.0,0
+28.0,3.0,4.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,750000.0,1
+43.0,1.0,14.0,konsulent,Oslo,ledelse/administrativt,10 - 50,1200000.0,1
+38.0,2.0,11.0,"in-house, privat sektor",Oslo,automatisering,10 - 50,819000.0,0
+33.0,5.0,6.0,konsulent,Trøndelag,backend,under 10,950000.0,1
+38.0,0.0,4.0,"in-house, privat sektor",Viken,fullstack,10 - 50,700000.0,0
+33.0,3.0,5.0,konsulent,Oslo,frontend,1.000 - 10.000,1050000.0,1
+28.0,3.0,4.0,konsulent,Trøndelag,frontend,100 - 500,1250000.0,1
+28.0,5.0,5.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,1210000.0,1
+23.0,3.0,4.0,"in-house, privat sektor",Vestland,fullstack,10 - 50,850000.0,0
+38.0,3.0,17.0,"in-house, privat sektor",Rogaland,backend,50 - 100,950000.0,1
+33.0,3.0,7.0,konsulent,Oslo,fullstack,1.000 - 10.000,860000.0,1
+23.0,5.0,1.0,konsulent,Vestland,backend,over 10.000,550000.0,0
+43.0,3.0,18.0,frilans / selvstendig næringsdrivende,Oslo,backend,under 10,1600000.0,1
+33.0,0.0,1.0,"in-house, privat sektor",Trøndelag,frontend,under 10,500000.0,1
+33.0,3.0,10.0,konsulent,Oslo,fullstack,10 - 50,1400000.0,1
+48.0,3.0,18.0,"in-house, offentlig/kommunal sektor",Troms og Finnmark,backend,100 - 500,698500.0,1
+33.0,5.0,7.0,konsulent,Agder,fullstack,100 - 500,997500.0,1
+38.0,3.0,2.0,"in-house, privat sektor",Oslo,fullstack,10 - 50,800000.0,1
+28.0,3.0,5.0,konsulent,Oslo,frontend,10 - 50,780000.0,1
+43.0,5.0,19.0,"in-house, privat sektor",Trøndelag,app,50 - 100,900000.0,0
+38.0,3.0,11.0,"in-house, privat sektor",Vestfold og Telemark,frontend,100 - 500,700000.0,0
+43.0,4.0,20.0,"in-house, privat sektor",Oslo,ledelse/administrativt,100 - 500,1100000.0,1
+38.0,5.0,12.0,"in-house, privat sektor",Vestfold og Telemark,backend,500 - 1.000,825000.0,1
+33.0,5.0,8.0,konsulent,Innlandet,fullstack,10 - 50,800000.0,0
+28.0,3.0,6.0,konsulent,Viken,fullstack,under 10,750000.0,1
+38.0,5.0,7.0,"in-house, offentlig/kommunal sektor",Oslo,data science,1.000 - 10.000,820000.0,1
+38.0,0.0,20.0,konsulent,Rogaland,fullstack,1.000 - 10.000,1000000.0,1
