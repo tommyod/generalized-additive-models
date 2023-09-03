@@ -38,19 +38,33 @@ df.sample(5, random_state=42)
 # ### Create sklearn pipeline
 
 # %%
+from sklearn.dummy import DummyRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import GridSearchCV
 
 
-numerical_features = ["age", "years_formal_relevant_education", "years_relevant_work_experience"]
+numerical_features = [
+    "age",
+    "years_formal_relevant_education",
+    "years_relevant_work_experience",
+]
 
-categorical_features = ["sector", "geographical_location", "work_domain", "num_colleagues"]
+categorical_features = [
+    "sector",
+    "geographical_location",
+    "work_domain",
+    "num_colleagues",
+]
 
 
-pipe_union = ColumnTransformer([("numerical", "passthrough", numerical_features),
-                               ("categorical", OneHotEncoder(), categorical_features)])
+pipe_union = ColumnTransformer(
+    [
+        ("numerical", "passthrough", numerical_features),
+        ("categorical", OneHotEncoder(), categorical_features),
+    ]
+)
 
 pipeline = Pipeline([("transform", pipe_union), ("model", DummyRegressor())])
 
@@ -60,7 +74,6 @@ pipeline
 # ### Model: dummy
 
 # %%
-from sklearn.dummy import DummyRegressor
 from sklearn.model_selection import cross_validate
 
 pipeline.steps[-1] = ("model", DummyRegressor())
@@ -99,16 +112,19 @@ results_boosting = cross_validate(pipeline, df, y, cv=10, scoring="r2")
 # ### Create a GAM
 
 # %%
-penalty = 100
+penalty_spline = 10
+penalty_categorical = 5
 
-terms = (Spline("age", penalty=penalty, num_splines=6) +
-        Spline("years_formal_relevant_education", penalty=penalty, num_splines=6) +
-        Spline("years_relevant_work_experience", penalty=penalty, num_splines=12) +
-        Categorical("sector") +
-        Categorical("geographical_location") +
-        Categorical("work_domain"))
+terms = (
+    Spline("age", penalty=penalty_spline, num_splines=8)
+    + Spline("years_formal_relevant_education", penalty=penalty_spline, num_splines=8)
+    + Spline("years_relevant_work_experience", penalty=penalty_spline, num_splines=8)
+    + Categorical("sector", penalty=penalty_categorical)
+    + Categorical("geographical_location", penalty=penalty_categorical)
+    + Categorical("work_domain", penalty=penalty_categorical)
+)
 
-model = GAM(terms)
+model = GAM(terms, link="identity")
 
 results_gam = cross_validate(model, df, y, cv=10, scoring="r2")
 
@@ -136,11 +152,56 @@ plt.show()
 # ### Inspect partial effects for spline features
 
 # %%
+from generalized_additive_models.inspection import PartialEffectDisplay
+
+
 for term in model.terms:
     if not isinstance(term, Spline):
         continue
-        
+
     fig, ax = plt.subplots(figsize=(6, 2.5))
     ax.set_title(term.feature)
     PartialEffectDisplay.from_estimator(model, term, df, y, ax=ax, rug=False)
     plt.show()
+
+# %% [markdown]
+# ### Inspect categorical features
+
+# %%
+
+terms = Categorical("sector", penalty=0)
+
+model = GAM(terms, link="identity", fit_intercept=False)
+
+model.fit(df, y)
+model.summary()
+
+# %%
+
+terms = Categorical("sector", penalty=0)
+
+model = GAM(terms, link="identity", fit_intercept=True)
+
+model.fit(df, y)
+model.summary()
+
+# %%
+terms = Categorical("sector", penalty=5)
+
+model = GAM(terms, link="identity", fit_intercept=True)
+
+model.fit(df, y)
+model.summary()
+
+# %%
+
+# %%
+y.mean()
+
+# %%
+df["sector"].value_counts()
+
+# %%
+df.groupby("sector").salary.mean().mean()
+
+# %%

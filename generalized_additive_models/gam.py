@@ -478,8 +478,7 @@ class GAM(BaseEstimator):
 
     def residuals(self, X, y, *, residuals="deviance", standardized=True):
         check_is_fitted(self, attributes=["coef_"])
-        
-        
+
         distribution = self._distribution
 
         y_pred = self.predict(X)
