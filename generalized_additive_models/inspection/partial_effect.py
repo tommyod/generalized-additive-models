@@ -250,19 +250,19 @@ class PartialEffectDisplay:
         check_is_fitted(gam, attributes=["coef_"])
         check_is_fitted(term)
 
-        if term not in gam.terms:
-            raise ValueError(f"Term not found in model: {term}")
-
-        standard_deviations = check_scalar(
-            standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
-        )
-
         # If the term is a number or string, try to fetch it from the terms
         if isinstance(term, (str, Integral)):
             try:
                 term = next(t for t in gam.terms if t.feature == term)
             except StopIteration:
                 return ValueError(f"Could not find term with feature: {term}")
+
+        if term not in gam.terms:
+            raise ValueError(f"Term not found in model: {term}")
+
+        standard_deviations = check_scalar(
+            standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
+        )
 
         # ================================ LOGIC  =================================
 

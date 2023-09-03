@@ -20,6 +20,7 @@
 
 # %%
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 
 from generalized_additive_models import GAM, Categorical, Spline
@@ -42,7 +43,6 @@ from sklearn.dummy import DummyRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import GridSearchCV
 
 
 numerical_features = [
@@ -162,46 +162,29 @@ for term in model.terms:
     fig, ax = plt.subplots(figsize=(6, 2.5))
     ax.set_title(term.feature)
     PartialEffectDisplay.from_estimator(model, term, df, y, ax=ax, rug=False)
+    ax.grid(True, ls="--", zorder=0, alpha=0.33)
     plt.show()
 
 # %% [markdown]
 # ### Inspect categorical features
 
 # %%
+for term in model.terms:
+    if not isinstance(term, Categorical):
+        continue
 
-terms = Categorical("sector", penalty=0)
+    # Collect the information in a Series
+    series = pd.Series(term.coef_, index=term.categories_).sort_values()
 
-model = GAM(terms, link="identity", fit_intercept=False)
+    # Create a horizontal bar plot
+    fig, ax = plt.subplots(figsize=(6, 1 + 0.2 * len(series)))
+    ax.set_title(term.feature)
 
-model.fit(df, y)
-model.summary()
+    ticks = np.arange(len(series))
+    ax.barh(ticks, series.values)
+    ax.set_yticks(ticks)
+    ax.set_yticklabels(series.index)
+    ax.grid(True, ls="--", zorder=0, alpha=0.33)
 
-# %%
-
-terms = Categorical("sector", penalty=0)
-
-model = GAM(terms, link="identity", fit_intercept=True)
-
-model.fit(df, y)
-model.summary()
-
-# %%
-terms = Categorical("sector", penalty=5)
-
-model = GAM(terms, link="identity", fit_intercept=True)
-
-model.fit(df, y)
-model.summary()
-
-# %%
-
-# %%
-y.mean()
-
-# %%
-df["sector"].value_counts()
-
-# %%
-df.groupby("sector").salary.mean().mean()
-
-# %%
+    fig.tight_layout()
+    plt.show()
