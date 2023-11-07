@@ -96,5 +96,4 @@ You are welcome to use the package. Report bugs and join the discussion on GitHu
 https://github.com/tommyod/generalized-additive-models"""
 
 
-
 warnings.warn(message)
