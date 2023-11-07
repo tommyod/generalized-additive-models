@@ -36,6 +36,7 @@ jobs:
           pip install pip --upgrade
           pip install .[lint]
           black generalized_additive_models --check -l 120
+          ruff check generalized_additive_models --ignore=E741
           black docs --check
           flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 \
                  --exclude=tests,'*ipynb_checkpoints*'

@@ -25,7 +25,15 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+    TermList,
+)
 
 
 class GAM(BaseEstimator):
@@ -735,10 +743,16 @@ class ExpectileGAM(GAM):
             if self.verbose >= 0:
                 digits = 4
                 expectile_fmt = np.format_float_positional(
-                    self.expectile, precision=digits, pad_right=digits, min_digits=digits
+                    self.expectile,
+                    precision=digits,
+                    pad_right=digits,
+                    min_digits=digits,
                 )
                 empir_quant_fmt = np.format_float_positional(
-                    empirical_quantile, precision=digits, pad_right=digits, min_digits=digits
+                    empirical_quantile,
+                    precision=digits,
+                    pad_right=digits,
+                    min_digits=digits,
                 )
                 quantile_fmt = np.format_float_positional(
                     quantile, precision=digits, pad_right=digits, min_digits=digits

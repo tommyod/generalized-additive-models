@@ -360,8 +360,8 @@ class InvSquared(Link, BaseEstimator):
 
 # Dict comprehension instead of hard-coding the names again here
 LINKS = {
-    l.name: l
-    for l in [
+    link.name: link
+    for link in [
         Identity,
         Log,
         Logit,
@@ -378,11 +378,11 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
 
-    l = Softplus()
+    link = Softplus()
 
     x = np.linspace(0.1, 10)
-    plt.plot(x, l(x))
-    plt.plot(x, l.derivative(x))
+    plt.plot(x, link(x))
+    plt.plot(x, link.derivative(x))
     plt.plot(x, x)
     plt.grid(True)
     plt.show()

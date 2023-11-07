@@ -19,7 +19,14 @@ from sklearn.utils import Bunch, check_scalar
 from sklearn.utils.validation import check_is_fitted
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+)
 from generalized_additive_models.utils import cartesian
 
 
@@ -179,7 +186,11 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
         raise ValueError(f"Term not found in model: {term}")
 
     standard_deviations = check_scalar(
-        standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
+        standard_deviations,
+        "standard_deviations",
+        target_type=Real,
+        min_val=0,
+        include_boundaries="neither",
     )
 
     # If the term is a number or string, try to fetch it from the terms
