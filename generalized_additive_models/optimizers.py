@@ -40,7 +40,7 @@ class Optimizer:
 
 class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
-    ignoring almost all concerns about speed and numercial stability."""
+    ignoring almost all concerns about speed and numerical stability."""
 
     def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, get_sample_weight, verbose):
         self.X = X

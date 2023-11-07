@@ -1298,7 +1298,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
             else:
                 self.splines[int(key)] = value
 
-        # Update all term paramters
+        # Update all term parameters
         for key, value in nested_params.items():
             self.splines[int(key)].set_params(**value)
 
@@ -1815,7 +1815,7 @@ class TermList(UserList, BaseEstimator):
             else:
                 self[int(key)] = value
 
-        # Update all term paramters
+        # Update all term parameters
         for key, value in nested_params.items():
             self[int(key)].set_params(**value)
 

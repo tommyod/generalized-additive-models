@@ -5,7 +5,7 @@
 .. |Actions| image:: https://github.com/tommyod/generalized-additive-models/workflows/Python%20CI/badge.svg?branch=main
 .. _Actions: https://github.com/tommyod/generalized-additive-models/actions/workflows/build.yml?query=branch%3Amain
 
-.. |PythonVersion| image:: https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11-blue
+.. |PythonVersion| image:: https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11|%203.12%20-blue
 .. _PythonVersion: https://pypi.org/project/generalized-additive-models
 
 .. |PyPi| image:: https://img.shields.io/pypi/v/generalized-additive-models

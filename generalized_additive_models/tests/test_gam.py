@@ -484,7 +484,7 @@ class TestGamAutoModels:
         # Decrease data sets to speed up test
         df, y = resample(df, y, replace=False, n_samples=1000, random_state=42)
 
-        # Createa model and create object
+        # Create model and create object
         gam = GAM(Spline(None))
         param_grid = {
             "terms__penalty": np.logspace(-3, 3, num=7),
@@ -829,7 +829,7 @@ class TestGAMSanityChecks:
         # Assert equal coefs
         assert np.allclose(gam_unscaled.coef_, gam_scaled.coef_ / scale)
 
-        # Asssert equal preds
+        # Assert equal preds
         assert np.allclose(gam_unscaled.predict(X), gam_scaled.predict(X) / scale)
 
     def test_that_tensor_with_spline_and_categorical_works(self):
