@@ -54,11 +54,19 @@ https://link.springer.com/article/10.1007/s11222-013-9448-7
 
 """
 
+import warnings
 import importlib.metadata
 from generalized_additive_models.distributions import Binomial, Normal, Poisson
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit, Softplus
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    TermList,
+)
 
 __name__ = "generalized-additive-models"
 __version__ = importlib.metadata.version(__name__)
@@ -87,7 +95,5 @@ Until version 1.0.0 is released, the package and API should be considered unstab
 You are welcome to use the package. Report bugs and join the discussion on GitHub:
 https://github.com/tommyod/generalized-additive-models"""
 
-
-import warnings
 
 warnings.warn(message)

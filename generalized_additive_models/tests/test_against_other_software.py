@@ -7,24 +7,12 @@ Created on Fri Mar 10 08:25:44 2023
 """
 
 
-import io
-import itertools
-
-import joblib
 import numpy as np
 import pandas as pd
 import pytest
-import scipy as sp
-from sklearn.base import clone
-from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
-from sklearn.metrics import accuracy_score, r2_score
-from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
-from sklearn.utils import resample
 
-from generalized_additive_models.distributions import Binomial, Normal
-from generalized_additive_models.gam import GAM, ExpectileGAM
-from generalized_additive_models.links import Identity, Log, Logit
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.gam import GAM
+from generalized_additive_models.terms import Categorical
 
 
 class TestAgainstRLM:
@@ -65,7 +53,16 @@ class TestAgainstRLM:
         df = pd.DataFrame(
             {
                 "height": (2.5, 1, 1.5, 1, 1, 0, 1, 0),
-                "gender": ("male", "male", "male", "male", "female", "female", "female", "female"),
+                "gender": (
+                    "male",
+                    "male",
+                    "male",
+                    "male",
+                    "female",
+                    "female",
+                    "female",
+                    "female",
+                ),
                 "country": ("no", "us", "no", "us", "no", "us", "no", "us"),
             }
         )
@@ -82,14 +79,21 @@ class TestAgainstRLM:
         # Residuals match R results
         residuals = (df.height - gam.predict(df)).values
         residuals_R = np.array(
-            [5.000e-01, -1.943e-16, -5.000e-01, 1.156e-16, -5.551e-17, 2.776e-17, -5.551e-17, 2.776e-17]
+            [
+                5.000e-01,
+                -1.943e-16,
+                -5.000e-01,
+                1.156e-16,
+                -5.551e-17,
+                2.776e-17,
+                -5.551e-17,
+                2.776e-17,
+            ]
         )
         assert np.allclose(residuals, residuals_R)
 
 
 if __name__ == "__main__":
-    import pytest
-
     pytest.main(
         args=[
             __file__,

@@ -25,7 +25,15 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+    TermList,
+)
 
 
 class GAM(BaseEstimator):
@@ -204,7 +212,7 @@ class GAM(BaseEstimator):
 
         self.model_matrix_ = self.terms.fit_transform(X)
 
-        self.X_ = X.copy()  # Store a copy used for patial effects
+        self.X_ = X.copy()  # Store a copy used for partial effects
         self.y_ = y.copy()
         self.sample_weight_ = sample_weight.copy()
 
@@ -719,8 +727,8 @@ class ExpectileGAM(GAM):
         # Perform binary search
         # The goal is to choose `expectile` such that the empirical quantile
         # matches the desired quantile. The reason for not using
-        # scipy.optimize.bisect is that bisect evalutes the endpoints first,
-        # resulting in extra unneccesary fits (we assume that 0 -> 0 and 1 -> 1)
+        # scipy.optimize.bisect is that bisect evaluates the endpoints first,
+        # resulting in extra unnecessary fits (we assume that 0 -> 0 and 1 -> 1)
         min_, max_ = 0.0, 1.0
         expectile = self.expectile
         # TODO: Can this be improved?
@@ -735,10 +743,16 @@ class ExpectileGAM(GAM):
             if self.verbose >= 0:
                 digits = 4
                 expectile_fmt = np.format_float_positional(
-                    self.expectile, precision=digits, pad_right=digits, min_digits=digits
+                    self.expectile,
+                    precision=digits,
+                    pad_right=digits,
+                    min_digits=digits,
                 )
                 empir_quant_fmt = np.format_float_positional(
-                    empirical_quantile, precision=digits, pad_right=digits, min_digits=digits
+                    empirical_quantile,
+                    precision=digits,
+                    pad_right=digits,
+                    min_digits=digits,
                 )
                 quantile_fmt = np.format_float_positional(
                     quantile, precision=digits, pad_right=digits, min_digits=digits

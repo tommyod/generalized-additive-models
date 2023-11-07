@@ -805,7 +805,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             self.spline_transformer_mirrored_.degree += degree_adjustment
 
         # Generate basis matrix
-        self._lower_bound, self._upper_bound, basis_matrix = self._post_transform_basis_for_constraint(
+        (
+            self._lower_bound,
+            self._upper_bound,
+            basis_matrix,
+        ) = self._post_transform_basis_for_constraint(
             constraint=self.constraint,
             basis_matrix=self.spline_transformer_.transform(X_feature_masked),
             basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(-X_feature_masked),
@@ -857,7 +861,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         X_feature = self._get_column(X, selector="feature")
 
-        self._lower_bound, self._upper_bound, basis_matrix = self._post_transform_basis_for_constraint(
+        (
+            self._lower_bound,
+            self._upper_bound,
+            basis_matrix,
+        ) = self._post_transform_basis_for_constraint(
             constraint=self.constraint,
             basis_matrix=self.spline_transformer_.transform(X_feature),
             basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(-X_feature),
@@ -1298,7 +1306,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
             else:
                 self.splines[int(key)] = value
 
-        # Update all term paramters
+        # Update all term parameters
         for key, value in nested_params.items():
             self.splines[int(key)].set_params(**value)
 
@@ -1367,7 +1375,13 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
     }
 
     def __init__(
-        self, feature=None, penalty=1, by=None, handle_unknown="error", min_frequency=None, max_categories=None
+        self,
+        feature=None,
+        penalty=1,
+        by=None,
+        handle_unknown="error",
+        min_frequency=None,
+        max_categories=None,
     ):
         """Create a categorial term with a given penalty.
 
@@ -1815,7 +1829,7 @@ class TermList(UserList, BaseEstimator):
             else:
                 self[int(key)] = value
 
-        # Update all term paramters
+        # Update all term parameters
         for key, value in nested_params.items():
             self[int(key)].set_params(**value)
 

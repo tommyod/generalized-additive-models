@@ -16,14 +16,26 @@ import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
 from sklearn.metrics import accuracy_score, r2_score
-from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
+from sklearn.model_selection import (
+    GridSearchCV,
+    KFold,
+    cross_val_score,
+    train_test_split,
+)
 from sklearn.utils import resample
 from numbers import Real
 
 from generalized_additive_models.distributions import Binomial, Normal
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    TermList,
+)
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
@@ -484,7 +496,7 @@ class TestGamAutoModels:
         # Decrease data sets to speed up test
         df, y = resample(df, y, replace=False, n_samples=1000, random_state=42)
 
-        # Createa model and create object
+        # Create model and create object
         gam = GAM(Spline(None))
         param_grid = {
             "terms__penalty": np.logspace(-3, 3, num=7),
@@ -629,7 +641,12 @@ class TestGAMSanityChecks:
 
             # Create model
             terms = Spline(
-                0, constraint=constraint, extrapolation="linear", degree=degree, penalty=penalty, knots=knots
+                0,
+                constraint=constraint,
+                extrapolation="linear",
+                degree=degree,
+                penalty=penalty,
+                knots=knots,
             )
             prediction = GAM(terms, tol=0.01).fit(X, y).predict(X_smooth)
             assert np.all(np.isfinite(prediction))
@@ -829,7 +846,7 @@ class TestGAMSanityChecks:
         # Assert equal coefs
         assert np.allclose(gam_unscaled.coef_, gam_scaled.coef_ / scale)
 
-        # Asssert equal preds
+        # Assert equal preds
         assert np.allclose(gam_unscaled.predict(X), gam_scaled.predict(X) / scale)
 
     def test_that_tensor_with_spline_and_categorical_works(self):

@@ -40,9 +40,22 @@ class Optimizer:
 
 class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
-    ignoring almost all concerns about speed and numercial stability."""
+    ignoring almost all concerns about speed and numerical stability."""
 
-    def __init__(self, *, X, D, y, link, distribution, bounds, max_iter, tol, get_sample_weight, verbose):
+    def __init__(
+        self,
+        *,
+        X,
+        D,
+        y,
+        link,
+        distribution,
+        bounds,
+        max_iter,
+        tol,
+        get_sample_weight,
+        verbose,
+    ):
         self.X = X
         self.D = D
         self.y = y
@@ -265,7 +278,11 @@ class PIRLS(Optimizer):
             phi = self.distribution.scale
         else:
             phi = phi_fletcher(
-                self.y, mu, self.distribution, edof, sample_weight=self.get_sample_weight(mu=mu, y=self.y)
+                self.y,
+                mu,
+                self.distribution,
+                edof,
+                sample_weight=self.get_sample_weight(mu=mu, y=self.y),
             )
 
         self.results_.scale = phi

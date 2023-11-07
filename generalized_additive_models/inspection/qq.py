@@ -68,7 +68,7 @@ class QQDisplay:
         scatter_kwargs=None,
         line_kwargs=None,
     ):
-        if not method in ("normal", "simulate"):
+        if method not in ("normal", "simulate"):
             raise ValueError("Parameter `method` must be in 'normal' or 'simulate'")
 
         y = np.array(y, dtype=float)

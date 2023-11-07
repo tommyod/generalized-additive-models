@@ -18,7 +18,14 @@ from sklearn.utils import Bunch, check_scalar
 from sklearn.utils.validation import check_is_fitted
 
 from generalized_additive_models import GAM
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+)
 from generalized_additive_models.utils import cartesian
 
 
@@ -113,7 +120,11 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
         raise ValueError(f"Term not found in model: {term}")
 
     standard_deviations = check_scalar(
-        standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
+        standard_deviations,
+        "standard_deviations",
+        target_type=Real,
+        min_val=0,
+        include_boundaries="neither",
     )
 
     # If the term is a number or string, try to fetch it from the terms
@@ -217,7 +228,11 @@ class PartialEffectDisplay:
             # min_y = np.min(self.y) if self.y_low is not None else np.min(self.y_low)
             min_y = ax.get_ylim()[0]
             self.scatter_ = ax.scatter(
-                self.x_obs, np.ones_like(self.x_obs) * min_y, marker="|", color="black", alpha=0.7
+                self.x_obs,
+                np.ones_like(self.x_obs) * min_y,
+                marker="|",
+                color="black",
+                alpha=0.7,
             )
 
         self.ax_ = ax
@@ -261,7 +276,11 @@ class PartialEffectDisplay:
             raise ValueError(f"Term not found in model: {term}")
 
         standard_deviations = check_scalar(
-            standard_deviations, "standard_deviations", target_type=Real, min_val=0, include_boundaries="neither"
+            standard_deviations,
+            "standard_deviations",
+            target_type=Real,
+            min_val=0,
+            include_boundaries="neither",
         )
 
         # ================================ LOGIC  =================================

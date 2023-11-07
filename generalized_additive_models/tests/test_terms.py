@@ -15,7 +15,15 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.exceptions import NotFittedError
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+    TermList,
+)
 
 
 class TestTermMultiplications:
@@ -25,38 +33,38 @@ class TestTermMultiplications:
     def test_intercept_multiplications(self):
         redundant = Term.is_redudance_with_respect_to
 
-        i = Intercept()
-        assert i * i == i
+        intercept = Intercept()
+        assert intercept * intercept == intercept
 
-        l = Linear(0)
-        assert l * i == i * l == l
-        assert redundant(l * i, i * l)
+        linear = Linear(0)
+        assert linear * intercept == intercept * linear == linear
+        assert redundant(linear * intercept, intercept * linear)
 
         s = Spline(0, by=1)
-        assert s * i == i * s == s
-        assert redundant(s * i, i * s)
+        assert s * intercept == intercept * s == s
+        assert redundant(s * intercept, intercept * s)
 
         te = Tensor([Spline(0), Spline(1)])
-        assert te * i == i * te == te
-        assert redundant(te * i, i * te)
+        assert te * intercept == intercept * te == te
+        assert redundant(te * intercept, intercept * te)
 
     @pytest.mark.skip(reason="Not implemented.")
     def test_linear_multiplication(self):
         redundant = Term.is_redudance_with_respect_to
 
-        l = Linear(0)
+        l1 = Linear(0)
         l2 = Linear(1)
 
-        assert l * l2 == Linear(1, by=0) == Linear(0, by=1) == l2 * l
-        assert redundant(l * l2, Linear(1, by=0))
-        assert redundant(l * l2, Linear(0, by=1))
-        assert redundant(l * l2, l2 * l)
+        assert l1 * l2 == Linear(1, by=0) == Linear(0, by=1) == l2 * l1
+        assert redundant(l1 * l2, Linear(1, by=0))
+        assert redundant(l1 * l2, Linear(0, by=1))
+        assert redundant(l1 * l2, l2 * l1)
 
         s = Spline(1)
-        assert l * s == s * l == Spline(1, by=0)
+        assert l1 * s == s * l1 == Spline(1, by=0)
 
         te = Tensor([Spline(1), Spline(2)])
-        assert l * te == te * l == Tensor([Spline(1), Spline(2)], by=0)
+        assert l1 * te == te * l1 == Tensor([Spline(1), Spline(2)], by=0)
 
     @pytest.mark.skip(reason="Not implemented.")
     def test_spline_multiplication(self):
@@ -363,7 +371,10 @@ class TestPandasCompatibility:
 
         # Check that the results are the same
         for i, feature in enumerate(df.columns):
-            assert np.allclose(term(feature=feature).fit_transform(df), term(feature=i).fit_transform(df_integer_cols))
+            assert np.allclose(
+                term(feature=feature).fit_transform(df),
+                term(feature=i).fit_transform(df_integer_cols),
+            )
 
     @pytest.mark.parametrize("term", [Linear, Spline])
     def test_that_terms_can_use_numerical_and_string_features(self, term):
@@ -379,7 +390,10 @@ class TestPandasCompatibility:
 
         # Check that the results are the same
         for i, feature in enumerate(df.columns):
-            assert np.allclose(term(feature=feature).fit_transform(df), term(feature=i).fit_transform(X))
+            assert np.allclose(
+                term(feature=feature).fit_transform(df),
+                term(feature=i).fit_transform(X),
+            )
 
     @pytest.mark.parametrize("term", [Linear, Spline])
     def test_that_transforming_a_single_column_does_not_forget_feature_name(self, term):
