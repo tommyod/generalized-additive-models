@@ -596,7 +596,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         degree=3,
         knots="uniform",
         extrapolation="linear",
-    ):
+    ):  
         """
 
         Examples

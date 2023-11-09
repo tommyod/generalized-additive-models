@@ -92,7 +92,12 @@ Contributing and development
 Contributions are very welcome.
 You can correct spelling mistakes, write documentation, clean up code, implement new features, etc.
 
-Some guidelines:
+To install in editable mode, with development dependencides, simply run::
+
+    pip install -e '[lint,dev,doc]'
+
+
+Some guidelines for development:
 
 - Code must comply with the standard. See the GitHub action pipeline for more information.
 - If possible, use existing algorithms from `numpy`, `scipy` and `scikit-learn`.
