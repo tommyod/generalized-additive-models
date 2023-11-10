@@ -460,7 +460,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     constraint : TYPE, optional
         A constraint for the spline. Must be one of
         {'increasing-concave', 'convex', 'decreasing-concave', 'increasing',
-         'concave', 'decreasing', 'decreasing-convex', 'increasing-convex'}
+        'concave', 'decreasing', 'decreasing-convex', 'increasing-convex'}
         or None. The constraints do not hold for all extrapolations.
         The default is None.
     edges : tuple, optional

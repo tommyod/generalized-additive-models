@@ -41,6 +41,11 @@ class Optimizer:
 class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numerical stability."""
+    
+    # Printing options
+    PRECISION=4
+    MIN_DIGITS=4
+    EXP_DIGITS=2
 
     def __init__(
         self,
@@ -110,7 +115,7 @@ class PIRLS(Optimizer):
         threshold = EPSILON**0.25
         y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
         mu_initial = self.link.link(y_to_map)
-
+        
         assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
 
         # Solve X @ beta = mu using Ridge regression
@@ -147,7 +152,8 @@ class PIRLS(Optimizer):
 
             return alpha
 
-        fmt = functools.partial(np.format_float_scientific, precision=4, min_digits=4, exp_digits=2)
+        # Number formatting when printing
+        fmt = functools.partial(np.format_float_scientific, precision=self.PRECISION, min_digits=self.MIN_DIGITS, exp_digits=self.EXP_DIGITS)
 
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values
@@ -189,7 +195,7 @@ class PIRLS(Optimizer):
 
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
             w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            assert np.all(w >= 0), f"smallest w_i {np.min(w)}"
+            assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2

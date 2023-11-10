@@ -92,11 +92,6 @@ Contributing and development
 Contributions are very welcome.
 You can correct spelling mistakes, write documentation, clean up code, implement new features, etc.
 
-To install in editable mode, with development dependencides, simply run::
-
-    pip install -e '[lint,dev,doc]'
-
-
 Some guidelines for development:
 
 - Code must comply with the standard. See the GitHub action pipeline for more information.
@@ -110,6 +105,7 @@ Installation for local development::
     
 Create documentation locally::
 
+    sudo apt install pandoc
     sphinx-build docs _built_docs/html -W -a -E --keep-going
     sphinx-autobuild docs _built_docs/html -v -j "auto" --watch generalized_additive_models
 
