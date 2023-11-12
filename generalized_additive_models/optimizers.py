@@ -14,7 +14,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
-from generalized_additive_models.utils import identifiable_parameters, phi_fletcher
+from generalized_additive_models.utils import identifiable_parameters, phi_fletcher, ColumnRemover
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -177,15 +177,11 @@ class PIRLS(Optimizer):
             print(msg)
 
         # Set non-identifiable coefficients to zero
-        nonzero_coefs = identifiable_parameters(np.vstack((self.X, self.D)))
-        zero_coefs = ~nonzero_coefs
+        column_remover = ColumnRemover()
+        X, D, beta = column_remover.transform(X=self.X, D=self.D, beta=beta)
 
-        if self.verbose >= 2:
-            print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
-
-        X = self.X[:, nonzero_coefs]
-        D = self.D[:, nonzero_coefs]
-        beta = beta[nonzero_coefs]
+        # if self.verbose >= 2:
+        #    print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
 
         # List of betas to watch as optimization progresses
         betas = [beta]
@@ -201,7 +197,7 @@ class PIRLS(Optimizer):
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
-            bounds = (self.bounds[0][nonzero_coefs], self.bounds[1][nonzero_coefs])
+            bounds = (self.bounds[0][column_remover.nonzero_coefs], self.bounds[1][column_remover.nonzero_coefs])
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
             def halving_search(X, D, y, sample_weight, beta0, beta1):
@@ -246,11 +242,7 @@ class PIRLS(Optimizer):
             warnings.warn(msg, ConvergenceWarning)
 
         # Add zero coefficients back
-        for i in range(len(betas)):
-            beta_updated = np.zeros(num_beta, dtype=float)
-            beta_updated[~zero_coefs] = beta
-            betas[i] = beta_updated
-
+        betas = [column_remover.inverse_transform(beta) for beta in betas]
         beta = betas[-1]
 
         # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
@@ -271,9 +263,7 @@ class PIRLS(Optimizer):
         # assert np.allclose(H_diag, np.diag(H_diag2))
 
         # assert len(beta) == len(np.diag(H_diag2))
-        H_diag_full = np.zeros(num_beta, dtype=float)
-        H_diag_full[nonzero_coefs] = H_diag
-        H_diag = H_diag_full
+        H_diag = column_remover.insert(initial=np.zeros_like(beta), values=H_diag)
 
         assert len(beta) == len(H_diag)
 
@@ -297,10 +287,7 @@ class PIRLS(Optimizer):
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
-        covariance_full = np.zeros(shape=(len(beta), len(beta)), dtype=float)
-        covariance_full = np.eye(len(beta), dtype=float) * EPSILON
-        covariance_full[np.ix_(nonzero_coefs, nonzero_coefs)] = covariance
-        covariance = covariance_full
+        covariance = column_remover.insert(initial=np.eye(len(beta), dtype=float) * EPSILON, values=covariance)
 
         assert covariance.shape == (len(beta), len(beta))
         self.results_.covariance = covariance

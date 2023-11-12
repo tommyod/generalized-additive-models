@@ -18,6 +18,71 @@ MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
+class ColumnRemover:
+    """Remove non-identifiable columns.
+
+    Examples
+    --------
+    >>> X = np.array([[1., 1., 0.],
+    ...               [1., 1., 0.],
+    ...               [1., 0., 1.],
+    ...               [1., 0., 1.]])
+    >>> D = np.array([[0., 0., 0.],
+    ...               [0., 0., 0.],
+    ...               [0., 0., 0.]])
+    >>> beta = np.array([1., 2., 3.])
+    >>> remover = ColumnRemover()
+    >>> X_t, D_t, beta_t = remover.transform(X=X, D=D, beta=beta)
+    >>> X_t
+    array([[1., 1.],
+           [1., 1.],
+           [1., 0.],
+           [1., 0.]])
+    >>> D_t
+    array([[0., 0.],
+           [0., 0.],
+           [0., 0.]])
+    >>> X_new, D_new, beta_new = remover.inverse_transform(beta=np.array([10., 20.]))
+    >>> beta_new
+    array([10., 20.,  3.])
+    """
+
+    def __init__(self, epsilon=EPSILON):
+        self.epsilon = epsilon
+
+    def transform(self, *, X, D, beta):
+        assert X.shape[1] == D.shape[1] == len(beta)
+        self.X = X
+        self.D = D
+        self.beta = beta
+
+        self.nonzero_coefs = identifiable_parameters(np.vstack((X, D)))
+        self.zero_coefs = ~self.nonzero_coefs
+
+        X = X[:, self.nonzero_coefs]
+        D = D[:, self.nonzero_coefs]
+        beta = beta[self.nonzero_coefs]
+
+        return X, D, beta
+
+    def inverse_transform(self, beta):
+        assert len(beta) == self.nonzero_coefs.sum()
+
+        new_beta = np.copy(self.beta)
+        new_beta[self.nonzero_coefs] = beta
+
+        return new_beta
+
+    def insert(self, initial, values):
+        initial = np.copy(initial)
+        if initial.ndim == 1:
+            initial[self.nonzero_coefs] = values
+        else:
+            mask = np.ix_(self.nonzero_coefs, self.nonzero_coefs)
+            initial[mask] = values
+        return initial
+
+
 def identifiable_parameters(X):
     """Return a boolean mask indicating identifiable parameters.
 
