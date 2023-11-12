@@ -14,18 +14,19 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
-from generalized_additive_models.utils import identifiable_parameters, phi_fletcher, ColumnRemover
+from generalized_additive_models.utils import phi_fletcher, ColumnRemover
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
 def solve_unbounded_lstsq(X, D, w, z):
-    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z
-    for beta."""
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
     lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
     rhs = X.T @ (w * z)
-    beta, *_ = sp.linalg.lstsq(lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True)
+    beta, *_ = sp.linalg.lstsq(
+        lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True, check_finite=True, lapack_driver="gelsd"
+    )
     return beta
 
 
@@ -242,13 +243,13 @@ class PIRLS(Optimizer):
             warnings.warn(msg, ConvergenceWarning)
 
         # Add zero coefficients back
-        betas = [column_remover.inverse_transform(beta) for beta in betas]
+        betas = [column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in betas]
         beta = betas[-1]
 
         # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
         # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
         to_invert = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
-        to_invert.flat[:: to_invert.shape[0] + 1] += EPSILON  # Add to diagonal
+        np.fill_diagonal(to_invert, to_invert.diagonal() + EPSILON)  # Add to diagonal
         inverted = sp.linalg.inv(to_invert)
 
         # Compute the effective degrees of freedom per coefficient

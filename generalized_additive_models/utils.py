@@ -42,9 +42,8 @@ class ColumnRemover:
     array([[0., 0.],
            [0., 0.],
            [0., 0.]])
-    >>> X_new, D_new, beta_new = remover.inverse_transform(beta=np.array([10., 20.]))
-    >>> beta_new
-    array([10., 20.,  3.])
+    >>> remover.insert(initial=np.zeros(3), values=np.array([5, 10]))
+    array([ 5., 10.,  0.])
     """
 
     def __init__(self, epsilon=EPSILON):
@@ -64,14 +63,6 @@ class ColumnRemover:
         beta = beta[self.nonzero_coefs]
 
         return X, D, beta
-
-    def inverse_transform(self, beta):
-        assert len(beta) == self.nonzero_coefs.sum()
-
-        new_beta = np.copy(self.beta)
-        new_beta[self.nonzero_coefs] = beta
-
-        return new_beta
 
     def insert(self, initial, values):
         initial = np.copy(initial)
