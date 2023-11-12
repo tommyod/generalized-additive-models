@@ -41,11 +41,11 @@ class Optimizer:
 class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numerical stability."""
-    
+
     # Printing options
-    PRECISION=4
-    MIN_DIGITS=4
-    EXP_DIGITS=2
+    PRECISION = 4
+    MIN_DIGITS = 4
+    EXP_DIGITS = 2
 
     def __init__(
         self,
@@ -115,7 +115,7 @@ class PIRLS(Optimizer):
         threshold = EPSILON**0.25
         y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
         mu_initial = self.link.link(y_to_map)
-        
+
         assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
 
         # Solve X @ beta = mu using Ridge regression
@@ -153,7 +153,9 @@ class PIRLS(Optimizer):
             return alpha
 
         # Number formatting when printing
-        fmt = functools.partial(np.format_float_scientific, precision=self.PRECISION, min_digits=self.MIN_DIGITS, exp_digits=self.EXP_DIGITS)
+        fmt = functools.partial(
+            np.format_float_scientific, precision=self.PRECISION, min_digits=self.MIN_DIGITS, exp_digits=self.EXP_DIGITS
+        )
 
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values

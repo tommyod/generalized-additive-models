@@ -19,6 +19,10 @@
 # Import packages.
 
 # %%
+# %load_ext autoreload
+# %autoreload 2
+
+# %%
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -188,3 +192,5 @@ for term in model.terms:
 
     fig.tight_layout()
     plt.show()
+
+# %%

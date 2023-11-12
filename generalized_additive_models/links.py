@@ -63,7 +63,14 @@ class Identity(Link, BaseEstimator):
     domain = (-np.inf, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([-1, 0, 1])
+        >>> Identity().link(mu)
+        array([-1,  0,  1])
+        """
         return mu
 
     def inverse_link(self, linear_prediction):
@@ -102,7 +109,15 @@ class Logit(Link, BaseEstimator):
         self.domain = (self.low, self.high)
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([0.1, 0.5, 0.9, 0.99, 0.999])
+        >>> Logit().link(mu)
+        array([-2.19722458,  0.        ,  2.19722458,  4.59511985,  6.90675478])
+
+        """
         # x = log((-L + y)/(H - y))
 
         low = self._validate_threshold(threshold=self.low, argument=mu)
@@ -374,7 +389,7 @@ LINKS = {
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "-k link"])
+    pytest.main(args=[__file__, "--doctest-modules", "-v", "--capture=sys", "-k link"])
 
     import matplotlib.pyplot as plt
 

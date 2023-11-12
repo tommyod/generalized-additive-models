@@ -23,7 +23,6 @@ def identifiable_parameters(X):
 
     Identifiable parameters are the non-zero parameters in a regression model.
 
-
     Parameters
     ----------
     X : np.ndarray
@@ -59,13 +58,19 @@ def identifiable_parameters(X):
     >>> identifiable_parameters(X)
     array([ True,  True, False])
 
+    >>> X = np.array([[1, 1, 0],
+    ...               [1, 1, 0],
+    ...               [1, 1, 0],
+    ...               [1, 0, 1]])
+    >>> identifiable_parameters(X)
+    array([ True, False,  True])
+
     """
 
     # Set non-identifiable coefficients to zero
     # Compute Q R = A P
     # https://en.wikipedia.org/wiki/QR_decomposition#Column_pivoting
     Q, R, pivot = sp.linalg.qr(X, mode="economic", pivoting=True)
-    # Q, R, pivot = sp.linalg.qr(self.X, mode="economic", pivoting=True)
 
     # Inverse pivot mapping
     pivot_inv = np.zeros_like(pivot)

@@ -6,10 +6,11 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from datetime import date
 import generalized_additive_models
 
 project = generalized_additive_models.__name__
-copyright = "2023, tommyod"
+copyright = f"2004-{date.today().year}, tommyod"
 author = "tommyod"
 release = generalized_additive_models.__version__
 
@@ -27,7 +28,7 @@ source_suffix = [".rst"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
+html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
 
 extensions = [
@@ -91,24 +92,20 @@ pygments_style = "sphinx"
 # html_theme = "furo"
 
 html_theme_options = {
-    # 'logo': 'logo.png',
-    # 'logo': 'logo.png',
-    "github_user": "tommyod",
-    "github_repo": "generalized-additive-models",
-    "github_button": True,
-    "github_banner": True,
-    "travis_button": False,
-    "show_powered_by": False,
-    "font_family": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,\
-        "Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"\
-        ,"Segoe UI Symbol"',
-    "font_size": "15px",
-    "code_font_size": "13px",
-    "head_font_family": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,\
-        "Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"\
-        ,"Segoe UI Symbol"',
-    "page_width": "1080px",
-    "sidebar_width": "280px",
+    "collapse_navigation": True,
+    "navigation_depth": 2,
+    "show_prev_next": False,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/tommyod/generalized-additive-models",
+            "icon": "fab fa-github-square",
+        },
+    ],
+    
+    "navbar_end": ["theme-switcher", "navbar-icon-links", "version-switcher"],
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    "header_links_before_dropdown": 7,
 }
 
 

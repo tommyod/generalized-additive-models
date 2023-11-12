@@ -50,6 +50,7 @@ doc = [ "sphinx",
         "nbsphinx",
         "ipython",
         "sphinx_rtd_theme",
+        "pydata-sphinx-theme",
         "numpydoc",
         ]
 
