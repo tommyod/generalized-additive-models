@@ -102,7 +102,6 @@ html_theme_options = {
             "icon": "fab fa-github-square",
         },
     ],
-    
     "navbar_end": ["theme-switcher", "navbar-icon-links", "version-switcher"],
     "secondary_sidebar_items": ["page-toc", "edit-this-page"],
     "header_links_before_dropdown": 7,
