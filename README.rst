@@ -103,6 +103,11 @@ Create documentation locally::
     sudo apt install pandoc
     sphinx-build docs _built_docs/html -W -a -E --keep-going
     sphinx-autobuild docs _built_docs/html -v -j "auto" --watch generalized_additive_models
+    
+Once the `version` has been incremented, the commit must be tagged and pushed in order to publish to PyPi::
+
+    git tag -a v0.1.0 -m "Version 0.1.0" b22724c
+    git push origin v0.1.0
 
 Citing
 ------
