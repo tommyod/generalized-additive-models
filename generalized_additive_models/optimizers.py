@@ -136,6 +136,19 @@ class PIRLS(Optimizer):
 
         return (deviance + penalty) / len(beta)
 
+    def halving_search(self, X, D, y, sample_weight, beta0, beta1):
+        obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
+
+        for half_exponent in range(21):
+            step_size = (1 / 2) ** half_exponent
+            beta = step_size * beta1 + (1 - step_size) * beta0
+            obj = self.evaluate_objective(X, D, beta, y, sample_weight)
+
+            if obj < obj0:
+                return beta, obj, half_exponent
+
+        return beta0, obj0, half_exponent
+
     def solve(self, fisher_weights=True):
         """Solve the optimization problem."""
         # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
@@ -181,8 +194,11 @@ class PIRLS(Optimizer):
         column_remover = ColumnRemover()
         X, D, beta = column_remover.transform(X=self.X, D=self.D, beta=beta)
 
-        # if self.verbose >= 2:
-        #    print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
+        if self.verbose >= 2:
+            print(
+                "Variables set to zero for identifiability:"
+                + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
+            )
 
         # List of betas to watch as optimization progresses
         betas = [beta]
@@ -201,20 +217,9 @@ class PIRLS(Optimizer):
             bounds = (self.bounds[0][column_remover.nonzero_coefs], self.bounds[1][column_remover.nonzero_coefs])
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
-            def halving_search(X, D, y, sample_weight, beta0, beta1):
-                obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
-
-                for half_exponent in range(21):
-                    step_size = (1 / 2) ** half_exponent
-                    beta = step_size * beta1 + (1 - step_size) * beta0
-                    obj = self.evaluate_objective(X, D, beta, y, sample_weight)
-
-                    if obj < obj0:
-                        return beta, obj, half_exponent
-
-                return beta0, obj0, half_exponent
-
-            beta, objective_value, half_exponent = halving_search(X, D, self.y, sample_weight, betas[-1], beta_trial)
+            beta, objective_value, half_exponent = self.halving_search(
+                X, D, self.y, sample_weight, betas[-1], beta_trial
+            )
 
             eta = X @ beta
             mu = self.link.inverse_link(eta)

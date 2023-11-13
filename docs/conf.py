@@ -50,7 +50,18 @@ extensions = [
     # "sphinx_gallery.gen_gallery",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
+    "sphinx.ext.intersphinx",
 ]
+
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3/', None),
+    'pytest': ('https://pytest.org/en/stable/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+}
 
 plot_include_source = True
 
