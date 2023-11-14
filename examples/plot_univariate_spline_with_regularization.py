@@ -24,7 +24,6 @@ x_smooth = np.linspace(-3.2, 3.2, num=2**10)
 plt.scatter(x, y, label="Data", color="black")
 
 for penalty in [10**4, 10**2, 1, 0.001]:
-
     # Create a model
     gam = GAM(Spline(0, penalty=penalty))
     gam.fit(X, y)

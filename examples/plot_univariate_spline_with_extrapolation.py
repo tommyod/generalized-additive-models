@@ -23,7 +23,7 @@ x_smooth = np.linspace(-3, 7.5, num=2**10)
 # Plot the data
 plt.scatter(x, y, label="Data", color="black")
 
-for extrapolation in ['continue', 'linear', 'constant', 'periodic']:
+for extrapolation in ["continue", "linear", "constant", "periodic"]:
     # Create a model
     gam = GAM(Spline(0, extrapolation=extrapolation))
     gam.fit(X, y)
