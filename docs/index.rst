@@ -7,25 +7,12 @@
 .. include:: ../README.rst
 
 .. currentmodule:: generalized_additive_models
-
-   
-Examples
-========
    
 .. toctree::
    :maxdepth: 1
    :hidden:
    
-   examples/getting_started
-   examples/ex_salaries
-   examples/diagnostic_plots
-   API documentation <API>
+   notebooks/index
+   examples_gallery/index
+   API
    references
-   
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

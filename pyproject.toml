@@ -52,6 +52,8 @@ doc = [ "sphinx",
         "sphinx_rtd_theme",
         "pydata-sphinx-theme",
         "numpydoc",
+        "Pillow",
+        "sphinx-gallery",
         ]
 
 [build-system]

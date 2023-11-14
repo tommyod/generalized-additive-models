@@ -10,9 +10,10 @@ from datetime import date
 import generalized_additive_models
 
 project = generalized_additive_models.__name__
-copyright = f"2004-{date.today().year}, tommyod"
+copyright = f"2023-{date.today().year}, tommyod"
 author = "tommyod"
 release = generalized_additive_models.__version__
+language = 'en'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -20,7 +21,7 @@ release = generalized_additive_models.__version__
 extensions = []
 
 templates_path = ["_templates"]
-exclude_patterns = ["conf.py"]
+exclude_patterns = ["conf.py", "examples_gallery/*.ipynb"]
 
 
 source_suffix = [".rst"]
@@ -30,12 +31,17 @@ source_suffix = [".rst"]
 
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+html_title = "generalized-additive-models"
 
 extensions = [
     "sphinx.ext.autodoc",
-    # "sphinx.ext.doctest",
+    "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
+    
+    
     # "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
@@ -43,31 +49,72 @@ extensions = [
     # "sphinx.ext.githubpages",
     # "myst_parser"
     "nbsphinx",
-    # "sphinx.ext.autosummary",
-    "sphinx.ext.extlinks",
+    # "sphinx.ext.extlinks",
     "numpydoc",
-    "matplotlib.sphinxext.plot_directive",
+    # "matplotlib.sphinxext.plot_directive",
     # "sphinx_gallery.gen_gallery",
-    "IPython.sphinxext.ipython_console_highlighting",
-    "IPython.sphinxext.ipython_directive",
-    "sphinx.ext.intersphinx",
+    # "IPython.sphinxext.ipython_console_highlighting",
+    # "IPython.sphinxext.ipython_directive",
+    'sphinx_gallery.gen_gallery',
 ]
+
+sphinx_gallery_conf = {
+     "examples_dirs": ["../examples"],
+     "gallery_dirs": ["auto_examples"],
+     "inspect_global_variables": False,
+     'doc_module': ('generalized_additive_models',),
+  #   "remove_config_comments": True,
+  #   "plot_gallery": "True",
+  #   "reset_modules": ("matplotlib",),
+     
+}
+
+
+# https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
+nitpicky = False
+nitpick_ignore = [('py:class', 'type')]
+
+# =============================================================================
+# sphinx_gallery_conf = {
+#     "doc_module": "sklearn",
+#     "backreferences_dir": os.path.join("modules", "generated"),
+#     "show_memory": False,
+#     "reference_url": {"sklearn": None},
+#     "examples_dirs": ["../examples"],
+#     "gallery_dirs": ["auto_examples"],
+#     "subsection_order": SubSectionTitleOrder("../examples"),
+#     "within_subsection_order": SKExampleTitleSortKey,
+#     "binder": {
+#         "org": "scikit-learn",
+#         "repo": "scikit-learn",
+#         "binderhub_url": "https://mybinder.org",
+#         "branch": binder_branch,
+#         "dependencies": "./binder/requirements.txt",
+#         "use_jupyter_lab": True,
+#     },
+#     # avoid generating too many cross links
+#     "inspect_global_variables": False,
+#     "remove_config_comments": True,
+#     "plot_gallery": "True",
+#     "reset_modules": ("matplotlib", "seaborn", reset_sklearn_config),
+# }
+# =============================================================================
 
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    "pytest": ("https://pytest.org/en/stable/", None),
-    "numpy": ("https://numpy.org/doc/stable/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "sklearn": ("https://scikit-learn.org/stable/", None),
+  #  "pytest": ("https://pytest.org/en/stable/", None),
+  #  "numpy": ("https://numpy.org/doc/stable/", None),
+  #  "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+  #  "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+     "sklearn": ("https://scikit-learn.org/stable/", None),
 }
 
 plot_include_source = True
 
 
 nbsphinx_custom_formats = {
-    ".py": ["jupytext.reads", {"fmt": "py:percent"}],
+    ".pct.py": ["jupytext.reads", {"fmt": "py:percent"}],
 }
 
 
