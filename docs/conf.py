@@ -63,7 +63,7 @@ extensions = [
 # -- Sphinx-gallery options --------------------------------------------------
 sphinx_gallery_conf = {
     "examples_dirs": ["../examples"],
-    "gallery_dirs": ["auto_examples"],
+    "gallery_dirs": ["examples_gallery/"],
     "inspect_global_variables": False,
     "doc_module": ("generalized_additive_models",),
     "remove_config_comments": True,
@@ -81,44 +81,15 @@ sphinx_gallery_conf = {
 nitpicky = False
 nitpick_ignore = [("py:class", "type")]
 
-# =============================================================================
-# sphinx_gallery_conf = {
-#     "doc_module": "sklearn",
-#     "backreferences_dir": os.path.join("modules", "generated"),
-#     "show_memory": False,
-#     "reference_url": {"sklearn": None},
-#     "examples_dirs": ["../examples"],
-#     "gallery_dirs": ["auto_examples"],
-#     "subsection_order": SubSectionTitleOrder("../examples"),
-#     "within_subsection_order": SKExampleTitleSortKey,
-#     "binder": {
-#         "org": "scikit-learn",
-#         "repo": "scikit-learn",
-#         "binderhub_url": "https://mybinder.org",
-#         "branch": binder_branch,
-#         "dependencies": "./binder/requirements.txt",
-#         "use_jupyter_lab": True,
-#     },
-#     # avoid generating too many cross links
-#     "inspect_global_variables": False,
-#     "remove_config_comments": True,
-#     "plot_gallery": "True",
-#     "reset_modules": ("matplotlib", "seaborn", reset_sklearn_config),
-# }
-# =============================================================================
-
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-    #  "pytest": ("https://pytest.org/en/stable/", None),
-    #  "numpy": ("https://numpy.org/doc/stable/", None),
-    #  "scipy": ("https://docs.scipy.org/doc/scipy/", None),
-    #  "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "sklearn": ("https://scikit-learn.org/stable/", None),
 }
 
 plot_include_source = True
-
 
 nbsphinx_custom_formats = {
     ".pct.py": ["jupytext.reads", {"fmt": "py:percent"}],
@@ -133,12 +104,6 @@ np.random.seed(42)
 plt.figure(figsize=(7, 3))
 """
 plot_formats = ["png", "pdf"]
-
-
-sphinx_gallery_conf = {
-    "examples_dirs": ["../examples"],
-    "gallery_dirs": ["examples_gallery/"],
-}
 
 
 autodoc_default_options = {
