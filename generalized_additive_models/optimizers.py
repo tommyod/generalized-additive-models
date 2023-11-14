@@ -21,7 +21,9 @@ EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
 def solve_unbounded_lstsq(X, D, w, z):
-    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
+    """Solve the least squares problem:
+        (X.T @ diag(w) @ X + D.T @ D) @ beta = X.T @ diag(w) @ z
+    for beta."""
     lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
     rhs = X.T @ (w * z)
     beta, *_ = sp.linalg.lstsq(
@@ -76,16 +78,17 @@ class PIRLS(Optimizer):
 
     def _validate_params(self):
         low, high = self.link.domain
-        if np.any(self.y < high):
-            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
+        if np.any(self.y < low):
+            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but smallest y was: {self.y.min()}")
 
         if np.any(self.y > high):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
 
-    def solve_lstsq(self, X, D, w, z, bounds):
+    def solve_bounded_lstsq(self, X, D, w, z, bounds):
         """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
 
         lower_bounds, upper_bounds = bounds
+        assert len(lower_bounds) == len(upper_bounds)
 
         # If bounds are inactive, solve using standard least squares
         if np.all(lower_bounds == -np.inf) and np.all(upper_bounds == np.inf):
@@ -106,10 +109,15 @@ class PIRLS(Optimizer):
             if not result.success:
                 print(f" => Constrained LSQ msg: {result.message}")
 
+        assert np.all(np.logical_and(result.x > lower_bounds, result.x < upper_bounds))
         return result.x
 
     def _initial_estimate(self):
-        """Construct an initial estimate of beta by solving a Ridge problem."""
+        """Construct an initial estimate of beta by solving a Ridge problem.
+
+        - We ignore contraints.
+        - We ignore non-identifiability.
+        """
 
         # Numerical problems occur with e.g. logit link, since 0 and 1 map to inf
         low, high = self.link.domain
@@ -120,7 +128,7 @@ class PIRLS(Optimizer):
         assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
 
         # Solve X @ beta = mu using Ridge regression
-        ridge = Ridge(alpha=1e3, fit_intercept=False)
+        ridge = Ridge(alpha=1e0, fit_intercept=False)
         sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
         ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
 
@@ -130,24 +138,48 @@ class PIRLS(Optimizer):
 
     def evaluate_objective(self, X, D, beta, y, sample_weight):
         """Evaluate the log likelihood plus the penalty."""
-        mu = self.link.inverse_link(X @ beta)
-        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
-        penalty = sp.linalg.norm(D @ beta) ** 2
 
+        # Map from the linear space to the restricted domain to produce mean mu
+        mu = self.link.inverse_link(X @ beta)
+
+        # Compute the deviance (for Normal model, it's the sum of squares)
+        # https://en.wikipedia.org/wiki/Deviance_(statistics)
+        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
+
+        # Regularization penalty
+        penalty = sp.linalg.norm(D @ beta) ** 2
         return (deviance + penalty) / len(beta)
 
-    def halving_search(self, X, D, y, sample_weight, beta0, beta1):
+    def halving_search(self, *, X, D, y, sample_weight, beta0, beta1):
+        """Perform halving search.
+
+        iter1 -------------------------------->
+        iter2 ---------------->
+        iter2 -------->
+        iter3 ---->
+        beta0                                beta1
+
+        Another approach would be to use sp.optimize.minimize_scalar.
+        This was investigated, but in the end I chosen halving search since:
+            - using method="bounded" performs equally well as halving search
+            - using method="brent" could go outside of bounds, not respecting
+              the lower and upper bounds on coefficients
+        """
+        # Evaluate the initial object at beta0
         obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
 
-        for half_exponent in range(21):
-            step_size = (1 / 2) ** half_exponent
+        for iteration in range(20):
+            step_size = (1 / 2) ** iteration
+            # If both beta0 and beta1 are in the box-constraint [lower, upper],
+            # then a convex combination is also in the box-contraint.
             beta = step_size * beta1 + (1 - step_size) * beta0
             obj = self.evaluate_objective(X, D, beta, y, sample_weight)
 
-            if obj < obj0:
-                return beta, obj, half_exponent
+            if obj <= obj0:
+                return beta, obj, iteration + 1
 
-        return beta0, obj0, half_exponent
+        # Search failed - keep the original solution
+        return beta0, obj0, iteration + 1
 
     def solve(self, fisher_weights=True):
         """Solve the optimization problem."""
@@ -176,10 +208,11 @@ class PIRLS(Optimizer):
         # ---------------------------------------------------------------------
         beta = self._initial_estimate()
 
-        eta = self.X @ beta
-        mu = self.link.inverse_link(eta)
+        eta = self.X @ beta  # Map in the linear space
+        mu = self.link.inverse_link(eta)  # Compute the mean prediction
         sample_weight = self.get_sample_weight(mu=mu, y=self.y)
 
+        # Print out initial information
         if self.verbose >= 1:
             lpad = int(np.floor(np.log10(self.max_iter)))
             w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
@@ -200,7 +233,7 @@ class PIRLS(Optimizer):
                 + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
             )
 
-        # List of betas to watch as optimization progresses
+        # List of betas and deviances to watch as optimization progresses
         betas = [beta]
         deviances = [self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean()]
 
@@ -215,12 +248,13 @@ class PIRLS(Optimizer):
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
             bounds = (self.bounds[0][column_remover.nonzero_coefs], self.bounds[1][column_remover.nonzero_coefs])
-            beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
+            beta_trial = self.solve_bounded_lstsq(X, D, w, z, bounds=bounds)
 
-            beta, objective_value, half_exponent = self.halving_search(
-                X, D, self.y, sample_weight, betas[-1], beta_trial
+            beta, objective_value, halving_iters = self.halving_search(
+                X=X, D=D, y=self.y, sample_weight=sample_weight, beta0=betas[-1], beta1=beta_trial
             )
 
+            # Update estimate of mu, using new values for beta
             eta = X @ beta
             mu = self.link.inverse_link(eta)
             betas.append(beta)
@@ -232,7 +266,7 @@ class PIRLS(Optimizer):
                 msg = f"Iteration: {str(iteration).rjust(lpad, ' ')}/{self.max_iter}   "
                 msg += f"Objective: {fmt(objective_value)}   "
                 msg += f"Coef. rmse: {fmt(np.sqrt(np.mean(beta**2)))}   "
-                msg += f"Step size: 1/2^{half_exponent}"
+                msg += f"Line search iters: {halving_iters}"
                 print(msg)
 
             if self._should_stop(betas=betas, step_size=1):
@@ -292,8 +326,7 @@ class PIRLS(Optimizer):
         self.results_.scale = phi
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
-        covariance = inverted * phi
-        covariance = column_remover.insert(initial=np.eye(len(beta), dtype=float) * EPSILON, values=covariance)
+        covariance = column_remover.insert(initial=np.zeros(shape=(len(beta), len(beta))), values=inverted * phi)
 
         assert covariance.shape == (len(beta), len(beta))
         self.results_.covariance = covariance
@@ -312,6 +345,10 @@ class PIRLS(Optimizer):
         return beta
 
     def _should_stop(self, *, betas, step_size):
+        """Stopping critera.
+
+        Stop if max |beta_i - beta_{i-1}| / max |beta_i| < tolerance.
+        """
         if len(betas) < 2:
             return False
 
