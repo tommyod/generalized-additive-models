@@ -329,4 +329,4 @@ class PIRLS(Optimizer):
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])

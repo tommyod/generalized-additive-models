@@ -9,10 +9,14 @@ Created on Fri Mar 10 08:25:44 2023
 
 import numpy as np
 import pandas as pd
+import scipy as sp
 import pytest
 
+from sklearn.linear_model import Ridge
+
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Categorical
+from generalized_additive_models.terms import Categorical, Linear
+from sklearn.preprocessing import StandardScaler
 
 
 class TestAgainstRLM:
@@ -93,6 +97,70 @@ class TestAgainstRLM:
         assert np.allclose(residuals, residuals_R)
 
 
+class TestAgainstSklearnRidge:
+    @pytest.mark.parametrize("seed", list(range(5)))
+    @pytest.mark.parametrize("penalty", np.logspace(-5, 5, num=11))
+    def test_against_ridge_without_intercept(self, seed, penalty):
+        # Create dataset
+        rng = np.random.default_rng(seed)
+
+        # The GAM will center each feature to have mean zero.
+        # To have exactly the same effect of regularization, we must do the same here
+        X = StandardScaler(with_std=False).fit_transform(rng.standard_normal(size=(99, 2)))
+        beta = np.arange(X.shape[1]) + 1
+        y = X @ beta
+
+        # Solve the Ridge problem directly, using the fact that
+        # |X @ beta - y|_2^2 + alpha * |beta|_2^2 =
+        # |[X | sqrt(alpha)]^T @ beta - [y | 0]^T|_2^2
+        lhs = np.vstack((X, np.sqrt(penalty) * np.eye(len(beta))))
+        rhs = np.hstack((y, np.zeros(len(beta))))
+        coefs_direct, *_ = sp.linalg.lstsq(lhs, rhs)
+
+        # Perform regression with sklearn
+        ridge = Ridge(alpha=penalty, solver="auto", fit_intercept=False).fit(X, y)
+
+        # Perform regression with GAM
+        gam = GAM(Linear(0, penalty=penalty) + Linear(1, penalty=penalty), fit_intercept=False).fit(X, y)
+
+        # Check all against eachother
+        assert np.allclose(coefs_direct, ridge.coef_)
+        assert np.allclose(gam.coef_, ridge.coef_)
+
+    @pytest.mark.parametrize("seed", list(range(5)))
+    @pytest.mark.parametrize("penalty", np.logspace(-5, 5, num=11))
+    def test_against_ridge_with_intercept(self, seed, penalty):
+        # Create dataset
+        rng = np.random.default_rng(seed)
+
+        # The GAM will center each feature to have mean zero.
+        # To have exactly the same effect of regularization, we must do the same here
+        X = StandardScaler(with_std=True).fit_transform(rng.standard_normal(size=(99, 2)))
+        beta = np.arange(X.shape[1]) + 1
+        y = X @ beta + 10
+
+        # Solve the Ridge problem directly, using the fact that
+        # |X @ beta - y|_2^2 + alpha * |beta|_2^2 =
+        # |[X | sqrt(alpha)]^T @ beta - [y | 0]^T|_2^2
+        X_with_intercept = np.hstack((X, np.ones(X.shape[0])[:, np.newaxis]))
+        I_beta = np.eye(len(beta) + 1)
+        I_beta[-1, -1] = 0
+        lhs = np.vstack((X_with_intercept, np.sqrt(penalty) * I_beta))
+        rhs = np.hstack((y, np.zeros(len(beta) + 1)))
+        coefs_direct, *_ = sp.linalg.lstsq(lhs, rhs)
+
+        # Perform regression with sklearn
+        ridge = Ridge(alpha=penalty, solver="auto", fit_intercept=True).fit(X, y)
+        coefs_ridge = np.hstack((ridge.coef_, [ridge.intercept_]))
+
+        # Perform regression with GAM
+        gam = GAM(Linear(0, penalty=penalty) + Linear(1, penalty=penalty), fit_intercept=True).fit(X, y)
+
+        # Check all against eachother
+        assert np.allclose(coefs_direct, coefs_ridge)
+        assert np.allclose(gam.coef_, coefs_ridge)
+
+
 if __name__ == "__main__":
     pytest.main(
         args=[
@@ -100,6 +168,5 @@ if __name__ == "__main__":
             "-v",
             "--capture=sys",
             "--doctest-modules",
-            "--maxfail=1",
         ]
     )
