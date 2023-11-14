@@ -14,18 +14,19 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
-from generalized_additive_models.utils import identifiable_parameters, phi_fletcher
+from generalized_additive_models.utils import phi_fletcher, ColumnRemover
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
 def solve_unbounded_lstsq(X, D, w, z):
-    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z
-    for beta."""
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
     lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
     rhs = X.T @ (w * z)
-    beta, *_ = sp.linalg.lstsq(lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True)
+    beta, *_ = sp.linalg.lstsq(
+        lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True, check_finite=True, lapack_driver="gelsd"
+    )
     return beta
 
 
@@ -41,6 +42,11 @@ class Optimizer:
 class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
     ignoring almost all concerns about speed and numerical stability."""
+
+    # Printing options
+    PRECISION = 4
+    MIN_DIGITS = 4
+    EXP_DIGITS = 2
 
     def __init__(
         self,
@@ -130,6 +136,19 @@ class PIRLS(Optimizer):
 
         return (deviance + penalty) / len(beta)
 
+    def halving_search(self, X, D, y, sample_weight, beta0, beta1):
+        obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
+
+        for half_exponent in range(21):
+            step_size = (1 / 2) ** half_exponent
+            beta = step_size * beta1 + (1 - step_size) * beta0
+            obj = self.evaluate_objective(X, D, beta, y, sample_weight)
+
+            if obj < obj0:
+                return beta, obj, half_exponent
+
+        return beta0, obj0, half_exponent
+
     def solve(self, fisher_weights=True):
         """Solve the optimization problem."""
         # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
@@ -147,7 +166,10 @@ class PIRLS(Optimizer):
 
             return alpha
 
-        fmt = functools.partial(np.format_float_scientific, precision=4, min_digits=4, exp_digits=2)
+        # Number formatting when printing
+        fmt = functools.partial(
+            np.format_float_scientific, precision=self.PRECISION, min_digits=self.MIN_DIGITS, exp_digits=self.EXP_DIGITS
+        )
 
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values
@@ -169,15 +191,14 @@ class PIRLS(Optimizer):
             print(msg)
 
         # Set non-identifiable coefficients to zero
-        nonzero_coefs = identifiable_parameters(np.vstack((self.X, self.D)))
-        zero_coefs = ~nonzero_coefs
+        column_remover = ColumnRemover()
+        X, D, beta = column_remover.transform(X=self.X, D=self.D, beta=beta)
 
         if self.verbose >= 2:
-            print(f"Variables set to zero for identifiability: {zero_coefs.sum()}/{len(zero_coefs)}")
-
-        X = self.X[:, nonzero_coefs]
-        D = self.D[:, nonzero_coefs]
-        beta = beta[nonzero_coefs]
+            print(
+                "Variables set to zero for identifiability:"
+                + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
+            )
 
         # List of betas to watch as optimization progresses
         betas = [beta]
@@ -189,27 +210,16 @@ class PIRLS(Optimizer):
 
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
             w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            assert np.all(w >= 0), f"smallest w_i {np.min(w)}"
+            assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
-            bounds = (self.bounds[0][nonzero_coefs], self.bounds[1][nonzero_coefs])
+            bounds = (self.bounds[0][column_remover.nonzero_coefs], self.bounds[1][column_remover.nonzero_coefs])
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
-            def halving_search(X, D, y, sample_weight, beta0, beta1):
-                obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
-
-                for half_exponent in range(21):
-                    step_size = (1 / 2) ** half_exponent
-                    beta = step_size * beta1 + (1 - step_size) * beta0
-                    obj = self.evaluate_objective(X, D, beta, y, sample_weight)
-
-                    if obj < obj0:
-                        return beta, obj, half_exponent
-
-                return beta0, obj0, half_exponent
-
-            beta, objective_value, half_exponent = halving_search(X, D, self.y, sample_weight, betas[-1], beta_trial)
+            beta, objective_value, half_exponent = self.halving_search(
+                X, D, self.y, sample_weight, betas[-1], beta_trial
+            )
 
             eta = X @ beta
             mu = self.link.inverse_link(eta)
@@ -238,17 +248,13 @@ class PIRLS(Optimizer):
             warnings.warn(msg, ConvergenceWarning)
 
         # Add zero coefficients back
-        for i in range(len(betas)):
-            beta_updated = np.zeros(num_beta, dtype=float)
-            beta_updated[~zero_coefs] = beta
-            betas[i] = beta_updated
-
+        betas = [column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in betas]
         beta = betas[-1]
 
         # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
         # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
         to_invert = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
-        to_invert.flat[:: to_invert.shape[0] + 1] += EPSILON  # Add to diagonal
+        np.fill_diagonal(to_invert, to_invert.diagonal() + EPSILON)  # Add to diagonal
         inverted = sp.linalg.inv(to_invert)
 
         # Compute the effective degrees of freedom per coefficient
@@ -263,9 +269,7 @@ class PIRLS(Optimizer):
         # assert np.allclose(H_diag, np.diag(H_diag2))
 
         # assert len(beta) == len(np.diag(H_diag2))
-        H_diag_full = np.zeros(num_beta, dtype=float)
-        H_diag_full[nonzero_coefs] = H_diag
-        H_diag = H_diag_full
+        H_diag = column_remover.insert(initial=np.zeros_like(beta), values=H_diag)
 
         assert len(beta) == len(H_diag)
 
@@ -289,10 +293,7 @@ class PIRLS(Optimizer):
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
-        covariance_full = np.zeros(shape=(len(beta), len(beta)), dtype=float)
-        covariance_full = np.eye(len(beta), dtype=float) * EPSILON
-        covariance_full[np.ix_(nonzero_coefs, nonzero_coefs)] = covariance
-        covariance = covariance_full
+        covariance = column_remover.insert(initial=np.eye(len(beta), dtype=float) * EPSILON, values=covariance)
 
         assert covariance.shape == (len(beta), len(beta))
         self.results_.covariance = covariance

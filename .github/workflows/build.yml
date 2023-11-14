@@ -38,10 +38,10 @@ jobs:
           black generalized_additive_models --check -l 120
           ruff check generalized_additive_models --ignore=E741
           black docs --check
+          black examples --check
+          codespell --ignore-words-list='te,'
           flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 \
                  --exclude=tests,'*ipynb_checkpoints*'
-          
-          # pylint pygam --errors-only --max-line-length 120 --recursive y
           
       - name: Run tests
         run: |
@@ -52,6 +52,7 @@ jobs:
         run: |
           pip install .[doc]
           sudo apt install pandoc -y
+          sudo apt install optipng -y # https://sphinx-gallery.github.io/stable/index.html#installation
           sphinx-build docs _built_docs/html
           
       - name: Build package

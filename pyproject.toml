@@ -1,6 +1,6 @@
 [project]
 name = "generalized_additive_models"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
     "numpy<=2.0.0",
     "scipy<=2.0.0",
@@ -32,6 +32,7 @@ Repository = "https://github.com/tommyod/generalized-additive-models"
 lint = ["black",
         "flake8",
         "ruff",
+        "codespell",
         ]
 
 dev = [ "pytest",
@@ -49,7 +50,10 @@ doc = [ "sphinx",
         "nbsphinx",
         "ipython",
         "sphinx_rtd_theme",
+        "pydata-sphinx-theme",
         "numpydoc",
+        "Pillow",
+        "sphinx-gallery",
         ]
 
 [build-system]

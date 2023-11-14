@@ -6,12 +6,14 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
+from datetime import date
 import generalized_additive_models
 
 project = generalized_additive_models.__name__
-copyright = "2023, tommyod"
+copyright = f"2023-{date.today().year}, tommyod"
 author = "tommyod"
 release = generalized_additive_models.__version__
+language = "en"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -19,43 +21,78 @@ release = generalized_additive_models.__version__
 extensions = []
 
 templates_path = ["_templates"]
-exclude_patterns = ["conf.py"]
 
+# WARNING: multiple files found for the document "examples_gallery/plot_test_example":
+# ['examples_gallery/plot_test_example.py.md5', 'examples_gallery/plot_test_example.py',
+# 'examples_gallery/plot_test_example.rst', 'examples_gallery/plot_test_example.ipynb']
+# Use 'generalized-additive-models/docs/examples_gallery/plot_test_example.ipynb' for the build.
+exclude_patterns = ["conf.py", "examples_gallery/*.ipynb"]
 
 source_suffix = [".rst"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
+html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
+html_title = "generalized-additive-models"
 
 extensions = [
     "sphinx.ext.autodoc",
-    # "sphinx.ext.doctest",
+    "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
+    "sphinx.ext.doctest",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
-    # "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "nbsphinx",
+    "numpydoc",
+    "sphinx_gallery.gen_gallery",
+    # "sphinx.ext.viewcode",
     # "sphinx_gallery.gen_gallery",
     # "sphinx.ext.githubpages",
     # "myst_parser"
-    "nbsphinx",
-    # "sphinx.ext.autosummary",
-    "sphinx.ext.extlinks",
-    "numpydoc",
-    "matplotlib.sphinxext.plot_directive",
+    # "sphinx.ext.extlinks",
+    # "matplotlib.sphinxext.plot_directive",
     # "sphinx_gallery.gen_gallery",
-    "IPython.sphinxext.ipython_console_highlighting",
-    "IPython.sphinxext.ipython_directive",
+    # "IPython.sphinxext.ipython_console_highlighting",
+    # "IPython.sphinxext.ipython_directive",
 ]
+
+# -- Sphinx-gallery options --------------------------------------------------
+sphinx_gallery_conf = {
+    "examples_dirs": ["../examples"],
+    "gallery_dirs": ["examples_gallery/"],
+    "inspect_global_variables": False,
+    "doc_module": ("generalized_additive_models",),
+    "remove_config_comments": True,
+    "plot_gallery": "True",
+    "reset_modules": ("matplotlib",),
+    "download_all_examples": False,
+    "reference_url": {
+        # The module you locally document uses None
+        "generalized_additive_models": None,
+    },
+}
+
+
+# https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
+nitpicky = False
+nitpick_ignore = [("py:class", "type")]
+
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+}
 
 plot_include_source = True
 
-
 nbsphinx_custom_formats = {
-    ".py": ["jupytext.reads", {"fmt": "py:percent"}],
+    ".pct.py": ["jupytext.reads", {"fmt": "py:percent"}],
 }
 
 
@@ -67,12 +104,6 @@ np.random.seed(42)
 plt.figure(figsize=(7, 3))
 """
 plot_formats = ["png", "pdf"]
-
-
-sphinx_gallery_conf = {
-    "examples_dirs": ["../examples"],
-    "gallery_dirs": ["examples_gallery/"],
-}
 
 
 autodoc_default_options = {
@@ -91,24 +122,19 @@ pygments_style = "sphinx"
 # html_theme = "furo"
 
 html_theme_options = {
-    # 'logo': 'logo.png',
-    # 'logo': 'logo.png',
-    "github_user": "tommyod",
-    "github_repo": "generalized-additive-models",
-    "github_button": True,
-    "github_banner": True,
-    "travis_button": False,
-    "show_powered_by": False,
-    "font_family": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,\
-        "Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"\
-        ,"Segoe UI Symbol"',
-    "font_size": "15px",
-    "code_font_size": "13px",
-    "head_font_family": '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,\
-        "Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"\
-        ,"Segoe UI Symbol"',
-    "page_width": "1080px",
-    "sidebar_width": "280px",
+    "collapse_navigation": True,
+    "navigation_depth": 2,
+    "show_prev_next": False,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/tommyod/generalized-additive-models",
+            "icon": "fab fa-github-square",
+        },
+    ],
+    "navbar_end": ["theme-switcher", "navbar-icon-links", "version-switcher"],
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    "header_links_before_dropdown": 7,
 }
 
 

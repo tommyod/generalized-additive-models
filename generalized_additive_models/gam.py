@@ -576,28 +576,6 @@ class ExpectileGAM(GAM):
     Returns
     -------
     None.
-
-    Examples
-    --------
-
-    .. plot::
-       :format: doctest
-       :include-source: True
-       
-        >>> import numpy as np
-        >>> import matplotlib.pyplot as plt
-        >>> from generalized_additive_models import ExpectileGAM, Intercept
-        >>> rng = np.random.default_rng(42)
-        >>> X = rng.uniform(size=(1000, 1))
-        >>> y = rng.triangular(left=0, mode=0.5, right=1, size=(1000, 1))
-        >>> gam = ExpectileGAM(Intercept(), expectile=0.9).fit(X, y)
-        >>> plt.scatter(X, y) # doctest: +SKIP
-        >>> plt.plot(X, gam.predict(X), color="black", label="Expectile 0.9") # doctest: +SKIP
-        >>> gam = gam.fit_quantile(X, y, quantile=0.9)
-        >>> plt.plot(X, gam.predict(X), color="red", label="Quantile 0.9")  # doctest: +SKIP
-        >>> plt.legend()  # doctest: +SKIP
-        >>> plt.show()  # doctest: +SKIP
-    
     """
 
     _parameter_constraints: dict = {

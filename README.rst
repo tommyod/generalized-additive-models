@@ -20,12 +20,9 @@
 .. |ReadtheDocs| image:: https://readthedocs.org/projects/generalized-additive-models/badge/
 .. _ReadtheDocs: https://generalized-additive-models.readthedocs.io/en/latest/
 
-.. image:: https://github.com/tommyod/generalized-additive-models/blob/main/docs/_static/readme_figure.png
-  :target: https://github.com/tommyod/generalized-additive-models/
-
 
 generalized-additive-models
----------------------------
+===========================
 
 Generalized Additive Models (GAMs) in Python.
 
@@ -46,8 +43,6 @@ Read more about GAMs:
 
 A GAM is a statistical model in which the target variable depends on unknown smooth functions of the features, 
 and interest focuses on inference about these smooth functions.
-
-.. image:: https://latex.codecogs.com/svg.image?Y_i&space;\sim&space;\textup{ExponentialFamily}(\mu_i,&space;\phi)&space;\\g(\mu_i)&space;=&space;f_1(x_{i1})&space;&plus;&space;f_2(x_{i2})&space;&plus;&space;f_3(x_{i3},&space;x_{i4})&space;&plus;&space;\cdots
   
 An exponential family distribution is specified for the target Y (.e.g Normal, Binomial or Poisson) 
 along with a link function g (for example the identity or log functions) relating the 
@@ -92,7 +87,7 @@ Contributing and development
 Contributions are very welcome.
 You can correct spelling mistakes, write documentation, clean up code, implement new features, etc.
 
-Some guidelines:
+Some guidelines for development:
 
 - Code must comply with the standard. See the GitHub action pipeline for more information.
 - If possible, use existing algorithms from `numpy`, `scipy` and `scikit-learn`.
@@ -105,8 +100,14 @@ Installation for local development::
     
 Create documentation locally::
 
+    sudo apt install pandoc
     sphinx-build docs _built_docs/html -W -a -E --keep-going
     sphinx-autobuild docs _built_docs/html -v -j "auto" --watch generalized_additive_models
+    
+Once the `version` has been incremented, the commit must be tagged and pushed in order to publish to PyPi::
+
+    git tag -a v0.1.0 -m "Version 0.1.0" b22724c
+    git push origin v0.1.0
 
 Citing
 ------

@@ -63,7 +63,14 @@ class Identity(Link, BaseEstimator):
     domain = (-np.inf, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([-1, 0, 1])
+        >>> Identity().link(mu)
+        array([-1,  0,  1])
+        """
         return mu
 
     def inverse_link(self, linear_prediction):
@@ -102,7 +109,15 @@ class Logit(Link, BaseEstimator):
         self.domain = (self.low, self.high)
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([0.1, 0.5, 0.9, 0.99, 0.999])
+        >>> Logit().link(mu)
+        array([-2.19722458,  0.        ,  2.19722458,  4.59511985,  6.90675478])
+
+        """
         # x = log((-L + y)/(H - y))
 
         low = self._validate_threshold(threshold=self.low, argument=mu)
@@ -141,13 +156,21 @@ class Logit(Link, BaseEstimator):
 
 
 class Log(Link, BaseEstimator):
-    r"""Logit link: :math:`g(\mu) = \log(\mu)`"""
+    r"""Log link: :math:`g(\mu) = \log(\mu)`"""
 
     name = "log"  #: Name of the link function
     domain = (0, np.inf)  #: Domain of the link function
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([0.1, 0.5, 0.9, 0.99, 0.999])
+        >>> Log().link(mu)
+        array([-2.30258509e+00, -6.93147181e-01, -1.05360516e-01, -1.00503359e-02,
+               -1.00050033e-03])
+        """
         return np.log(mu)
 
     def inverse_link(self, linear_prediction):
@@ -183,7 +206,15 @@ class SmoothLog(Link, BaseEstimator):
         assert self.a != 1
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([0.1, 0.5, 0.9, 0.99, 0.999])
+        >>> SmoothLog(a=1.5).link(mu)
+        array([-1.36754447e+00, -5.85786438e-01, -1.02633404e-01, -1.00251258e-02,
+               -1.00025013e-03])
+        """
         a = self._validate_threshold(threshold=self.a, argument=mu)
 
         return (mu ** (a - 1) - 1) / (a - 1)
@@ -236,7 +267,14 @@ class Softplus(Link, BaseEstimator):
         assert a > 0
 
     def link(self, mu):
-        r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
+        r"""Map from the expected value :math:`\mu` to the unbounded linear space.
+
+        Examples
+        --------
+        >>> mu = np.array([0.01, 0.1, 1., 5., 10.])
+        >>> Softplus(a=1).link(mu)
+        array([-4.60016602, -2.25216846,  0.54132485,  4.99323925,  9.9999546 ])
+        """
         a = self._validate_threshold(threshold=self.a, argument=mu)
 
         return np.maximum(0, mu) + np.log1p(-np.exp(-a * np.abs(mu))) / a
@@ -374,7 +412,7 @@ LINKS = {
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "-k link"])
+    pytest.main(args=[__file__, "--doctest-modules", "-v", "--capture=sys", "-k link"])
 
     import matplotlib.pyplot as plt
 
