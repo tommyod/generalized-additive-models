@@ -13,7 +13,7 @@ project = generalized_additive_models.__name__
 copyright = f"2023-{date.today().year}, tommyod"
 author = "tommyod"
 release = generalized_additive_models.__version__
-language = 'en'
+language = "en"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -21,8 +21,12 @@ language = 'en'
 extensions = []
 
 templates_path = ["_templates"]
-exclude_patterns = ["conf.py", "examples_gallery/*.ipynb"]
 
+# WARNING: multiple files found for the document "examples_gallery/plot_test_example":
+# ['examples_gallery/plot_test_example.py.md5', 'examples_gallery/plot_test_example.py',
+# 'examples_gallery/plot_test_example.rst', 'examples_gallery/plot_test_example.ipynb']
+# Use 'generalized-additive-models/docs/examples_gallery/plot_test_example.ipynb' for the build.
+exclude_patterns = ["conf.py", "examples_gallery/*.ipynb"]
 
 source_suffix = [".rst"]
 
@@ -40,39 +44,42 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
-    
-    
-    # "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "nbsphinx",
+    "numpydoc",
+    "sphinx_gallery.gen_gallery",
+    # "sphinx.ext.viewcode",
     # "sphinx_gallery.gen_gallery",
     # "sphinx.ext.githubpages",
     # "myst_parser"
-    "nbsphinx",
     # "sphinx.ext.extlinks",
-    "numpydoc",
     # "matplotlib.sphinxext.plot_directive",
     # "sphinx_gallery.gen_gallery",
     # "IPython.sphinxext.ipython_console_highlighting",
     # "IPython.sphinxext.ipython_directive",
-    'sphinx_gallery.gen_gallery',
 ]
 
+# -- Sphinx-gallery options --------------------------------------------------
 sphinx_gallery_conf = {
-     "examples_dirs": ["../examples"],
-     "gallery_dirs": ["auto_examples"],
-     "inspect_global_variables": False,
-     'doc_module': ('generalized_additive_models',),
-  #   "remove_config_comments": True,
-  #   "plot_gallery": "True",
-  #   "reset_modules": ("matplotlib",),
-     
+    "examples_dirs": ["../examples"],
+    "gallery_dirs": ["auto_examples"],
+    "inspect_global_variables": False,
+    "doc_module": ("generalized_additive_models",),
+    "remove_config_comments": True,
+    "plot_gallery": "True",
+    "reset_modules": ("matplotlib",),
+    "download_all_examples": False,
+    "reference_url": {
+        # The module you locally document uses None
+        "generalized_additive_models": None,
+    },
 }
 
 
 # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
 nitpicky = False
-nitpick_ignore = [('py:class', 'type')]
+nitpick_ignore = [("py:class", "type")]
 
 # =============================================================================
 # sphinx_gallery_conf = {
@@ -103,11 +110,11 @@ nitpick_ignore = [('py:class', 'type')]
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
-  #  "pytest": ("https://pytest.org/en/stable/", None),
-  #  "numpy": ("https://numpy.org/doc/stable/", None),
-  #  "scipy": ("https://docs.scipy.org/doc/scipy/", None),
-  #  "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-     "sklearn": ("https://scikit-learn.org/stable/", None),
+    #  "pytest": ("https://pytest.org/en/stable/", None),
+    #  "numpy": ("https://numpy.org/doc/stable/", None),
+    #  "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    #  "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
 }
 
 plot_include_source = True
