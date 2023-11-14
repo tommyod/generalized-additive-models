@@ -123,7 +123,7 @@ class TestAgainstSklearnRidge:
         # Perform regression with GAM
         gam = GAM(Linear(0, penalty=penalty) + Linear(1, penalty=penalty), fit_intercept=False).fit(X, y)
 
-        # Check all against eachother
+        # Check all against each other
         assert np.allclose(coefs_direct, ridge.coef_)
         assert np.allclose(gam.coef_, ridge.coef_)
 
@@ -156,7 +156,7 @@ class TestAgainstSklearnRidge:
         # Perform regression with GAM
         gam = GAM(Linear(0, penalty=penalty) + Linear(1, penalty=penalty), fit_intercept=True).fit(X, y)
 
-        # Check all against eachother
+        # Check all against each other
         assert np.allclose(coefs_direct, coefs_ridge)
         assert np.allclose(gam.coef_, coefs_ridge)
 
