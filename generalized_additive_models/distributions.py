@@ -124,7 +124,7 @@ class Poisson(Distribution, BaseEstimator):
             deviance = deviance / self.scale
 
         if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
+            return deviance
 
         return deviance * sample_weight
 

@@ -111,7 +111,21 @@ class TestTermMultiplications:
 
 
 class TestTerms:
-    # check_is_fitted(self, attributes=["coef_"])
+    @pytest.mark.parametrize("term", [Intercept, Linear, Spline, Categorical, Tensor])
+    def test_that_terms_can_be_summed_with_builtin_sum(self, term):
+        if term in (Linear, Spline, Categorical):
+            term = term(0)
+        elif term in (Intercept,):
+            term = term()
+        elif term in (Tensor,):
+            term = term([Spline(0), Spline(1)])
+        else:
+            assert False
+
+        # Return the sum of a 'start' value (default: 0) plus an iterable
+        # For this to work, we must have: term + 0 == 0 + term == term
+        sum(term)
+        assert (term + 0) == (0 + term) == term
 
     @pytest.mark.parametrize("term", [Intercept, Linear, Spline, Categorical, Tensor])
     def test_that_bounds_are_set(self, term):

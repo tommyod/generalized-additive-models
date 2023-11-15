@@ -147,7 +147,12 @@ class Term(ABC):
         return self.get_params() == other.get_params()
 
     def __add__(self, other):
+        if isinstance(other, Integral) and other == 0:
+            return self
         return TermList(self) + TermList(other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -1636,6 +1641,8 @@ class TermList(UserList, BaseEstimator):
             return self.__class__(self.data + other.data)
         elif isinstance(other, type(self.data)):
             return self.__class__(self.data + other)
+        elif isinstance(other, Integral) and other == 0:
+            return self.__class__(self.data)
         return self.__class__(self.data + list(other))
 
     def __mul__(self, n, /):

@@ -166,9 +166,11 @@ class TestAgainstSklearnRidge:
     def test_against_poisson(self, seed, num_samples):
         rng = np.random.default_rng(seed)
 
+        num_features = 2
+
         # Create a poisson problem
-        X = rng.standard_normal(size=(num_samples, 2))
-        beta = np.arange(2) + 1
+        X = rng.standard_normal(size=(num_samples, num_features))
+        beta = np.arange(num_features) + 1
         linear_prediction = X @ beta
         mu = np.exp(linear_prediction)
         y = rng.poisson(lam=mu)
@@ -180,18 +182,21 @@ class TestAgainstSklearnRidge:
         ).fit(X, y)
 
         # Create a GAM
+        terms = sum(Linear(i, penalty=0) for i in range(num_features))
         poisson_gam = GAM(
-            Linear(0, penalty=0) + Linear(1, penalty=0),
+            terms,
             link="log",
             distribution="poisson",
             fit_intercept=False,
-            verbose=10,
-            tol=1e-99,
         ).fit(X, y)
+
+        assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, atol=0.5)
 
         # Compare deviance
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
         dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
+
+        # TODO: This number is too high. Work to beat scikit-learn
         assert dev_gam / dev_sklearn < 1.5
 
 
