@@ -119,7 +119,7 @@ class PIRLS(Optimizer):
 
         assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
 
-        # Solve X @ beta = mu using Ridge regression
+        # Solve X @ beta = g(y) = mu using Ridge regression
         ridge = Ridge(alpha=1e3, fit_intercept=False)
         sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
         ridge.fit(self.X, mu_initial, sample_weight=sample_weight)

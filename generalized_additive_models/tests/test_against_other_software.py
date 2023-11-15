@@ -12,11 +12,12 @@ import pandas as pd
 import scipy as sp
 import pytest
 
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import Ridge, PoissonRegressor
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_poisson_deviance
 
 
 class TestAgainstRLM:
@@ -160,6 +161,39 @@ class TestAgainstSklearnRidge:
         assert np.allclose(coefs_direct, coefs_ridge)
         assert np.allclose(gam.coef_, coefs_ridge)
 
+    @pytest.mark.parametrize("seed", list(range(25)))
+    @pytest.mark.parametrize("num_samples", [100, 1000])
+    def test_against_poisson(self, seed, num_samples):
+        rng = np.random.default_rng(seed)
+
+        # Create a poisson problem
+        X = rng.standard_normal(size=(num_samples, 2))
+        beta = np.arange(2) + 1
+        linear_prediction = X @ beta
+        mu = np.exp(linear_prediction)
+        y = rng.poisson(lam=mu)
+
+        # Create scikit-learn model
+        poisson_sklearn = PoissonRegressor(
+            alpha=0,
+            fit_intercept=False,
+        ).fit(X, y)
+
+        # Create a GAM
+        poisson_gam = GAM(
+            Linear(0, penalty=0) + Linear(1, penalty=0),
+            link="log",
+            distribution="poisson",
+            fit_intercept=False,
+            verbose=10,
+            tol=1e-99,
+        ).fit(X, y)
+
+        # Compare deviance
+        dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
+        dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
+        assert dev_gam / dev_sklearn < 1.5
+
 
 if __name__ == "__main__":
     pytest.main(
@@ -170,3 +204,40 @@ if __name__ == "__main__":
             "--doctest-modules",
         ]
     )
+
+    rng = np.random.default_rng(42)
+
+    # Create a poisson problem
+    X = rng.standard_normal(size=(999, 2))
+    beta = np.arange(2) + 1
+    linear_prediction = X @ beta
+    mu = np.exp(linear_prediction)
+    y = rng.poisson(lam=mu)
+
+    # Create scikit-learn model
+    poisson_sklearn = PoissonRegressor(
+        alpha=0,
+        fit_intercept=False,
+    ).fit(X, y)
+
+    # Create a GAM
+    poisson_gam = GAM(
+        Linear(0, penalty=0) + Linear(1, penalty=0),
+        link="log",
+        distribution="poisson",
+        fit_intercept=False,
+        verbose=10,
+        tol=1e-99,
+    ).fit(X, y)
+
+    # Compare coefficients
+    print(poisson_sklearn.coef_, poisson_gam.coef_)
+    print("sklearn", mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X)))
+    print("gam", mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X)))
+
+    # assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_)
+
+    # Compare deviance
+    dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
+    dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
+    assert dev_gam / dev_sklearn < 1.1
