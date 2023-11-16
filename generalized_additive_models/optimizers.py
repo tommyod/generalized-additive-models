@@ -37,6 +37,98 @@ class Optimizer:
     def _validate_outputs(self):
         results_keys = ("", "", "", "")
         assert all((key in self._statistics.keys()) for key in results_keys)
+        
+        
+class NelderMead(Optimizer):
+    
+    
+    def __init__(
+        self,
+        *,
+        X,
+        D,
+        y,
+        link,
+        distribution,
+        bounds,
+        max_iter,
+        tol,
+        get_sample_weight,
+        verbose,
+    ):
+        self.X = X
+        self.D = D
+        self.y = y
+        self.link = link
+        self.distribution = distribution
+        self.bounds = bounds
+        self.max_iter = max_iter
+        self.tol = tol
+        self.results_ = Bunch()
+        self.get_sample_weight = get_sample_weight
+        self.verbose = verbose
+        
+    def evaluate_objective(self, beta, X, D, y, sample_weight):
+        """Evaluate the log likelihood plus the penalty."""
+        mu = self.link.inverse_link(X @ beta)
+        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
+        penalty = sp.linalg.norm(D @ beta) ** 2
+
+        return (deviance + penalty) / len(beta)
+    
+    def _initial_estimate(self):
+        """Construct an initial estimate of beta by solving a Ridge problem."""
+
+        # Numerical problems occur with e.g. logit link, since 0 and 1 map to inf
+        low, high = self.link.domain
+        threshold = EPSILON**0.25
+        y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
+        mu_initial = self.link.link(y_to_map)
+
+        assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
+
+        # Solve X @ beta = g(y) = mu using Ridge regression
+        ridge = Ridge(alpha=1e3, fit_intercept=False)
+        sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
+        ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
+
+        # Respect the bounds naively by projecting to them
+        lower_bound, upper_bound = self.bounds
+        return np.maximum(np.minimum(ridge.coef_, upper_bound), lower_bound)
+        
+        
+    def solve(self):
+        
+        beta = self._initial_estimate()
+        eta = self.X @ beta
+        mu = self.link.inverse_link(eta)
+        
+        print(beta)
+        print(self.bounds)
+        print(list(zip(*self.bounds)))
+        
+        result = sp.optimize.minimize(
+            self.evaluate_objective,
+            x0=beta,
+            args=(self.X, self.D, self.y, self.get_sample_weight(mu=mu, y=self.y)),
+            method="nelder-mead",
+            jac=None,
+            hess=None,
+            hessp=None,
+            bounds=list(zip(*self.bounds)),
+            constraints=(),
+            tol=None,
+            callback=None,
+            options={"maxiter": self.max_iter * 100},
+        )
+        print(result)
+        
+        return result.x
+        
+        
+        
+        
+    
 
 
 class PIRLS(Optimizer):
@@ -330,3 +422,53 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])
+    
+    
+    
+    
+    from generalized_additive_models import Linear, GAM
+    
+    
+
+    
+    rng = np.random.default_rng(42)
+    num_features = 5
+    num_samples=999
+
+    # Create a poisson problem
+    X = rng.standard_normal(size=(num_samples, num_features))
+    beta = np.arange(num_features) + 1
+    linear_prediction = X @ beta
+    mu = np.exp(linear_prediction)
+    y = rng.poisson(lam=mu)
+    sample_weight = np.ones_like(y, dtype=float)
+
+    # Create a GAM
+    terms = sum(Linear(i, penalty=0) for i in range(num_features))
+    poisson_gam = GAM(terms,
+        link="log",
+        distribution="poisson",
+        fit_intercept=False,
+        verbose=10,
+        tol=1e-99,
+    ).fit(X, y)
+    
+    print(poisson_gam.coef_)
+    
+    print("-----------------------------------------------------------")
+
+    
+    optimizer = NelderMead(
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        link=poisson_gam._link,
+        distribution=poisson_gam._distribution,
+        bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
+        get_sample_weight=functools.partial(poisson_gam._get_sample_weight, sample_weight=sample_weight),
+        max_iter=poisson_gam.max_iter,
+        tol=poisson_gam.tol,
+        verbose=poisson_gam.verbose,
+    )
+    
+    optimizer.solve()
