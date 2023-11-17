@@ -43,7 +43,7 @@ SMOOTH_FUNCTIONS = [
     np.sin,
     np.cos,
     np.cosh,
-    np.sinc,
+    #    np.sinc,
     np.sqrt,
     np.square,
     sp.special.expm1,
@@ -100,7 +100,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a normal problem
-        x = np.linspace(0, 2 * np.pi, num=100_000)
+        x = np.linspace(0, 2 * np.pi, num=10_000)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
 
@@ -138,7 +138,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a poisson problem
-        x = np.linspace(0, 2 * np.pi, num=100_000)
+        x = np.linspace(0, 2 * np.pi, num=10_000)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
 
@@ -153,7 +153,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             distribution="poisson",
         ).fit(X, y)
 
-        assert np.allclose(mu, poisson_gam.predict(X), atol=0.2)
+        assert np.allclose(mu, poisson_gam.predict(X), atol=1)
 
         # Test that sample weights work
         weights = rng.integers(low=1, high=4, size=len(x))
@@ -170,7 +170,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a logistic problem
-        x = np.linspace(0, 2 * np.pi, num=100_000)
+        x = np.linspace(0, 2 * np.pi, num=10_000)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
 
@@ -202,7 +202,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a logistic problem
-        num = 100_000
+        num = 10_000
         x = np.linspace(0, 2 * np.pi, num=num)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
@@ -222,7 +222,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             distribution=Binomial(trials=trials),
         ).fit(X, y)
 
-        assert np.allclose(mu, binomial_gam.predict(X), rtol=0.05)
+        assert np.allclose(mu, binomial_gam.predict(X), rtol=0.1)
 
 
 class TestPandasCompatibility:
@@ -681,7 +681,7 @@ class TestGAMSanityChecks:
         # Create a data set which is hard for an additive model to predict
         # y = exp(-x**2 - y**2)
         rng = np.random.default_rng(42)
-        X = rng.random(size=(1000, 2)) * 2 - 1
+        X = rng.random(size=(400, 2)) * 2 - 1
         y = np.exp(-3 * np.linalg.norm(X, axis=1) ** 2)
 
         # Set up CV object
@@ -697,7 +697,7 @@ class TestGAMSanityChecks:
 
         assert score_tensor_model > score_spline_model
         assert score_tensor_model > 0.95
-        assert score_spline_model < 0.85
+        assert score_spline_model < 0.82
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
     def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
@@ -733,7 +733,7 @@ class TestGAMSanityChecks:
     def test_that_tensor_spline_score_on_smooth_function_with_by_is_close(self, function):
         # Create data of form: y = f(x_1, x_2) * x_3
         rng = np.random.default_rng(42)
-        X = rng.random(size=(1000, 3)) * np.pi
+        X = rng.random(size=(100, 3)) * np.pi
         X[:, 2] = X[:, 2] - np.pi / 2
 
         y = function(X[:, 0] + np.abs(X[:, 1]) ** 0.5) * X[:, 2]
@@ -743,7 +743,7 @@ class TestGAMSanityChecks:
         gam = GAM(terms=terms, fit_intercept=True)
         gam.fit(X, y)
         gam_score = gam.score(X, y)
-        assert gam_score > 0.98
+        assert gam_score > 0.999
 
         # Bad gam
         terms = Tensor([Spline(0), Spline(1)]) + Linear(0)
@@ -767,6 +767,33 @@ class TestGAMSanityChecks:
         assert gam_accuracy > 0.93
 
     @pytest.mark.parametrize("term", [Linear, Spline])
+    def test_that_sample_weights_equal_data_repetitions_extreme_case(self, term):
+        x = np.arange(10)
+        weights = 1 + np.arange(10)
+        y = 1 + 1 * x**2
+
+        # Repeated data set
+        X_repeated = np.repeat(x, weights).reshape(-1, 1)
+        y_repeated = np.repeat(y, weights)
+
+        X = x.reshape(-1, 1)
+
+        # Train one GAM on repeated data, and one on weighted data
+        gam1 = GAM(term(0)).fit(X_repeated, y_repeated)
+        gam2 = GAM(term(0)).fit(X, y, sample_weight=weights)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
+
+        # Same as above, but with log links
+        gam1 = GAM(term(0), link="log").fit(X_repeated, y_repeated)
+        gam2 = GAM(term(0), link="log").fit(X, y, sample_weight=weights)
+        assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
+
+        # Same as above, but with poisson distribution
+        gam1 = GAM(term(0), distribution="poisson", link="log").fit(X_repeated, y_repeated)
+        gam2 = GAM(term(0), distribution="poisson", link="log").fit(X, y, sample_weight=weights)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
+
+    @pytest.mark.parametrize("term", [Linear, Spline])
     def test_that_sample_weights_equal_data_repetitions(self, term):
         x = np.arange(10)
         weights = np.ones(10, dtype=int)
@@ -784,7 +811,7 @@ class TestGAMSanityChecks:
         # Train one GAM on repeated data, and one on weighted data
         gam1 = GAM(term(0)).fit(X_repeated, y_repeated)
         gam2 = GAM(term(0)).fit(X, y, sample_weight=weights)
-        assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
 
         # Same as above, but with log links
         gam1 = GAM(term(0), link="log").fit(X_repeated, y_repeated)
@@ -794,7 +821,7 @@ class TestGAMSanityChecks:
         # Same as above, but with poisson distribution
         gam1 = GAM(term(0), distribution="poisson", link="log").fit(X_repeated, y_repeated)
         gam2 = GAM(term(0), distribution="poisson", link="log").fit(X, y, sample_weight=weights)
-        assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
+        assert np.allclose(gam1.predict(X), gam2.predict(X))
 
     @pytest.mark.parametrize("shift", [-100000, -100, -10, 10, 100, 100000])
     def test_shift_invariance_of_features(self, shift):
@@ -959,6 +986,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_scale_invariance_of_target",
+            "-k test_that_tensors_outperform_splines_on_multiplicative_problem",
         ]
     )

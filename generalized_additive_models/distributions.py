@@ -119,6 +119,7 @@ class Poisson(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
+        # rel_entr(y, mu) := y log(y / mu)
         deviance = 2 * (rel_entr(y, mu) - (y - mu))
         if scaled and self.scale:
             deviance = deviance / self.scale

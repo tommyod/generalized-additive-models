@@ -38,6 +38,100 @@ class Optimizer:
         results_keys = ("", "", "", "")
         assert all((key in self._statistics.keys()) for key in results_keys)
 
+    def evaluate_objective(self, beta, *, X, D, y, sample_weight):
+        """Evaluate the log likelihood plus the penalty."""
+        mu = self.link.inverse_link(X @ beta)
+        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
+        penalty = sp.linalg.norm(D @ beta) ** 2
+
+        return (deviance + penalty) / len(beta)
+
+    def initial_estimate(self):
+        """Construct an initial estimate of beta by solving a Ridge problem.
+
+        The idea is to take the observations y, map them to the unbounded linear
+        space by mu = g(y), then solve the equation X @ beta = mu.
+        In summary, we use Ridge to solve:
+
+            X @ beta = g(y)
+        """
+        # TODO: even in the initial estimate, D could be used
+
+        # Numerical problems occur with e.g. logit link, since 0 and 1 map to inf
+        low, high = self.link.domain
+        threshold = EPSILON**0.25
+        y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
+        mu_initial = self.link.link(y_to_map)
+
+        assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
+
+        # Solve X @ beta = g(y) = mu using Ridge regression
+        ridge = Ridge(alpha=1e3, fit_intercept=False)
+        sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
+        ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
+
+        # Respect the bounds naively by projecting to them
+        lower_bound, upper_bound = self.bounds
+        return np.maximum(np.minimum(ridge.coef_, upper_bound), lower_bound)
+
+
+class NelderMead(Optimizer):
+    def __init__(
+        self,
+        *,
+        X,
+        D,
+        y,
+        link,
+        distribution,
+        bounds,
+        max_iter,
+        tol,
+        get_sample_weight,
+        verbose,
+    ):
+        self.X = X
+        self.D = D
+        self.y = y
+        self.link = link
+        self.distribution = distribution
+        self.bounds = bounds
+        self.max_iter = max_iter
+        self.tol = tol
+        self.results_ = Bunch()
+        self.get_sample_weight = get_sample_weight
+        self.verbose = verbose
+
+    def solve(self):
+        beta = self.initial_estimate()
+        eta = self.X @ beta
+        mu = self.link.inverse_link(eta)
+
+        objective_function = functools.partial(
+            self.evaluate_objective, X=self.X, D=self.D, y=self.y, sample_weight=self.get_sample_weight(mu=mu, y=self.y)
+        )
+
+        print(beta)
+        print(self.bounds)
+        print(list(zip(*self.bounds)))
+
+        result = sp.optimize.minimize(
+            objective_function,
+            x0=beta,
+            method="nelder-mead",
+            jac=None,
+            hess=None,
+            hessp=None,
+            bounds=list(zip(*self.bounds)),
+            constraints=(),
+            tol=None,
+            callback=None,
+            options={"maxiter": self.max_iter * 100},
+        )
+        print(result)
+
+        return result.x
+
 
 class PIRLS(Optimizer):
     """The most straightforward and simple way to fit a GAM,
@@ -108,63 +202,60 @@ class PIRLS(Optimizer):
 
         return result.x
 
-    def _initial_estimate(self):
-        """Construct an initial estimate of beta by solving a Ridge problem."""
-
-        # Numerical problems occur with e.g. logit link, since 0 and 1 map to inf
-        low, high = self.link.domain
-        threshold = EPSILON**0.25
-        y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
-        mu_initial = self.link.link(y_to_map)
-
-        assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
-
-        # Solve X @ beta = g(y) = mu using Ridge regression
-        ridge = Ridge(alpha=1e3, fit_intercept=False)
-        sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
-        ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
-
-        # Respect the bounds naively by projecting to them
-        lower_bound, upper_bound = self.bounds
-        return np.maximum(np.minimum(ridge.coef_, upper_bound), lower_bound)
-
-    def evaluate_objective(self, X, D, beta, y, sample_weight):
-        """Evaluate the log likelihood plus the penalty."""
-        mu = self.link.inverse_link(X @ beta)
-        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
-        penalty = sp.linalg.norm(D @ beta) ** 2
-
-        return (deviance + penalty) / len(beta)
-
     def halving_search(self, X, D, y, sample_weight, beta0, beta1):
-        obj0 = self.evaluate_objective(X, D, beta0, y, sample_weight)
+        """Perform halving search.
 
-        for half_exponent in range(21):
-            step_size = (1 / 2) ** half_exponent
+        Here beta0 is the solution to the previous Newton step, and beta1 is
+        the proposed solution by the current step. In practice beta1 sometimes
+        overshoots the optimum, so we succesively halv the step until we improve
+        on beta0.
+
+        iter1 -------------------------------->
+        iter2 ---------------->
+        iter3 -------->
+        iter4 ---->
+        ___________________________________________
+        beta0                                beta1
+
+        - The box contraints on the variables are respected by the solution if
+          both beta0 and beta1 respect the contraints, since it's a convex
+          combination of two points within a high-dimensional box [min, max]^D.
+        - I also tested using sp.optimize.minimize_scalar, but found that using
+          halving search is equally good as easier.
+        """
+        # Starting objective value
+        obj0 = self.evaluate_objective(beta=beta0, X=X, D=D, y=y, sample_weight=sample_weight)
+
+        # Try step sizes 1, 1/2, 1/4, 1/8, ..., 1/2^19 = 1.9e-06
+        for iteration in range(20):
+            step_size = (1 / 2) ** iteration
             beta = step_size * beta1 + (1 - step_size) * beta0
-            obj = self.evaluate_objective(X, D, beta, y, sample_weight)
+            obj = self.evaluate_objective(beta=beta, X=X, D=D, y=y, sample_weight=sample_weight)
 
+            # Found a better solution, return it
             if obj < obj0:
-                return beta, obj, half_exponent
+                return beta, obj, iteration
 
-        return beta0, obj0, half_exponent
+        # No better solution found
+        return beta0, obj0, iteration
+
+    def alpha(self, mu):
+        # Fisher weights, see page 250 in Wood, 2nd ed
+        if self.fisher_weights:
+            alpha = 1
+        else:
+            V_term = self.distribution.V_derivative(mu) / self.distribution.V(mu)
+            g_term = self.link.second_derivative(mu) / self.link.derivative(mu)
+            alpha = 1 + (self.y - mu) * (V_term + g_term)
+
+        return alpha
 
     def solve(self, fisher_weights=True):
         """Solve the optimization problem."""
         # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
+        self.fisher_weights = fisher_weights
 
         num_observations, num_beta = self.X.shape
-
-        def alpha(mu):
-            # Fisher weights, see page 250 in Wood, 2nd ed
-            if fisher_weights:
-                alpha = 1
-            else:
-                V_term = self.distribution.V_derivative(mu) / self.distribution.V(mu)
-                g_term = self.link.second_derivative(mu) / self.link.derivative(mu)
-                alpha = 1 + (self.y - mu) * (V_term + g_term)
-
-            return alpha
 
         # Number formatting when printing
         fmt = functools.partial(
@@ -174,7 +265,7 @@ class PIRLS(Optimizer):
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values
         # ---------------------------------------------------------------------
-        beta = self._initial_estimate()
+        beta = self.initial_estimate()
 
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
@@ -182,8 +273,9 @@ class PIRLS(Optimizer):
 
         if self.verbose >= 1:
             lpad = int(np.floor(np.log10(self.max_iter)))
-            w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            objective_init = self.evaluate_objective(self.X, self.D, beta, self.y, w)
+            objective_init = self.evaluate_objective(
+                beta=beta, X=self.X, D=self.D, y=self.y, sample_weight=sample_weight
+            )
 
             msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
             beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
@@ -206,10 +298,10 @@ class PIRLS(Optimizer):
 
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
-            z = self.link.derivative(mu) * (self.y - mu) / alpha(mu) + eta
+            z = self.link.derivative(mu) * (self.y - mu) / self.alpha(mu) + eta
 
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-            w = alpha(mu) * sample_weight / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
             assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
 
             # Step 3: Find beta to solve the weighted least squares objective
@@ -330,3 +422,90 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])
+
+    from generalized_additive_models import Linear, GAM
+
+    rng = np.random.default_rng(42)
+    num_features = 6
+    num_samples = 999
+
+    # Create a poisson problem
+    X = rng.standard_normal(size=(num_samples, num_features))
+    beta = np.arange(num_features) + 1
+    linear_prediction = X @ beta
+    mu = np.exp(linear_prediction)
+    y = rng.poisson(lam=mu)
+    sample_weight = np.ones_like(y, dtype=float)
+    sample_weight[-25:] = 100
+
+    # Create a GAM
+    terms = sum(Linear(i, penalty=0) for i in range(num_features))
+    poisson_gam = GAM(
+        terms,
+        link="log",
+        distribution="poisson",
+        fit_intercept=False,
+        verbose=10,
+        # tol=1e-200,
+    ).fit(X, y)
+
+    print(poisson_gam.coef_)
+
+    print("-----------------------------------------------------------")
+
+    optimizer = NelderMead(
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        link=poisson_gam._link,
+        distribution=poisson_gam._distribution,
+        bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
+        get_sample_weight=functools.partial(poisson_gam._get_sample_weight, sample_weight=sample_weight),
+        max_iter=poisson_gam.max_iter,
+        tol=poisson_gam.tol,
+        verbose=poisson_gam.verbose,
+    )
+
+    beta_mead = optimizer.solve()
+
+    print(beta_mead)
+
+    print("-----------------------------------------------------------")
+
+    optimizer = PIRLS(
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        link=poisson_gam._link,
+        distribution=poisson_gam._distribution,
+        bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
+        get_sample_weight=functools.partial(poisson_gam._get_sample_weight, sample_weight=sample_weight),
+        max_iter=poisson_gam.max_iter,
+        tol=poisson_gam.tol,
+        verbose=poisson_gam.verbose,
+    )
+
+    beta_pirls = optimizer.solve()
+
+    print("-----------------------------------------------------------")
+    print(f"mead {beta_mead}")
+    print(f"pirls {beta_pirls}")
+
+    obj_mead = optimizer.evaluate_objective(
+        beta=beta_mead,
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        sample_weight=sample_weight,
+    ).round(2)
+
+    obj_pirls = optimizer.evaluate_objective(
+        beta=beta_pirls,
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        sample_weight=sample_weight,
+    ).round(2)
+
+    print(f"objective mead: {obj_mead:,}")
+    print(f"objective pirls: {obj_pirls:,}")
