@@ -39,6 +39,12 @@ class Optimizer:
         deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
 
+        # print("-------------start --------------")
+        # print(self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).mean())
+        # from sklearn.metrics import mean_poisson_deviance
+        # print(mean_poisson_deviance(y_true=y, y_pred=mu, sample_weight=sample_weight))
+        # print("-------------end --------------")
+
         return (deviance + penalty) / len(beta)
 
     def initial_estimate(self):
@@ -416,17 +422,29 @@ if __name__ == "__main__":
     from generalized_additive_models import Linear, GAM
 
     rng = np.random.default_rng(42)
-    num_features = 6
-    num_samples = 999
+    num_features = 1
+    num_samples = 10
 
     # Create a poisson problem
     X = rng.standard_normal(size=(num_samples, num_features))
+    from sklearn.preprocessing import StandardScaler
+
+    X = StandardScaler(with_std=False).fit_transform(X)
     beta = np.arange(num_features) + 1
     linear_prediction = X @ beta
-    mu = np.exp(linear_prediction)
+    mu = np.exp(linear_prediction) + 0
     y = rng.poisson(lam=mu)
     sample_weight = np.ones_like(y, dtype=float)
     sample_weight[-25:] = 100
+    sample_weight = np.ones_like(y, dtype=float)
+
+    # Sklearn model
+    from sklearn.linear_model import PoissonRegressor
+
+    poisson_sklearn = PoissonRegressor(
+        alpha=0,
+        fit_intercept=False,
+    ).fit(X, y, sample_weight=sample_weight)
 
     # Create a GAM
     terms = sum(Linear(i, penalty=0) for i in range(num_features))
@@ -437,7 +455,7 @@ if __name__ == "__main__":
         fit_intercept=False,
         verbose=10,
         # tol=1e-200,
-    ).fit(X, y)
+    ).fit(X, y, sample_weight=sample_weight)
 
     print(poisson_gam.coef_)
 
@@ -480,6 +498,7 @@ if __name__ == "__main__":
     print("-----------------------------------------------------------")
     print(f"mead {beta_mead}")
     print(f"pirls {beta_pirls}")
+    print(f"sklearn {poisson_sklearn.coef_}")
 
     obj_mead = optimizer.evaluate_objective(
         beta=beta_mead,
@@ -487,7 +506,7 @@ if __name__ == "__main__":
         D=poisson_gam.terms.penalty_matrix(),
         y=y,
         sample_weight=sample_weight,
-    ).round(2)
+    ).round(6)
 
     obj_pirls = optimizer.evaluate_objective(
         beta=beta_pirls,
@@ -495,7 +514,32 @@ if __name__ == "__main__":
         D=poisson_gam.terms.penalty_matrix(),
         y=y,
         sample_weight=sample_weight,
-    ).round(2)
+    ).round(6)
 
-    print(f"objective mead: {obj_mead:,}")
-    print(f"objective pirls: {obj_pirls:,}")
+    obj_sklearn = optimizer.evaluate_objective(
+        beta=poisson_sklearn.coef_,
+        X=X,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        sample_weight=sample_weight,
+    ).round(6)
+
+    print(f"gam objective mead: {obj_mead:,}")
+    print(f"gam objective pirls: {obj_pirls:,}")
+    print(f"gam objective sklearn: {obj_sklearn:,}")
+
+    from sklearn.metrics import mean_poisson_deviance
+
+    print("--------------- sklearn metrics ------------")
+
+    obj_mead = mean_poisson_deviance(
+        y_true=y, y_pred=poisson_gam._link.inverse_link(poisson_gam.model_matrix_ @ beta_mead)
+    )
+    obj_pirls = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
+    obj_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
+
+    print(f"sklearn objective mead: {obj_mead:,}")
+    print(f"sklearn objective pirls: {obj_pirls:,}")
+    print(f"sklearn objective sklearn: {obj_sklearn:,}")
+
+    print("------------------------------------------")

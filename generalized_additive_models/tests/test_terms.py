@@ -213,7 +213,7 @@ class TestTerms:
 
         assert np.allclose(term1.fit_transform(X), term2.fit_transform(X))
 
-    @pytest.mark.parametrize("term", [Linear, Spline])
+    @pytest.mark.parametrize("term", [Spline])
     def test_that_transformed_data_sums_to_zero_in_each_column(self, term):
         rng = np.random.default_rng(33)
         X = rng.normal(size=(100, 2))

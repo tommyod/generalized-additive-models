@@ -122,7 +122,8 @@ class TestAgainstSklearnRidge:
         ridge = Ridge(alpha=penalty, solver="auto", fit_intercept=False).fit(X, y)
 
         # Perform regression with GAM
-        gam = GAM(Linear(0, penalty=penalty) + Linear(1, penalty=penalty), fit_intercept=False).fit(X, y)
+        terms = sum(Linear(i, penalty=penalty) for i in range(len(beta)))
+        gam = GAM(terms, fit_intercept=False).fit(X, y)
 
         # Check all against each other
         assert np.allclose(coefs_direct, ridge.coef_)
@@ -202,7 +203,7 @@ class TestAgainstSklearnRidge:
             fit_intercept=False,
         ).fit(X, y)
 
-        assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, atol=0.5)
+        assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, rtol=1e-4)
 
         # Compare deviance
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
@@ -211,7 +212,7 @@ class TestAgainstSklearnRidge:
         # TODO: This number is too high. Work to beat scikit-learn
         # The optimization of scikit-learn seem more stable. Perhaps because
         # they combine the deviance with the canonical link, avoiding numerical issues?
-        assert dev_gam / dev_sklearn < 1.5
+        assert dev_gam / dev_sklearn < 1 + 1e-10
 
     @pytest.mark.parametrize("seed", list(range(25)))
     @pytest.mark.parametrize("num_samples", [100, 1000])
@@ -248,20 +249,17 @@ class TestAgainstSklearnRidge:
             fit_intercept=False,
         ).fit(X, y)
 
-        assert np.allclose(gamma_sklearn.coef_, gamma_gam.coef_, atol=0.05)
+        assert np.allclose(gamma_sklearn.coef_, gamma_gam.coef_, rtol=1e-3)
 
         # Compare deviance
         dev_sklearn = mean_gamma_deviance(y_true=y, y_pred=gamma_sklearn.predict(X))
         dev_gam = mean_gamma_deviance(y_true=y, y_pred=gamma_gam.predict(X))
 
-        # TODO: This number is too high. Work to beat scikit-learn
-        # The optimization of scikit-learn seem more stable. Perhaps because
-        # they combine the deviance with the canonical link, avoiding numerical issues?
-        assert dev_gam / dev_sklearn < 1.5
+        assert dev_gam / dev_sklearn < 1 + 1e-8
 
 
 if __name__ == "__main__":
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_ridge_without_intercept"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_gamma"])
 
     1 / 0
 

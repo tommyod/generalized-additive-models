@@ -266,19 +266,19 @@ class Linear(TransformerMixin, Term, BaseEstimator):
     >>> linear.num_coefficients
     1
 
-    Fitting and transforming extracts the relevant column and scales it:
+    Fitting and transforming extracts the relevant column:
 
     >>> import numpy as np
     >>> X = np.arange(24).reshape(8, 3)
     >>> linear.fit_transform(X)
-    array([[-10.5],
-           [ -7.5],
-           [ -4.5],
-           [ -1.5],
-           [  1.5],
-           [  4.5],
-           [  7.5],
-           [ 10.5]])
+    array([[ 0],
+           [ 3],
+           [ 6],
+           [ 9],
+           [12],
+           [15],
+           [18],
+           [21]])
 
     Linear terms have a standard quadratic (l2) penalty:
 
@@ -386,8 +386,6 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         if self.constraint in ("concave", "decreasing"):
             basis_matrix = -basis_matrix
 
-        self.means_ = basis_matrix.mean(axis=0)
-
         # Set up bounds
         self._lower_bound = np.array([-np.inf])
         self._upper_bound = np.array([np.inf])
@@ -420,10 +418,9 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         >>> linear = Linear(1)
         >>> X = np.eye(3)
         >>> linear.fit_transform(X)
-        array([[-0.333...],
-               [ 0.666...],
-               [-0.333...]])
-
+        array([[0.],
+               [1.],
+               [0.]])
 
         """
         check_is_fitted(self)
@@ -433,8 +430,6 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
         if self.by is not None:
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
-
-        basis_matrix = basis_matrix - self.means_
 
         return basis_matrix
 
@@ -1513,9 +1508,9 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         >>> linear = Linear(1)
         >>> X = np.eye(3) * 3
         >>> linear.fit_transform(X)
-        array([[-1.],
-               [ 2.],
-               [-1.]])
+        array([[0.],
+               [3.],
+               [0.]])
         """
         check_is_fitted(self)
         self._validate_params(X)
@@ -1584,21 +1579,21 @@ class TermList(UserList, BaseEstimator):
          ...
         TypeError: Only terms can be added to TermList, not 1
 
-        Calling .transform() on a TermList will compile each Term in turn.
+        Calling .transform() on a TermList will transform each Term in turn.
 
         >>> X = np.tile(np.arange(10), reps=(2, 1)).T
         >>> terms = Intercept() + Linear(0) + Spline(1, degree=0, num_splines=2)
         >>> terms.fit_transform(X)
-        array([[ 1. , -4.5,  0.5, -0.5],
-               [ 1. , -3.5,  0.5, -0.5],
-               [ 1. , -2.5,  0.5, -0.5],
-               [ 1. , -1.5,  0.5, -0.5],
-               [ 1. , -0.5,  0.5, -0.5],
-               [ 1. ,  0.5, -0.5,  0.5],
-               [ 1. ,  1.5, -0.5,  0.5],
-               [ 1. ,  2.5, -0.5,  0.5],
-               [ 1. ,  3.5, -0.5,  0.5],
-               [ 1. ,  4.5, -0.5,  0.5]])
+        array([[ 1. ,  0. ,  0.5, -0.5],
+               [ 1. ,  1. ,  0.5, -0.5],
+               [ 1. ,  2. ,  0.5, -0.5],
+               [ 1. ,  3. ,  0.5, -0.5],
+               [ 1. ,  4. ,  0.5, -0.5],
+               [ 1. ,  5. , -0.5,  0.5],
+               [ 1. ,  6. , -0.5,  0.5],
+               [ 1. ,  7. , -0.5,  0.5],
+               [ 1. ,  8. , -0.5,  0.5],
+               [ 1. ,  9. , -0.5,  0.5]])
         """
 
         super().__init__()
@@ -1671,12 +1666,12 @@ class TermList(UserList, BaseEstimator):
         >>> terms.num_coefficients
         2
         >>> terms.transform(X)
-        array([[-2.5,  1. ],
-               [-1.5,  1. ],
-               [-0.5,  1. ],
-               [ 0.5,  1. ],
-               [ 1.5,  1. ],
-               [ 2.5,  1. ]])
+        array([[0., 1.],
+               [1., 1.],
+               [2., 1.],
+               [3., 1.],
+               [4., 1.],
+               [5., 1.]])
         """
         for term in self:
             term.fit(X)
