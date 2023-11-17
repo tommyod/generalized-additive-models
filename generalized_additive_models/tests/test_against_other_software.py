@@ -16,7 +16,6 @@ from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear, Spline
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance, mean_squared_error
 
 
