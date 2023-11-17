@@ -15,7 +15,7 @@ import pytest
 from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Categorical, Linear
+from generalized_additive_models.terms import Categorical, Linear, Spline
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance, mean_squared_error
 
@@ -107,7 +107,7 @@ class TestAgainstSklearnRidge:
 
         # The GAM will center each feature to have mean zero.
         # To have exactly the same effect of regularization, we must do the same here
-        X = StandardScaler(with_std=False).fit_transform(rng.standard_normal(size=(99, 2)))
+        X = rng.standard_normal(size=(99, 2))
         beta = np.arange(X.shape[1]) + 1
         y = X @ beta
 
@@ -143,7 +143,7 @@ class TestAgainstSklearnRidge:
 
         # The GAM will center each feature to have mean zero.
         # To have exactly the same effect of regularization, we must do the same here
-        X = StandardScaler(with_std=True).fit_transform(rng.standard_normal(size=(99, 2)))
+        X = rng.standard_normal(size=(99, 2))
         beta = np.arange(X.shape[1]) + 1
         y = X @ beta + 10
 
@@ -162,7 +162,8 @@ class TestAgainstSklearnRidge:
         coefs_ridge = np.hstack((ridge.coef_, [ridge.intercept_]))
 
         # Perform regression with GAM
-        gam = GAM(Linear(0, penalty=penalty) + Linear(1, penalty=penalty), fit_intercept=True).fit(X, y)
+        terms = sum(Linear(i, penalty=penalty) for i in range(len(beta)))
+        gam = GAM(terms, fit_intercept=True).fit(X, y)
 
         # Check all against each other
         assert np.allclose(coefs_direct, coefs_ridge)
@@ -173,6 +174,28 @@ class TestAgainstSklearnRidge:
         dev_gam = mean_squared_error(y_true=y, y_pred=gam.predict(X))
 
         assert dev_gam / dev_sklearn < 1 + 1e-7
+
+    @pytest.mark.parametrize("seed", list(range(10)))
+    def test_that_spline_beats_ridge_on_nonlinear_problem(self, seed):
+        # Create dataset
+        rng = np.random.default_rng(seed)
+
+        # The GAM will center each feature to have mean zero.
+        # To have exactly the same effect of regularization, we must do the same here
+        X = rng.standard_normal(size=(99, 2))
+        y = np.sin(X[:, 0]) + np.cos(X[:, 1]) + 1
+
+        # Perform regression with sklearn
+        ridge = Ridge(solver="auto", fit_intercept=True).fit(X, y)
+
+        # Perform regression with GAM
+        gam = GAM(Spline(0) + Spline(1), fit_intercept=True).fit(X, y)
+
+        # Compare deviance, which equals mean squared error for Gaussian models
+        dev_sklearn = mean_squared_error(y_true=y, y_pred=ridge.predict(X))
+        dev_gam = mean_squared_error(y_true=y, y_pred=gam.predict(X))
+
+        assert dev_sklearn / dev_gam > 1e3
 
     @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("num_samples", [10, 100, 1000])
@@ -213,10 +236,41 @@ class TestAgainstSklearnRidge:
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
         dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
 
-        # TODO: This number is too high. Work to beat scikit-learn
-        # The optimization of scikit-learn seem more stable. Perhaps because
-        # they combine the deviance with the canonical link, avoiding numerical issues?
         assert dev_gam / dev_sklearn < 1 + 1e-10
+
+    @pytest.mark.parametrize("seed", list(range(10)))
+    @pytest.mark.parametrize("num_samples", [10, 100, 1000])
+    def test_that_poisson_gam_beats_glm_gam_on_nonlinear_problem(self, seed, num_samples):
+        rng = np.random.default_rng(seed)
+
+        num_features = 2
+
+        # Create a poisson problem
+        X = rng.standard_normal(size=(num_samples, num_features))
+        linear_prediction = np.sin(X[:, 0]) + np.cos(X[:, 1])
+        mu = np.exp(linear_prediction)
+        y = rng.poisson(lam=mu)
+
+        # Create scikit-learn model
+        poisson_sklearn = PoissonRegressor(
+            alpha=0,
+            fit_intercept=False,
+        ).fit(X, y)
+
+        # Create a GAM
+        terms = sum(Spline(i, penalty=0) for i in range(num_features))
+        poisson_gam = GAM(
+            terms,
+            link="log",
+            distribution="poisson",
+            fit_intercept=False,
+        ).fit(X, y)
+
+        # Compare deviance
+        dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
+        dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
+
+        assert dev_sklearn / dev_gam > 1.8
 
     @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("num_samples", [10, 100, 1000])
@@ -305,8 +359,6 @@ if __name__ == "__main__":
             # Compare deviance
             dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
             dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
-
-            # TODO: This number is too high. Work to beat scikit-learn
 
             # Smaller ratio is better for GAM
             print(dev_gam / dev_sklearn, dev_gam, dev_sklearn)
