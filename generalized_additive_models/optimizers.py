@@ -207,8 +207,8 @@ class PIRLS(Optimizer):
         ___________________________________________
         beta0                                beta1
 
-        - The box contraints on the variables are respected by the solution if
-          both beta0 and beta1 respect the contraints, since it's a convex
+        - The box constraints on the variables are respected by the solution if
+          both beta0 and beta1 respect the constraints, since it's a convex
           combination of two points within a high-dimensional box [min, max]^D.
         - I also tested using sp.optimize.minimize_scalar, but found that using
           halving search is equally good as easier.
