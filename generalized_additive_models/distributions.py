@@ -236,6 +236,9 @@ class Gamma(Distribution, BaseEstimator):
     def V(self, mu):
         return mu**2
 
+    def V_derivative(self, mu):
+        return 2 * mu
+
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
@@ -296,7 +299,7 @@ DISTRIBUTIONS = {
         Normal,
         Poisson,
         Binomial,
-        #  GammaDist,
+        Gamma,
         #  InvGaussDist,
     ]
 }

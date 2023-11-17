@@ -12,12 +12,12 @@ import pandas as pd
 import scipy as sp
 import pytest
 
-from sklearn.linear_model import Ridge, PoissonRegressor
+from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_poisson_deviance
+from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance
 
 
 class TestAgainstRLM:
@@ -201,23 +201,64 @@ class TestAgainstSklearnRidge:
         # they combine the deviance with the canonical link, avoiding numerical issues?
         assert dev_gam / dev_sklearn < 1.5
 
+    @pytest.mark.parametrize("seed", list(range(25)))
+    @pytest.mark.parametrize("num_samples", [100, 1000])
+    def test_against_gamma(self, seed, num_samples):
+        rng = np.random.default_rng(seed)
+
+        num_features = 2
+
+        # Create a poisson problem
+        X = rng.standard_normal(size=(num_samples, num_features))
+        beta = np.arange(num_features) + 1
+        linear_prediction = X @ beta
+        mu = np.exp(linear_prediction)
+
+        # The mean value is mu, no matter what value we choose for nu
+        nu = 1
+        y = rng.gamma(shape=nu, scale=mu / nu)
+        mask = y > 0
+        y = y[mask]
+        X = X[mask, :]
+
+        # Create scikit-learn model
+        gamma_sklearn = GammaRegressor(
+            alpha=0,
+            fit_intercept=False,
+        ).fit(X, y)
+
+        # Create a GAM
+        terms = sum(Linear(i, penalty=0) for i in range(num_features))
+        gamma_gam = GAM(
+            terms,
+            link="log",
+            distribution="gamma",
+            fit_intercept=False,
+        ).fit(X, y)
+
+        assert np.allclose(gamma_sklearn.coef_, gamma_gam.coef_, atol=0.05)
+
+        # Compare deviance
+        dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=gamma_sklearn.predict(X))
+        dev_gam = mean_poisson_deviance(y_true=y, y_pred=gamma_gam.predict(X))
+
+        # TODO: This number is too high. Work to beat scikit-learn
+        # The optimization of scikit-learn seem more stable. Perhaps because
+        # they combine the deviance with the canonical link, avoiding numerical issues?
+        assert dev_gam / dev_sklearn < 2
+
 
 if __name__ == "__main__":
-    pytest.main(
-        args=[
-            __file__,
-            "-v",
-            "--capture=sys",
-            "--doctest-modules",
-        ]
-    )
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_poisson"])
+
+    1 / 0
 
     ratios = []
     for num_samples in [10, 100, 1000]:
         for seed in list(range(25)):
             rng = np.random.default_rng(seed)
 
-            num_features = 4
+            num_features = 1
 
             # Create a poisson problem
             X = rng.standard_normal(size=(num_samples, num_features))
