@@ -239,17 +239,17 @@ class TestAgainstSklearnRidge:
         assert np.allclose(gamma_sklearn.coef_, gamma_gam.coef_, atol=0.05)
 
         # Compare deviance
-        dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=gamma_sklearn.predict(X))
-        dev_gam = mean_poisson_deviance(y_true=y, y_pred=gamma_gam.predict(X))
+        dev_sklearn = mean_gamma_deviance(y_true=y, y_pred=gamma_sklearn.predict(X))
+        dev_gam = mean_gamma_deviance(y_true=y, y_pred=gamma_gam.predict(X))
 
         # TODO: This number is too high. Work to beat scikit-learn
         # The optimization of scikit-learn seem more stable. Perhaps because
         # they combine the deviance with the canonical link, avoiding numerical issues?
-        assert dev_gam / dev_sklearn < 2
+        assert dev_gam / dev_sklearn < 1.5
 
 
 if __name__ == "__main__":
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_poisson"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_gamma"])
 
     1 / 0
 
