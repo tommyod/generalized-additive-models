@@ -17,7 +17,7 @@ from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance
+from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance, mean_squared_error
 
 
 class TestAgainstRLM:
@@ -128,6 +128,12 @@ class TestAgainstSklearnRidge:
         assert np.allclose(coefs_direct, ridge.coef_)
         assert np.allclose(gam.coef_, ridge.coef_)
 
+        # Compare deviance, which equals mean squared error for Gaussian models
+        dev_sklearn = mean_squared_error(y_true=y, y_pred=ridge.predict(X))
+        dev_gam = mean_squared_error(y_true=y, y_pred=gam.predict(X))
+
+        assert dev_gam / dev_sklearn < 1 + 1e-8
+
     @pytest.mark.parametrize("seed", list(range(5)))
     @pytest.mark.parametrize("penalty", np.logspace(-5, 5, num=11))
     def test_against_ridge_with_intercept(self, seed, penalty):
@@ -160,6 +166,12 @@ class TestAgainstSklearnRidge:
         # Check all against each other
         assert np.allclose(coefs_direct, coefs_ridge)
         assert np.allclose(gam.coef_, coefs_ridge)
+
+        # Compare deviance, which equals mean squared error for Gaussian models
+        dev_sklearn = mean_squared_error(y_true=y, y_pred=ridge.predict(X))
+        dev_gam = mean_squared_error(y_true=y, y_pred=gam.predict(X))
+
+        assert dev_gam / dev_sklearn < 1 + 1e-8
 
     @pytest.mark.parametrize("seed", list(range(25)))
     @pytest.mark.parametrize("num_samples", [100, 1000])
@@ -249,7 +261,7 @@ class TestAgainstSklearnRidge:
 
 
 if __name__ == "__main__":
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_gamma"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_ridge_without_intercept"])
 
     1 / 0
 
