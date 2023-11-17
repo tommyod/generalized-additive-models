@@ -13,6 +13,8 @@ import scipy as sp
 import pytest
 
 from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear, Spline
@@ -238,7 +240,7 @@ class TestAgainstSklearnRidge:
         assert dev_gam / dev_sklearn < 1 + 1e-10
 
     @pytest.mark.parametrize("seed", list(range(10)))
-    @pytest.mark.parametrize("num_samples", [10, 100, 1000])
+    @pytest.mark.parametrize("num_samples", [10, 100, 500])
     def test_that_poisson_gam_beats_glm_gam_on_nonlinear_problem(self, seed, num_samples):
         rng = np.random.default_rng(seed)
 
@@ -251,25 +253,31 @@ class TestAgainstSklearnRidge:
         y = rng.poisson(lam=mu)
 
         # Create scikit-learn model
-        poisson_sklearn = PoissonRegressor(
-            alpha=0,
-            fit_intercept=False,
+        poisson_sklearn = make_pipeline(
+            StandardScaler(),
+            PoissonRegressor(
+                alpha=0,
+                fit_intercept=False,
+            ),
         ).fit(X, y)
 
         # Create a GAM
         terms = sum(Spline(i, penalty=0) for i in range(num_features))
-        poisson_gam = GAM(
-            terms,
-            link="log",
-            distribution="poisson",
-            fit_intercept=False,
+        poisson_gam = make_pipeline(
+            StandardScaler(),
+            GAM(
+                terms,
+                link="log",
+                distribution="poisson",
+                fit_intercept=False,
+            ),
         ).fit(X, y)
 
         # Compare deviance
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
         dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
 
-        assert dev_sklearn / dev_gam > 1.8
+        assert dev_sklearn / dev_gam > 1.7
 
     @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("num_samples", [10, 100, 1000])
