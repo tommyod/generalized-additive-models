@@ -20,19 +20,14 @@ MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
-def solve_unbounded_lstsq(X, D, w, z):
-    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
-    lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
-    rhs = X.T @ (w * z)
-    beta, *_ = sp.linalg.lstsq(
-        lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True, check_finite=True, lapack_driver="gelsd"
-    )
-    return beta
-
-
 class Optimizer:
     def _validate_params(self):
-        pass
+        low, high = self.link.domain
+        if np.any(self.y > high):
+            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
+
+        if np.any(self.y < low):
+            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but smallest y was: {self.y.min()}")
 
     def _validate_outputs(self):
         results_keys = ("", "", "", "")
@@ -107,28 +102,20 @@ class NelderMead(Optimizer):
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
 
+        # Bind function arguments
         objective_function = functools.partial(
             self.evaluate_objective, X=self.X, D=self.D, y=self.y, sample_weight=self.get_sample_weight(mu=mu, y=self.y)
         )
-
-        print(beta)
-        print(self.bounds)
-        print(list(zip(*self.bounds)))
 
         result = sp.optimize.minimize(
             objective_function,
             x0=beta,
             method="nelder-mead",
-            jac=None,
-            hess=None,
-            hessp=None,
             bounds=list(zip(*self.bounds)),
-            constraints=(),
-            tol=None,
+            tol=self.tol,
             callback=None,
-            options={"maxiter": self.max_iter * 100},
+            options={"maxiter": self.max_iter * 10},
         )
-        print(result)
 
         return result.x
 
@@ -168,13 +155,16 @@ class PIRLS(Optimizer):
         self.get_sample_weight = get_sample_weight
         self.verbose = verbose
 
-    def _validate_params(self):
-        low, high = self.link.domain
-        if np.any(self.y < high):
-            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
+        self._validate_params()
 
-        if np.any(self.y > high):
-            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
+    def solve_unbounded_lstsq(self, *, X, D, w, z):
+        """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
+        lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+        rhs = X.T @ (w * z)
+        beta, *_ = sp.linalg.lstsq(
+            lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True, check_finite=True, lapack_driver="gelsd"
+        )
+        return beta
 
     def solve_lstsq(self, X, D, w, z, bounds):
         """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
@@ -183,7 +173,7 @@ class PIRLS(Optimizer):
 
         # If bounds are inactive, solve using standard least squares
         if np.all(lower_bounds == -np.inf) and np.all(upper_bounds == np.inf):
-            return solve_unbounded_lstsq(X, D, w, z)
+            return self.solve_unbounded_lstsq(X=X, D=D, w=w, z=z)
 
         # Set up left hand side and right hand side
         lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D

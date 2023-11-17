@@ -197,6 +197,8 @@ class TestAgainstSklearnRidge:
         dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
 
         # TODO: This number is too high. Work to beat scikit-learn
+        # The optimization of scikit-learn seem more stable. Perhaps because
+        # they combine the deviance with the canonical link, avoiding numerical issues?
         assert dev_gam / dev_sklearn < 1.5
 
 
@@ -210,39 +212,52 @@ if __name__ == "__main__":
         ]
     )
 
-    rng = np.random.default_rng(42)
+    ratios = []
+    for num_samples in [10, 100, 1000]:
+        for seed in list(range(25)):
+            rng = np.random.default_rng(seed)
 
-    # Create a poisson problem
-    X = rng.standard_normal(size=(999, 2))
-    beta = np.arange(2) + 1
-    linear_prediction = X @ beta
-    mu = np.exp(linear_prediction)
-    y = rng.poisson(lam=mu)
+            num_features = 4
 
-    # Create scikit-learn model
-    poisson_sklearn = PoissonRegressor(
-        alpha=0,
-        fit_intercept=False,
-    ).fit(X, y)
+            # Create a poisson problem
+            X = rng.standard_normal(size=(num_samples, num_features))
+            beta = np.arange(num_features) + 1
+            linear_prediction = X @ beta
+            mu = np.exp(linear_prediction)
+            y = rng.poisson(lam=mu)
 
-    # Create a GAM
-    poisson_gam = GAM(
-        Linear(0, penalty=0) + Linear(1, penalty=0),
-        link="log",
-        distribution="poisson",
-        fit_intercept=False,
-        verbose=10,
-        tol=1e-99,
-    ).fit(X, y)
+            # Create scikit-learn model
+            poisson_sklearn = PoissonRegressor(
+                alpha=0,
+                fit_intercept=False,
+            ).fit(X, y)
 
-    # Compare coefficients
-    print(poisson_sklearn.coef_, poisson_gam.coef_)
-    print("sklearn", mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X)))
-    print("gam", mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X)))
+            # Create a GAM
+            terms = sum(Linear(i, penalty=0) for i in range(num_features))
+            poisson_gam = GAM(
+                terms,
+                link="log",
+                distribution="poisson",
+                fit_intercept=False,
+            ).fit(X, y)
 
-    # assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_)
+            # assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, atol=0.5)
 
-    # Compare deviance
-    dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
-    dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
-    assert dev_gam / dev_sklearn < 1.1
+            # Compare deviance
+            dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
+            dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
+
+            # TODO: This number is too high. Work to beat scikit-learn
+
+            # Smaller ratio is better for GAM
+            print(dev_gam / dev_sklearn, dev_gam, dev_sklearn)
+            ratios.append(dev_gam / dev_sklearn)
+
+    ratios = np.log(np.array(ratios))
+    print(np.exp(np.mean(ratios)))
+
+    import matplotlib.pyplot as plt
+
+    plt.hist(ratios)
+    plt.axvline(x=0, color="black")
+    plt.show()

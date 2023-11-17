@@ -175,6 +175,13 @@ class Log(Link, BaseEstimator):
 
     def inverse_link(self, linear_prediction):
         r"""Map from the linear space to the expected value :math:`\mu`."""
+
+        # The exponential sometimes overflows. To avoid this we use the Taylor
+        # expansion exp(x) ~ 1 + x when x is large.
+        threshold = np.log(np.sqrt(np.finfo(float).max))  # 354.891356446692
+        # print(linear_prediction)
+        return np.where(linear_prediction < threshold, np.exp(linear_prediction), 1 + linear_prediction)
+
         return np.exp(linear_prediction)
 
     def derivative(self, mu):
