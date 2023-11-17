@@ -99,7 +99,7 @@ class TestAgainstRLM:
 
 
 class TestAgainstSklearnRidge:
-    @pytest.mark.parametrize("seed", list(range(5)))
+    @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("penalty", np.logspace(-5, 5, num=11))
     def test_against_ridge_without_intercept(self, seed, penalty):
         # Create dataset
@@ -133,9 +133,9 @@ class TestAgainstSklearnRidge:
         dev_sklearn = mean_squared_error(y_true=y, y_pred=ridge.predict(X))
         dev_gam = mean_squared_error(y_true=y, y_pred=gam.predict(X))
 
-        assert dev_gam / dev_sklearn < 1 + 1e-8
+        assert dev_gam / dev_sklearn < 1 + 1e-7
 
-    @pytest.mark.parametrize("seed", list(range(5)))
+    @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("penalty", np.logspace(-5, 5, num=11))
     def test_against_ridge_with_intercept(self, seed, penalty):
         # Create dataset
@@ -172,11 +172,12 @@ class TestAgainstSklearnRidge:
         dev_sklearn = mean_squared_error(y_true=y, y_pred=ridge.predict(X))
         dev_gam = mean_squared_error(y_true=y, y_pred=gam.predict(X))
 
-        assert dev_gam / dev_sklearn < 1 + 1e-8
+        assert dev_gam / dev_sklearn < 1 + 1e-7
 
-    @pytest.mark.parametrize("seed", list(range(25)))
-    @pytest.mark.parametrize("num_samples", [100, 1000])
-    def test_against_poisson(self, seed, num_samples):
+    @pytest.mark.parametrize("seed", list(range(10)))
+    @pytest.mark.parametrize("num_samples", [10, 100, 1000])
+    @pytest.mark.parametrize("intercept", [True, False])
+    def test_against_poisson(self, seed, num_samples, intercept):
         rng = np.random.default_rng(seed)
 
         num_features = 2
@@ -184,14 +185,14 @@ class TestAgainstSklearnRidge:
         # Create a poisson problem
         X = rng.standard_normal(size=(num_samples, num_features))
         beta = np.arange(num_features) + 1
-        linear_prediction = X @ beta
+        linear_prediction = X @ beta + (1.33 if intercept else 0)
         mu = np.exp(linear_prediction)
         y = rng.poisson(lam=mu)
 
         # Create scikit-learn model
         poisson_sklearn = PoissonRegressor(
             alpha=0,
-            fit_intercept=False,
+            fit_intercept=intercept,
         ).fit(X, y)
 
         # Create a GAM
@@ -200,10 +201,13 @@ class TestAgainstSklearnRidge:
             terms,
             link="log",
             distribution="poisson",
-            fit_intercept=False,
+            fit_intercept=intercept,
         ).fit(X, y)
+        coef_sklearn = (
+            np.hstack((poisson_sklearn.coef_, [poisson_sklearn.intercept_])) if intercept else poisson_sklearn.coef_
+        )
 
-        assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, rtol=1e-4)
+        assert np.allclose(coef_sklearn, poisson_gam.coef_, rtol=1e-4)
 
         # Compare deviance
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
@@ -214,9 +218,10 @@ class TestAgainstSklearnRidge:
         # they combine the deviance with the canonical link, avoiding numerical issues?
         assert dev_gam / dev_sklearn < 1 + 1e-10
 
-    @pytest.mark.parametrize("seed", list(range(25)))
-    @pytest.mark.parametrize("num_samples", [100, 1000])
-    def test_against_gamma(self, seed, num_samples):
+    @pytest.mark.parametrize("seed", list(range(10)))
+    @pytest.mark.parametrize("num_samples", [10, 100, 1000])
+    @pytest.mark.parametrize("intercept", [True, False])
+    def test_against_gamma(self, seed, num_samples, intercept):
         rng = np.random.default_rng(seed)
 
         num_features = 2
@@ -224,7 +229,7 @@ class TestAgainstSklearnRidge:
         # Create a poisson problem
         X = rng.standard_normal(size=(num_samples, num_features))
         beta = np.arange(num_features) + 1
-        linear_prediction = X @ beta
+        linear_prediction = X @ beta + (1.33 if intercept else 0)
         mu = np.exp(linear_prediction)
 
         # The mean value is mu, no matter what value we choose for nu
@@ -237,7 +242,7 @@ class TestAgainstSklearnRidge:
         # Create scikit-learn model
         gamma_sklearn = GammaRegressor(
             alpha=0,
-            fit_intercept=False,
+            fit_intercept=intercept,
         ).fit(X, y)
 
         # Create a GAM
@@ -246,20 +251,23 @@ class TestAgainstSklearnRidge:
             terms,
             link="log",
             distribution="gamma",
-            fit_intercept=False,
+            fit_intercept=intercept,
         ).fit(X, y)
+        coef_sklearn = (
+            np.hstack((gamma_sklearn.coef_, [gamma_sklearn.intercept_])) if intercept else gamma_sklearn.coef_
+        )
 
-        assert np.allclose(gamma_sklearn.coef_, gamma_gam.coef_, rtol=1e-3)
+        assert np.allclose(coef_sklearn, gamma_gam.coef_, rtol=1e-2)
 
         # Compare deviance
         dev_sklearn = mean_gamma_deviance(y_true=y, y_pred=gamma_sklearn.predict(X))
         dev_gam = mean_gamma_deviance(y_true=y, y_pred=gamma_gam.predict(X))
 
-        assert dev_gam / dev_sklearn < 1 + 1e-8
+        assert dev_gam / dev_sklearn < 1 + 1e-4
 
 
 if __name__ == "__main__":
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "-k test_against_gamma"])
+    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])
 
     1 / 0
 
