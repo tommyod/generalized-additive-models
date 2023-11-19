@@ -119,12 +119,13 @@ class Poisson(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
+        # rel_entr(y, mu) := y log(y / mu)
         deviance = 2 * (rel_entr(y, mu) - (y - mu))
         if scaled and self.scale:
             deviance = deviance / self.scale
 
         if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
+            return deviance
 
         return deviance * sample_weight
 
@@ -235,6 +236,9 @@ class Gamma(Distribution, BaseEstimator):
     def V(self, mu):
         return mu**2
 
+    def V_derivative(self, mu):
+        return 2 * mu
+
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
@@ -295,7 +299,7 @@ DISTRIBUTIONS = {
         Normal,
         Poisson,
         Binomial,
-        #  GammaDist,
+        Gamma,
         #  InvGaussDist,
     ]
 }

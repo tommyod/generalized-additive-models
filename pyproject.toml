@@ -1,6 +1,6 @@
 [project]
 name = "generalized_additive_models"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
     "numpy<=2.0.0",
     "scipy<=2.0.0",
@@ -22,6 +22,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
 ]
 
 [project.urls]
