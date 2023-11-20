@@ -26,7 +26,7 @@ templates_path = ["_templates"]
 # ['examples_gallery/plot_test_example.py.md5', 'examples_gallery/plot_test_example.py',
 # 'examples_gallery/plot_test_example.rst', 'examples_gallery/plot_test_example.ipynb']
 # Use 'generalized-additive-models/docs/examples_gallery/plot_test_example.ipynb' for the build.
-exclude_patterns = ["conf.py", "examples_gallery/*.ipynb"]
+exclude_patterns = ["conf.py", "examples_gallery/*.ipynb", "examples_gallery/**/*.ipynb"]
 
 source_suffix = [".rst"]
 
