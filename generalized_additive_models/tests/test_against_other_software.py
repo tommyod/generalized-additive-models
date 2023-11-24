@@ -18,7 +18,11 @@ from sklearn.pipeline import make_pipeline
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear, Spline
-from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance, mean_squared_error
+from sklearn.metrics import (
+    mean_poisson_deviance,
+    mean_gamma_deviance,
+    mean_squared_error,
+)
 
 
 class TestAgainstRLM:

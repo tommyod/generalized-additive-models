@@ -47,7 +47,7 @@ class Optimizer:
 
         return (deviance + penalty) / len(beta)
 
-    def initial_estimate(self):
+    def initial_estimate(self, *, X, sample_weight, y, lower_bound=None, upper_bound=None):
         """Construct an initial estimate of beta by solving a Ridge problem.
 
         The idea is to take the observations y, map them to the unbounded linear
@@ -56,24 +56,28 @@ class Optimizer:
 
             X @ beta = g(y)
         """
-        # TODO: even in the initial estimate, D could be used
 
         # Numerical problems occur with e.g. logit link, since 0 and 1 map to inf
         low, high = self.link.domain
         threshold = EPSILON**0.25
-        y_to_map = np.maximum(np.minimum(self.y, high - threshold), low + threshold)
+        y_to_map = np.maximum(np.minimum(y, high - threshold), low + threshold)
         mu_initial = self.link.link(y_to_map)
 
         assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
 
         # Solve X @ beta = g(y) = mu using Ridge regression
         ridge = Ridge(alpha=1e3, fit_intercept=False)
-        sample_weight = self.get_sample_weight(mu=mu_initial, y=self.y)
-        ridge.fit(self.X, mu_initial, sample_weight=sample_weight)
+        ridge.fit(X, mu_initial, sample_weight=sample_weight)
+        beta = ridge.coef_
 
         # Respect the bounds naively by projecting to them
-        lower_bound, upper_bound = self.bounds
-        return np.maximum(np.minimum(ridge.coef_, upper_bound), lower_bound)
+        if lower_bound is not None:
+            beta = np.maximum(beta, lower_bound)
+
+        if upper_bound is not None:
+            beta = np.minimum(beta, upper_bound)
+
+        return beta
 
 
 class NelderMead(Optimizer):
@@ -99,18 +103,23 @@ class NelderMead(Optimizer):
         self.bounds = bounds
         self.max_iter = max_iter
         self.tol = tol
-        self.results_ = Bunch()
+        self.results_ = Bunch(iters_deviance=[], iters_coef=[], iters_loss=[])
         self.get_sample_weight = get_sample_weight
         self.verbose = verbose
 
     def solve(self):
-        beta = self.initial_estimate()
+        sample_weight = self.get_sample_weight(y=self.y)
+        beta = self.initial_estimate(X=self.X, sample_weight=sample_weight, y=self.y)
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
 
         # Bind function arguments
         objective_function = functools.partial(
-            self.evaluate_objective, X=self.X, D=self.D, y=self.y, sample_weight=self.get_sample_weight(mu=mu, y=self.y)
+            self.evaluate_objective,
+            X=self.X,
+            D=self.D,
+            y=self.y,
+            sample_weight=self.get_sample_weight(mu=mu, y=self.y),
         )
 
         result = sp.optimize.minimize(
@@ -157,7 +166,7 @@ class PIRLS(Optimizer):
         self.bounds = bounds
         self.max_iter = max_iter
         self.tol = tol
-        self.results_ = Bunch()
+        self.results_ = Bunch(iters_deviance=[], iters_coef=[], iters_loss=[])
         self.get_sample_weight = get_sample_weight
         self.verbose = verbose
 
@@ -168,7 +177,13 @@ class PIRLS(Optimizer):
         lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
         rhs = X.T @ (w * z)
         beta, *_ = sp.linalg.lstsq(
-            lhs, rhs, cond=None, overwrite_a=True, overwrite_b=True, check_finite=True, lapack_driver="gelsd"
+            lhs,
+            rhs,
+            cond=None,
+            overwrite_a=True,
+            overwrite_b=True,
+            check_finite=True,
+            lapack_driver="gelsd",
         )
         return beta
 
@@ -249,48 +264,54 @@ class PIRLS(Optimizer):
     def solve(self, fisher_weights=True):
         """Solve the optimization problem."""
         # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
-        self.fisher_weights = fisher_weights
 
+        # =============================================================================
+        # GENERAL SETUP
+        # =============================================================================
+        self.fisher_weights = fisher_weights
         num_observations, num_beta = self.X.shape
 
-        # Number formatting when printing
-        fmt = functools.partial(
-            np.format_float_scientific, precision=self.PRECISION, min_digits=self.MIN_DIGITS, exp_digits=self.EXP_DIGITS
-        )
-
-        # See page 251 in Wood, 2nd edition
-        # Step 1: Compute initial values
-        # ---------------------------------------------------------------------
-        beta = self.initial_estimate()
-
-        eta = self.X @ beta
-        mu = self.link.inverse_link(eta)
-        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-
-        if self.verbose >= 1:
-            lpad = int(np.floor(np.log10(self.max_iter)))
-            objective_init = self.evaluate_objective(
-                beta=beta, X=self.X, D=self.D, y=self.y, sample_weight=sample_weight
-            )
-
-            msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
-            beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
-            msg += f"Coef. rmse: {beta_fmt}   "
-            print(msg)
-
         # Set non-identifiable coefficients to zero
-        column_remover = ColumnRemover()
-        X, D, beta = column_remover.transform(X=self.X, D=self.D, beta=beta)
-
+        self.column_remover = ColumnRemover().fit(X=self.X, D=self.D)
+        column_remover = self.column_remover
+        beta = np.zeros(self.D.shape[0])
+        X, D = column_remover.transform(self.X, self.D)
         if self.verbose >= 2:
             print(
                 "Variables set to zero for identifiability:"
                 + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
             )
 
-        # List of betas to watch as optimization progresses
-        betas = [beta]
-        deviances = [self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean()]
+        # Number formatting when printing
+        fmt = functools.partial(
+            np.format_float_scientific,
+            precision=self.PRECISION,
+            min_digits=self.MIN_DIGITS,
+            exp_digits=self.EXP_DIGITS,
+        )
+
+        # See page 251 in Wood, 2nd edition
+        # Step 1: Compute initial values
+        # ---------------------------------------------------------------------
+        sample_weight = self.get_sample_weight()
+        lb, ub = column_remover.transform(*self.bounds)
+        beta = self.initial_estimate(X=X, sample_weight=sample_weight, y=self.y, lower_bound=lb, upper_bound=ub)
+
+        eta = X @ beta
+        mu = self.link.inverse_link(eta)
+
+        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
+        w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+        self.log(beta=beta, w=w, X=X, D=D)
+
+        if self.verbose >= 1:
+            lpad = int(np.floor(np.log10(self.max_iter)))
+            objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+
+            msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
+            beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
+            msg += f"Coef. rmse: {beta_fmt}   "
+            print(msg)
 
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
@@ -302,17 +323,20 @@ class PIRLS(Optimizer):
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
-            bounds = (self.bounds[0][column_remover.nonzero_coefs], self.bounds[1][column_remover.nonzero_coefs])
+            bounds = (
+                self.bounds[0][column_remover.nonzero_coefs],
+                self.bounds[1][column_remover.nonzero_coefs],
+            )
             beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
 
-            beta, objective_value, half_exponent = self.halving_search(
-                X, D, self.y, sample_weight, betas[-1], beta_trial
-            )
+            beta, objective_value, half_exponent = self.halving_search(X, D, self.y, sample_weight, beta, beta_trial)
 
+            # Log info for the new beta value - loss, deviance and beta
+            self.log(beta=beta, w=w, X=X, D=D)
+
+            # New predictions
             eta = X @ beta
             mu = self.link.inverse_link(eta)
-            betas.append(beta)
-            deviances.append(self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean())
 
             if self.verbose >= 1:
                 lpad = int(np.floor(np.log10(self.max_iter)))
@@ -323,7 +347,7 @@ class PIRLS(Optimizer):
                 msg += f"Step size: 1/2^{half_exponent}"
                 print(msg)
 
-            if self._should_stop(betas=betas, step_size=1):
+            if self._should_stop(betas=self.results_.iters_coef, step_size=1):
                 if self.verbose >= 1:
                     print(" => SUCCESS: Solver converged (met tolerance criterion).")
                 break
@@ -335,9 +359,39 @@ class PIRLS(Optimizer):
             msg += "Increase `max_iter`, increase `tol` or increase penalties."
             warnings.warn(msg, ConvergenceWarning)
 
-        # Add zero coefficients back
-        betas = [column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in betas]
-        beta = betas[-1]
+        # Set statistics in the identifiable space
+        self.set_statistics(X=X, D=D, beta=beta, w=w)
+
+        # Add back zeros
+        self.results_.iters_coef = [
+            column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in self.results_.iters_coef
+        ]
+        beta = self.results_.iters_coef[-1]
+        return beta
+
+    def log(self, *, X, D, beta, w):
+        """Log information in each optimization iteration."""
+
+        # Log the coefficients
+        self.results_.iters_coef.append(beta)
+
+        # Log the mean deviance
+        eta = X @ beta
+        mu = self.link.inverse_link(eta)
+        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
+        deviance = self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean()
+        self.results_.iters_deviance.append(deviance)
+
+        # Log the objective function
+        obj = self.evaluate_objective(beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+        self.results_.iters_loss.append(obj)
+
+    def set_statistics(self, *, X, D, beta, w):
+        num_original_betas = len(self.column_remover.nonzero_coefs)
+
+        # New predictions
+        eta = X @ beta
+        mu = self.link.inverse_link(eta)
 
         # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
         # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
@@ -357,9 +411,9 @@ class PIRLS(Optimizer):
         # assert np.allclose(H_diag, np.diag(H_diag2))
 
         # assert len(beta) == len(np.diag(H_diag2))
-        H_diag = column_remover.insert(initial=np.zeros_like(beta), values=H_diag)
+        H_diag = self.column_remover.insert(initial=np.zeros(num_original_betas), values=H_diag)
 
-        assert len(beta) == len(H_diag)
+        assert len(H_diag) == num_original_betas
 
         edof_per_coef = H_diag
         edof = edof_per_coef.sum()
@@ -381,20 +435,20 @@ class PIRLS(Optimizer):
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
         covariance = inverted * phi
-        covariance = column_remover.insert(initial=np.eye(len(beta), dtype=float) * EPSILON, values=covariance)
+        covariance = self.column_remover.insert(
+            initial=np.eye(num_original_betas, dtype=float) * EPSILON, values=covariance
+        )
 
-        assert covariance.shape == (len(beta), len(beta))
+        assert covariance.shape == (num_original_betas, num_original_betas)
         self.results_.covariance = covariance
 
         self.results_.edof_per_coef = edof_per_coef
         self.results_.edof = edof
-        self.results_.iters_deviance = deviances
-        self.results_.iters_coef = betas
 
         # Compute generalized cross validation score
         # Equation (6.18) on page 260
         # TODO: This is only the Gaussian case, see page 262
-        gcv = sp.linalg.norm(self.X @ beta - self.y) ** 2 * len(self.y) / (len(self.y) - edof) ** 2
+        gcv = sp.linalg.norm(X @ beta - self.y) ** 2 * len(self.y) / (len(self.y) - edof) ** 2
         self.results_.generalized_cross_validation_score = gcv
 
         return beta
@@ -533,7 +587,8 @@ if __name__ == "__main__":
     print("--------------- sklearn metrics ------------")
 
     obj_mead = mean_poisson_deviance(
-        y_true=y, y_pred=poisson_gam._link.inverse_link(poisson_gam.model_matrix_ @ beta_mead)
+        y_true=y,
+        y_pred=poisson_gam._link.inverse_link(poisson_gam.model_matrix_ @ beta_mead),
     )
     obj_pirls = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
     obj_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
