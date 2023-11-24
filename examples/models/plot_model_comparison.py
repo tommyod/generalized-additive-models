@@ -8,12 +8,13 @@ Plot four different models.
 """
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeRegressor
+
 from generalized_additive_models import GAM, Spline
 from generalized_additive_models.datasets import load_salaries
-from sklearn.linear_model import Ridge
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import GridSearchCV
 
 # Load data
 df = load_salaries().sample(500, random_state=42)

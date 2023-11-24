@@ -8,7 +8,8 @@ Plot a univariate spline.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from generalized_additive_models import Spline, GAM
+
+from generalized_additive_models import GAM, Spline
 
 # Create data
 rng = np.random.default_rng(42)

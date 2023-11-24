@@ -8,9 +8,10 @@ Plot a Poisson regression on a time series dataset.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from generalized_additive_models import Spline, GAM
-from generalized_additive_models.datasets import load_bicycles
 import pandas as pd
+
+from generalized_additive_models import GAM, Spline
+from generalized_additive_models.datasets import load_bicycles
 
 # Load data and filter it
 df = load_bicycles()
@@ -23,7 +24,7 @@ df = df[df.date.dt.isocalendar().year == 2019]
 df = df.assign(weeknumber=lambda df: df.date.dt.isocalendar().week.values)
 
 # Create periodic spline model
-terms = Spline("weeknumber", penalty=1e4, num_splines=32, extrapolation="periodic")
+terms = Spline("weeknumber", penalty=1e3, num_splines=32, extrapolation="periodic")
 gam = GAM(terms=terms, distribution="poisson", link="log")
 gam.fit(df, df["count"])
 
