@@ -13,7 +13,7 @@ from generalized_additive_models.datasets import load_mcycle
 
 # Create data
 df = load_mcycle()
-X,y = df[["times"]], df["accel"]
+X, y = df[["times"]], df["accel"]
 
 # To evaluate the model on
 x_smooth = np.linspace(2, 65, num=2**10)
