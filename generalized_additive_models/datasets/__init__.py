@@ -25,3 +25,13 @@ def load_mcycle():
 
     """
     return pd.read_csv(os.path.join(DATASET_DIRECTORY, "mcycle.csv"))
+
+def load_bicycles():
+    """Load bicyles dataset.
+    
+    A subset of data from bike measurement in Stavanger, Norway.
+    
+    - https://opencom.no/dataset/samling-av-sykkelmalinger-stavanger/resource/ac59ce73-e691-430b-8619-83dbf637d861
+
+    """
+    return pd.read_csv(os.path.join(DATASET_DIRECTORY, "bicycles.csv"))
