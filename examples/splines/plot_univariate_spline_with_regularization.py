@@ -9,23 +9,21 @@ Plot a univariate spline with regularization.
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import Spline, GAM
+from generalized_additive_models.datasets import load_mcycle
 
 # Create data
-rng = np.random.default_rng(42)
-x = np.linspace(-3, 3, num=2**6)
-mu = np.sin(x)
-y = np.sin(x) + rng.normal(loc=0, scale=0.33, size=len(x))
-X = x[:, np.newaxis]
+df = load_mcycle()
+X,y = df[["times"]], df["accel"]
 
 # To evaluate the model on
-x_smooth = np.linspace(-3.2, 3.2, num=2**10)
+x_smooth = np.linspace(2, 65, num=2**10)
 
 # Plot the data
-plt.scatter(x, y, label="Data", color="black")
+plt.scatter(X, y, label="Data", color="black", s=8)
 
 for penalty in [10**4, 10**2, 1, 0.001]:
     # Create a model
-    gam = GAM(Spline(0, penalty=penalty))
+    gam = GAM(Spline("times", penalty=penalty))
     gam.fit(X, y)
 
     # Predict on a smooth grid
@@ -33,5 +31,6 @@ for penalty in [10**4, 10**2, 1, 0.001]:
     plt.plot(x_smooth, y_smooth, label=f"Penalty={penalty}")
 
 # Create a plot
+plt.grid(True, ls="--", alpha=0.33)
 plt.legend()
 plt.show()
