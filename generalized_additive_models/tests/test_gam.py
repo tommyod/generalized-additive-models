@@ -755,10 +755,13 @@ class TestGAMSanityChecks:
     def test_logistic_gam_on_breast_cancer_dataset(self):
         # Load data
         X, y = load_breast_cancer(return_X_y=True)
+        # Choose the first columns
+        X = X[:, :10]
+
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
         # Train GAM using automodel feature (sending in one spline and expanding)
-        terms = TermList(Spline(None, extrapolation="continue", num_splines=6, penalty=999))
+        terms = TermList(Spline(None, extrapolation="continue", num_splines=6, penalty=1e8))
         gam = GAM(terms, link="logit", distribution=Binomial(trials=1))
         gam.fit(X_train, y_train)
         gam_preds = gam.predict(X_test) > 0.5

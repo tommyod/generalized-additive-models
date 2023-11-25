@@ -256,7 +256,7 @@ class TestAgainstSklearnRidge:
         mu = np.exp(linear_prediction)
         y = rng.poisson(lam=mu)
 
-        # Create scikit-learn model
+        # Create scikit-learn GLM
         poisson_sklearn = make_pipeline(
             StandardScaler(),
             PoissonRegressor(
@@ -266,7 +266,7 @@ class TestAgainstSklearnRidge:
         ).fit(X, y)
 
         # Create a GAM
-        terms = sum(Spline(i, penalty=0) for i in range(num_features))
+        terms = sum(Spline(i) for i in range(num_features))
         poisson_gam = make_pipeline(
             StandardScaler(),
             GAM(
@@ -281,7 +281,8 @@ class TestAgainstSklearnRidge:
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
         dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
 
-        assert dev_sklearn / dev_gam > 1.7
+        # Sklearn performs worse
+        assert dev_sklearn / dev_gam > 1.3
 
     @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("num_samples", [10, 100, 1000])

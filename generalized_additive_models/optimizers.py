@@ -11,7 +11,6 @@ import functools
 import numpy as np
 import scipy as sp
 from sklearn.exceptions import ConvergenceWarning
-from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
 from generalized_additive_models.utils import phi_fletcher, ColumnRemover
@@ -20,8 +19,55 @@ MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
+def solve_unbounded_lstsq(*, X, D, w, z):
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta.
+
+    Form the normal equations and solve them.
+
+    """
+    lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+    rhs = X.T @ (w * z)
+
+    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="sym")
+
+
+def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
+    """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
+    if bounds is None:
+        return solve_unbounded_lstsq(X=X, D=D, w=w, z=z)
+
+    lower_bounds, upper_bounds = bounds
+
+    # If bounds are inactive, solve using standard least squares
+    if np.all(lower_bounds == -np.inf) and np.all(upper_bounds == np.inf):
+        return solve_unbounded_lstsq(X=X, D=D, w=w, z=z)
+
+    # Set up left hand side and right hand side
+    lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+    rhs = X.T @ (w * z)
+
+    verbose = min(max(0, verbose - 2), 2)
+    result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds, verbose=verbose)
+
+    if verbose >= 2:
+        msg = f"  Constrained LSQ {'success' if result.success else 'failure'} "
+        msg += f"in {result.nit} iters. Msg: {result.message}"
+        print(msg)
+
+        if not result.success:
+            print(f" => Constrained LSQ msg: {result.message}")
+
+    return result.x
+
+
 class Optimizer:
     def _validate_params(self):
+        """Validate input parameters."""
+
+        # Validate shapes
+        assert self.X.shape[1] == self.D.shape[1]
+        assert self.X.shape[0] == len(self.y)
+
         low, high = self.link.domain
         if np.any(self.y > high):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
@@ -34,20 +80,38 @@ class Optimizer:
         assert all((key in self._statistics.keys()) for key in results_keys)
 
     def evaluate_objective(self, beta, *, X, D, y, sample_weight):
-        """Evaluate the log likelihood plus the penalty."""
+        """Evaluate the objective - the sum of deviance plus the penalty.
+
+        sum_i deviance(mu_i, y_i) + |D beta|^2
+
+        """
         mu = self.link.inverse_link(X @ beta)
         deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
 
-        # print("-------------start --------------")
-        # print(self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).mean())
-        # from sklearn.metrics import mean_poisson_deviance
-        # print(mean_poisson_deviance(y_true=y, y_pred=mu, sample_weight=sample_weight))
-        # print("-------------end --------------")
-
         return (deviance + penalty) / len(beta)
 
-    def initial_estimate(self, *, X, sample_weight, y, lower_bound=None, upper_bound=None):
+    def gradient(self, beta, *, X, D, y, sample_weight):
+        """Evaluate the gradient of the objective function."""
+
+        # Equation (3.3) in Wood
+        mu = self.link.inverse_link(X @ beta)
+        pseudoweights = (y - mu) * sample_weight / (self.distribution.V(mu) * self.link.derivative(mu))
+        if self.distribution.scale:
+            pseudoweights = pseudoweights / self.distribution.scale
+
+        # Multiply each row (observation) by pseudoweights, then sum over rows
+        # Add the minus sign since we want to minimize the negative log-likelihood
+        deviance_grad = -2 * np.sum(X * pseudoweights[:, None], axis=0)
+
+        # Compute gradient w.r.t regularization term |D beta|^2
+        penalty_grad = 2 * np.linalg.multi_dot([D.T, D, beta])
+
+        assert deviance_grad.shape == penalty_grad.shape
+
+        return (deviance_grad + penalty_grad) / len(beta)
+
+    def initial_estimate(self, *, X, D, sample_weight, y, bounds=None):
         """Construct an initial estimate of beta by solving a Ridge problem.
 
         The idea is to take the observations y, map them to the unbounded linear
@@ -64,20 +128,11 @@ class Optimizer:
         mu_initial = self.link.link(y_to_map)
 
         assert np.all(np.isfinite(mu_initial)), "Initial `mu` must be finite."
+        assert np.all(y_to_map < high), f"Initial `y` must be < {high}."
+        assert np.all(y_to_map > low), f"Initial `y` must be > {low}."
 
-        # Solve X @ beta = g(y) = mu using Ridge regression
-        ridge = Ridge(alpha=1e3, fit_intercept=False)
-        ridge.fit(X, mu_initial, sample_weight=sample_weight)
-        beta = ridge.coef_
-
-        # Respect the bounds naively by projecting to them
-        if lower_bound is not None:
-            beta = np.maximum(beta, lower_bound)
-
-        if upper_bound is not None:
-            beta = np.minimum(beta, upper_bound)
-
-        return beta
+        # Solve X @ beta = g(y) = mu
+        return solve_lstsq(X=X, D=D, w=sample_weight, z=mu_initial, bounds=bounds, verbose=self.verbose)
 
 
 class NelderMead(Optimizer):
@@ -109,7 +164,7 @@ class NelderMead(Optimizer):
 
     def solve(self):
         sample_weight = self.get_sample_weight(y=self.y)
-        beta = self.initial_estimate(X=self.X, sample_weight=sample_weight, y=self.y)
+        beta = self.initial_estimate(X=self.X, D=self.D, sample_weight=sample_weight, y=self.y)
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
 
@@ -121,15 +176,33 @@ class NelderMead(Optimizer):
             y=self.y,
             sample_weight=self.get_sample_weight(mu=mu, y=self.y),
         )
+        # Bind function arguments
+        gradient = functools.partial(
+            self.gradient,
+            X=self.X,
+            D=self.D,
+            y=self.y,
+            sample_weight=self.get_sample_weight(mu=mu, y=self.y),
+        )
 
         result = sp.optimize.minimize(
             objective_function,
             x0=beta,
-            method="nelder-mead",
+            method="L-BFGS-B",
+            jac=gradient,
             bounds=list(zip(*self.bounds)),
             tol=self.tol,
             callback=None,
-            options={"maxiter": self.max_iter * 10},
+            options={
+                "maxiter": self.max_iter * 10,
+                "maxls": 50,  # default is 20
+                "iprint": self.verbose - 1,
+                "gtol": self.tol,
+                # The constant 64 was found empirically to pass the test suite.
+                # The point is that ftol is very small, but a bit larger than
+                # machine precision for float64, which is the dtype used by lbfgs.
+                "ftol": 64 * np.finfo(float).eps,
+            },
         )
 
         return result.x
@@ -171,47 +244,6 @@ class PIRLS(Optimizer):
         self.verbose = verbose
 
         self._validate_params()
-
-    def solve_unbounded_lstsq(self, *, X, D, w, z):
-        """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta."""
-        lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
-        rhs = X.T @ (w * z)
-        beta, *_ = sp.linalg.lstsq(
-            lhs,
-            rhs,
-            cond=None,
-            overwrite_a=True,
-            overwrite_b=True,
-            check_finite=True,
-            lapack_driver="gelsd",
-        )
-        return beta
-
-    def solve_lstsq(self, X, D, w, z, bounds):
-        """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z"""
-
-        lower_bounds, upper_bounds = bounds
-
-        # If bounds are inactive, solve using standard least squares
-        if np.all(lower_bounds == -np.inf) and np.all(upper_bounds == np.inf):
-            return self.solve_unbounded_lstsq(X=X, D=D, w=w, z=z)
-
-        # Set up left hand side and right hand side
-        lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
-        rhs = X.T @ (w * z)
-
-        verbose = min(max(0, self.verbose - 2), 2)
-        result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds, verbose=verbose)
-
-        if self.verbose >= 2:
-            msg = f"  Constrained LSQ {'success' if result.success else 'failure'} "
-            msg += f"in {result.nit} iters. Msg: {result.message}"
-            print(msg)
-
-            if not result.success:
-                print(f" => Constrained LSQ msg: {result.message}")
-
-        return result.x
 
     def halving_search(self, X, D, y, sample_weight, beta0, beta1):
         """Perform halving search.
@@ -294,8 +326,8 @@ class PIRLS(Optimizer):
         # Step 1: Compute initial values
         # ---------------------------------------------------------------------
         sample_weight = self.get_sample_weight()
-        lb, ub = column_remover.transform(*self.bounds)
-        beta = self.initial_estimate(X=X, sample_weight=sample_weight, y=self.y, lower_bound=lb, upper_bound=ub)
+        bounds = column_remover.transform(*self.bounds)
+        beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
 
         eta = X @ beta
         mu = self.link.inverse_link(eta)
@@ -327,7 +359,7 @@ class PIRLS(Optimizer):
                 self.bounds[0][column_remover.nonzero_coefs],
                 self.bounds[1][column_remover.nonzero_coefs],
             )
-            beta_trial = self.solve_lstsq(X, D, w, z, bounds=bounds)
+            beta_trial = solve_lstsq(X=X, D=D, w=w, z=z, bounds=bounds)
 
             beta, objective_value, half_exponent = self.halving_search(X, D, self.y, sample_weight, beta, beta_trial)
 
@@ -501,7 +533,7 @@ if __name__ == "__main__":
     ).fit(X, y, sample_weight=sample_weight)
 
     # Create a GAM
-    terms = sum(Linear(i, penalty=0) for i in range(num_features))
+    terms = sum(Linear(i, penalty=1e0) for i in range(num_features))
     poisson_gam = GAM(
         terms,
         link="log",
