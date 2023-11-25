@@ -59,7 +59,6 @@ extensions = [
     # "myst_parser"
     # "sphinx.ext.extlinks",
     # "matplotlib.sphinxext.plot_directive",
-    # "sphinx_gallery.gen_gallery",
     # "IPython.sphinxext.ipython_console_highlighting",
     # "IPython.sphinxext.ipython_directive",
 ]
