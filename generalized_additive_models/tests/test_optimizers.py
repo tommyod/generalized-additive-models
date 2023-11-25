@@ -48,7 +48,6 @@ class TestOptimizationMethodsAgainstSklearn:
             link="log",
             distribution="poisson",
             fit_intercept=False,
-            verbose=True,
             solver=solver,  # <- Solver here :)
         ).fit(X, y, sample_weight=sample_weight)
 
