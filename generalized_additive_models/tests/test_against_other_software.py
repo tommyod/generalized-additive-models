@@ -9,20 +9,15 @@ Created on Fri Mar 10 08:25:44 2023
 
 import numpy as np
 import pandas as pd
-import scipy as sp
 import pytest
-
-from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
-from sklearn.preprocessing import StandardScaler
+import scipy as sp
+from sklearn.linear_model import GammaRegressor, PoissonRegressor, Ridge
+from sklearn.metrics import mean_gamma_deviance, mean_poisson_deviance, mean_squared_error
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear, Spline
-from sklearn.metrics import (
-    mean_poisson_deviance,
-    mean_gamma_deviance,
-    mean_squared_error,
-)
 
 
 class TestAgainstRLM:

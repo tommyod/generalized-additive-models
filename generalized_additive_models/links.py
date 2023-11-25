@@ -7,11 +7,11 @@ Created on Mon Feb  6 21:36:42 2023
 """
 
 from abc import ABC, abstractmethod
+from numbers import Real
 
 import numpy as np
 from scipy import special
 from sklearn.base import BaseEstimator
-from numbers import Real
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)

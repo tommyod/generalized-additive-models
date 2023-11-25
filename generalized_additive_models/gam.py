@@ -25,15 +25,7 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import (
-    Categorical,
-    Intercept,
-    Linear,
-    Spline,
-    Tensor,
-    Term,
-    TermList,
-)
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
 
 
 class GAM(BaseEstimator):

@@ -5,15 +5,15 @@ Created on Tue Feb  7 06:22:30 2023
 
 @author: tommy
 """
-import warnings
 import functools
+import warnings
 
 import numpy as np
 import scipy as sp
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import Bunch
 
-from generalized_additive_models.utils import phi_fletcher, ColumnRemover
+from generalized_additive_models.utils import ColumnRemover, phi_fletcher
 
 MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
@@ -537,7 +537,7 @@ if __name__ == "__main__":
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])
 
-    from generalized_additive_models import Linear, GAM
+    from generalized_additive_models import GAM, Linear
 
     rng = np.random.default_rng(42)
     num_features = 1

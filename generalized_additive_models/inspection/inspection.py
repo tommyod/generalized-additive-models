@@ -19,14 +19,7 @@ from sklearn.utils import Bunch, check_scalar
 from sklearn.utils.validation import check_is_fitted
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import (
-    Categorical,
-    Intercept,
-    Linear,
-    Spline,
-    Tensor,
-    Term,
-)
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term
 from generalized_additive_models.utils import cartesian
 
 

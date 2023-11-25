@@ -7,6 +7,7 @@ Created on Wed Feb  8 07:11:09 2023
 """
 import io
 import itertools
+from numbers import Real
 
 import joblib
 import numpy as np
@@ -16,26 +17,13 @@ import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
 from sklearn.metrics import accuracy_score, r2_score
-from sklearn.model_selection import (
-    GridSearchCV,
-    KFold,
-    cross_val_score,
-    train_test_split,
-)
+from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.utils import resample
-from numbers import Real
 
 from generalized_additive_models.distributions import Binomial, Normal
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit
-from generalized_additive_models.terms import (
-    Categorical,
-    Intercept,
-    Linear,
-    Spline,
-    Tensor,
-    TermList,
-)
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
