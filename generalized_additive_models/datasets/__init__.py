@@ -40,6 +40,7 @@ def load_bicycles():
     df["date"] = pd.to_datetime(df["date"])
     return df
 
+
 def load_powerlifters():
     """Load powerlifters dataset.
 
