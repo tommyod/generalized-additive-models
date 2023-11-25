@@ -24,16 +24,8 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
-from generalized_additive_models.optimizers import PIRLS
-from generalized_additive_models.terms import (
-    Categorical,
-    Intercept,
-    Linear,
-    Spline,
-    Tensor,
-    Term,
-    TermList,
-)
+from generalized_additive_models.optimizers import LBFGSB, PIRLS
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
 
 
 class GAM(BaseEstimator):
@@ -59,8 +51,11 @@ class GAM(BaseEstimator):
         If an intercept is already present, then this setting has no effect.
         The default is True.
     solver : str, optional
-        The solver to use, currently only "pirls" is available, which stands
-        for Penalized Iterated Reweighted Least Squares.
+        Either 'pirls' or 'lbfgsb'.
+        'pirls' stands for Penalized Iterated Reweighted Least Squares, which
+        is a Newton routine that uses step-halving line search.
+        'lbfgsb' is the Limited-memory Broyden–Fletcher–Goldfarb–Shanno algorithm
+        from scipy.optimize.minimize.
         The default is "pirls".
     max_iter : int, optional
         Maximum number of iterations in the solver.
@@ -100,7 +95,7 @@ class GAM(BaseEstimator):
         "link": [StrOptions(set(LINKS.keys())), Link],
         "fit_intercept": ["boolean"],
         "solver": [
-            StrOptions({"pirls"}),
+            StrOptions({"pirls", "lbfgsb"}),
             Hidden(type),
         ],
         "max_iter": [Interval(Integral, 1, None, closed="left")],
@@ -142,6 +137,8 @@ class GAM(BaseEstimator):
 
         if self.solver == "pirls":
             self._solver = PIRLS
+        elif self.solver == "lbfgsb":
+            self._solver = LBFGSB
         else:
             raise ValueError("Unknown solver.")
 
@@ -233,7 +230,7 @@ class GAM(BaseEstimator):
         )
 
         # Copy over solver information
-        self.coef_ = optimizer.solve(fisher_weights=True).copy()
+        self.coef_ = optimizer.solve().copy()
         self.results_ = copy.deepcopy(optimizer.results_)
         self.results_.pseudo_r2 = self.score(X, y, sample_weight=sample_weight)
 
@@ -294,7 +291,7 @@ class GAM(BaseEstimator):
         return distr.rvs(size=size, random_state=random_state)
 
     def predict(self, X):
-        """Predict the expected value :math:`\mu` with the model.
+        r"""Predict the expected value :math:`\mu` with the model.
 
         Parameters
         ----------

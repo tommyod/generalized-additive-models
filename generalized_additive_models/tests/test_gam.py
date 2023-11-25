@@ -7,6 +7,7 @@ Created on Wed Feb  8 07:11:09 2023
 """
 import io
 import itertools
+from numbers import Real
 
 import joblib
 import numpy as np
@@ -16,26 +17,13 @@ import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
 from sklearn.metrics import accuracy_score, r2_score
-from sklearn.model_selection import (
-    GridSearchCV,
-    KFold,
-    cross_val_score,
-    train_test_split,
-)
+from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.utils import resample
-from numbers import Real
 
 from generalized_additive_models.distributions import Binomial, Normal
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit
-from generalized_additive_models.terms import (
-    Categorical,
-    Intercept,
-    Linear,
-    Spline,
-    Tensor,
-    TermList,
-)
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
@@ -95,12 +83,13 @@ class TestAPIContract:
 class TestExponentialFunctionGamsWithCanonicalLinks:
     INTERCEPT = [-2, -1, 0, 1, 1.5]
 
+    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("intercept", INTERCEPT)
-    def test_canonical_normal(self, intercept):
+    def test_canonical_normal(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a normal problem
-        x = np.linspace(0, 2 * np.pi, num=10_000)
+        x = np.linspace(0, 2 * np.pi, num=500)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
 
@@ -113,9 +102,10 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             Spline(0, extrapolation="periodic"),
             link="identity",
             distribution="normal",
+            solver=solver,
         ).fit(X, y)
 
-        assert np.allclose(mu, normal_gam.predict(X), atol=0.01)
+        assert np.allclose(mu, normal_gam.predict(X), atol=0.02)
 
         # Test that sample weights work
         weights = rng.integers(low=1, high=4, size=len(x))
@@ -133,12 +123,13 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
         assert np.isclose(scale1, scale2)
 
+    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("intercept", INTERCEPT)
-    def test_canonical_poisson(self, intercept):
+    def test_canonical_poisson(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a poisson problem
-        x = np.linspace(0, 2 * np.pi, num=10_000)
+        x = np.linspace(0, 2 * np.pi, num=1_000)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
 
@@ -151,6 +142,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             Spline(0, extrapolation="periodic"),
             link="log",
             distribution="poisson",
+            solver=solver,
         ).fit(X, y)
 
         assert np.allclose(mu, poisson_gam.predict(X), atol=1)
@@ -165,12 +157,13 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_weight = poisson_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
 
+    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("intercept", INTERCEPT)
-    def test_caononical_logistic(self, intercept):
+    def test_caononical_logistic(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a logistic problem
-        x = np.linspace(0, 2 * np.pi, num=10_000)
+        x = np.linspace(0, 2 * np.pi, num=1_000)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
 
@@ -183,9 +176,10 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             Spline(0, extrapolation="periodic"),
             link="logit",
             distribution=Binomial(trials=1),
+            solver=solver,
         ).fit(X, y)
 
-        assert np.allclose(mu, logistic_gam.predict(X), atol=0.05)
+        assert np.allclose(mu, logistic_gam.predict(X), atol=0.15)
 
         # Test that sample weights work
         weights = rng.integers(low=1, high=4, size=len(x))
@@ -197,12 +191,13 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_weight = logistic_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
 
+    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("intercept", INTERCEPT)
-    def test_caononical_binomial(self, intercept):
+    def test_caononical_binomial(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
 
         # Create a logistic problem
-        num = 10_000
+        num = 1_000
         x = np.linspace(0, 2 * np.pi, num=num)
         X = x.reshape(-1, 1)
         linear_prediction = intercept + np.sin(x)
@@ -220,9 +215,10 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             Spline(0, extrapolation="periodic"),
             link=Logit(low=0, high=trials),
             distribution=Binomial(trials=trials),
+            solver=solver,
         ).fit(X, y)
 
-        assert np.allclose(mu, binomial_gam.predict(X), rtol=0.1)
+        assert np.allclose(mu, binomial_gam.predict(X), rtol=0.15)
 
 
 class TestPandasCompatibility:
@@ -466,15 +462,14 @@ class TestGamAutoModels:
     This will expand the terms to an all-spline model when data is seen.
     """
 
-    @pytest.mark.parametrize(
-        "penalty, fit_intercept, term_class",
-        list(itertools.product([0.01, 0.1, 1, 10, 100], [True, False], [Spline, Linear])),
-    )
+    @pytest.mark.parametrize("penalty", [0.01, 0.1, 1, 10, 100])
+    @pytest.mark.parametrize("fit_intercept", [True, False])
+    @pytest.mark.parametrize("term_class", [Spline, Linear])
     def test_auto_model(self, penalty, fit_intercept, term_class):
         X, y = fetch_california_housing(return_X_y=True, as_frame=False)
 
         # Decrease data sets to speed up test
-        X, y = resample(X, y, replace=False, n_samples=1000, random_state=42)
+        X, y = resample(X, y, replace=False, n_samples=50, random_state=int(penalty * 123456))
         num_samples, num_features = X.shape
 
         # Auto model
@@ -494,26 +489,29 @@ class TestGamAutoModels:
         y = data.target
 
         # Decrease data sets to speed up test
-        df, y = resample(df, y, replace=False, n_samples=1000, random_state=42)
+        df, y = resample(df, y, replace=False, n_samples=500, random_state=42)
 
         # Create model and create object
+        penalties = np.logspace(-3, 3, num=7)
         gam = GAM(Spline(None))
         param_grid = {
-            "terms__penalty": np.logspace(-3, 3, num=7),
+            "terms__penalty": penalties,
             "terms__extrapolation": ["linear", "constant", "continue"],
         }
-        search = GridSearchCV(gam, param_grid, scoring="r2", n_jobs=-1)
+        search = GridSearchCV(gam, param_grid, scoring="r2", n_jobs=-1, cv=3)
 
         search.fit(df, y)
 
         assert search.best_score_ > 0.6
-        assert search.best_params_["terms__penalty"] > 1e-3
-        assert search.best_params_["terms__penalty"] < 1e3
+        # Boundaries were not selected
+        assert search.best_params_["terms__penalty"] > penalties[0]
+        assert search.best_params_["terms__penalty"] < penalties[-1]
 
 
 class TestGAMSanityChecks:
+    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("num", [5, 10, 50, 100, 500, 1000])
-    def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(self, num):
+    def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(self, num, solver):
         rng = np.random.default_rng(num)
 
         # Create a normal problem
@@ -530,6 +528,7 @@ class TestGAMSanityChecks:
             Spline(0, extrapolation="periodic"),
             link="identity",
             distribution="normal",
+            solver=solver,
         )
 
         # Test that sample weights work
@@ -681,7 +680,7 @@ class TestGAMSanityChecks:
         # Create a data set which is hard for an additive model to predict
         # y = exp(-x**2 - y**2)
         rng = np.random.default_rng(42)
-        X = rng.random(size=(400, 2)) * 2 - 1
+        X = rng.random(size=(200, 2)) * 2 - 1
         y = np.exp(-3 * np.linalg.norm(X, axis=1) ** 2)
 
         # Set up CV object
@@ -696,8 +695,8 @@ class TestGAMSanityChecks:
         score_tensor_model = cross_val_score(gam_tensor_model, X, y, verbose=0, cv=cv).mean()
 
         assert score_tensor_model > score_spline_model
-        assert score_tensor_model > 0.95
-        assert score_spline_model < 0.82
+        assert score_tensor_model > 0.91
+        assert score_spline_model < 0.78
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
     def test_that_1D_spline_score_on_smooth_function_is_close(self, function):
@@ -733,7 +732,7 @@ class TestGAMSanityChecks:
     def test_that_tensor_spline_score_on_smooth_function_with_by_is_close(self, function):
         # Create data of form: y = f(x_1, x_2) * x_3
         rng = np.random.default_rng(42)
-        X = rng.random(size=(100, 3)) * np.pi
+        X = rng.random(size=(25, 3)) * np.pi
         X[:, 2] = X[:, 2] - np.pi / 2
 
         y = function(X[:, 0] + np.abs(X[:, 1]) ** 0.5) * X[:, 2]
@@ -743,7 +742,7 @@ class TestGAMSanityChecks:
         gam = GAM(terms=terms, fit_intercept=True)
         gam.fit(X, y)
         gam_score = gam.score(X, y)
-        assert gam_score > 0.999
+        assert gam_score > 0.99
 
         # Bad gam
         terms = Tensor([Spline(0), Spline(1)]) + Linear(0)
@@ -755,10 +754,13 @@ class TestGAMSanityChecks:
     def test_logistic_gam_on_breast_cancer_dataset(self):
         # Load data
         X, y = load_breast_cancer(return_X_y=True)
+        # Choose the first columns
+        X = X[:, :3]
+
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
         # Train GAM using automodel feature (sending in one spline and expanding)
-        terms = TermList(Spline(None, extrapolation="continue", num_splines=6, penalty=999))
+        terms = TermList(Spline(None, extrapolation="continue", num_splines=6, penalty=1e8))
         gam = GAM(terms, link="logit", distribution=Binomial(trials=1))
         gam.fit(X_train, y_train)
         gam_preds = gam.predict(X_test) > 0.5

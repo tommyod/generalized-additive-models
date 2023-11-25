@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import numbers
+
 import matplotlib.pyplot as plt
 import numpy as np
-import numbers
-from sklearn.utils import check_random_state, _safe_indexing
+from sklearn.utils import _safe_indexing, check_random_state
 
 
 class ResidualScatterDisplay:

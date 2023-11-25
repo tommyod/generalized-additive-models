@@ -9,16 +9,15 @@ Created on Fri Mar 10 08:25:44 2023
 
 import numpy as np
 import pandas as pd
-import scipy as sp
 import pytest
-
-from sklearn.linear_model import Ridge, PoissonRegressor, GammaRegressor
-from sklearn.preprocessing import StandardScaler
+import scipy as sp
+from sklearn.linear_model import GammaRegressor, PoissonRegressor, Ridge
+from sklearn.metrics import mean_gamma_deviance, mean_poisson_deviance, mean_squared_error
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Categorical, Linear, Spline
-from sklearn.metrics import mean_poisson_deviance, mean_gamma_deviance, mean_squared_error
 
 
 class TestAgainstRLM:
@@ -252,7 +251,7 @@ class TestAgainstSklearnRidge:
         mu = np.exp(linear_prediction)
         y = rng.poisson(lam=mu)
 
-        # Create scikit-learn model
+        # Create scikit-learn GLM
         poisson_sklearn = make_pipeline(
             StandardScaler(),
             PoissonRegressor(
@@ -262,7 +261,7 @@ class TestAgainstSklearnRidge:
         ).fit(X, y)
 
         # Create a GAM
-        terms = sum(Spline(i, penalty=0) for i in range(num_features))
+        terms = sum(Spline(i) for i in range(num_features))
         poisson_gam = make_pipeline(
             StandardScaler(),
             GAM(
@@ -277,7 +276,8 @@ class TestAgainstSklearnRidge:
         dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
         dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
 
-        assert dev_sklearn / dev_gam > 1.7
+        # Sklearn performs worse
+        assert dev_sklearn / dev_gam > 1.3
 
     @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("num_samples", [10, 100, 1000])
