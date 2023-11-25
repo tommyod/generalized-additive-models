@@ -92,11 +92,18 @@ class Optimizer:
         return (deviance + penalty) / len(beta)
 
     def gradient(self, beta, *, X, D, y, sample_weight):
-        """Evaluate the gradient of the objective function."""
+        """Evaluate the gradient of the objective function.
+
+        Note that this is the gradient with respect to
+
+            -log_likelihood + penalty
+
+        which is what we want to minimize.
+        """
 
         # Equation (3.3) in Wood
         mu = self.link.inverse_link(X @ beta)
-        pseudoweights = (y - mu) * sample_weight / (self.distribution.V(mu) * self.link.derivative(mu))
+        pseudoweights = sample_weight * (y - mu) / (self.distribution.V(mu) * self.link.derivative(mu))
         if self.distribution.scale:
             pseudoweights = pseudoweights / self.distribution.scale
 
@@ -108,8 +115,29 @@ class Optimizer:
         penalty_grad = 2 * np.linalg.multi_dot([D.T, D, beta])
 
         assert deviance_grad.shape == penalty_grad.shape
-
         return (deviance_grad + penalty_grad) / len(beta)
+
+    def hessian(self, beta, *, X, D, y, sample_weight):
+        """Evaluate the hessian of the objective function."""
+
+        # Section 3.1.2 in Wood
+        mu = self.link.inverse_link(X @ beta)
+        V_prime_over_V = self.distribution.V_derivative(mu) / self.distribution.V(mu)
+        g_pp_over_g_p = self.link.second_derivative(mu) / self.link.derivative(mu)
+        alpha = 1 + (y - mu) * (V_prime_over_V + g_pp_over_g_p)
+
+        pseudoweights = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+        if self.distribution.scale:
+            pseudoweights = pseudoweights / self.distribution.scale
+
+        # Compute (X.T @ W @ X)
+        deviance_hessian = 2 * X.T @ (pseudoweights[:, None] * X)
+
+        penalty_hessian = 2 * D.T @ D
+
+        assert deviance_hessian.shape == (len(beta), len(beta))
+        assert deviance_hessian.shape == penalty_hessian.shape
+        return (deviance_hessian + penalty_hessian) / len(beta)
 
     def initial_estimate(self, *, X, D, sample_weight, y, bounds=None):
         """Construct an initial estimate of beta by solving a Ridge problem.
@@ -630,3 +658,11 @@ if __name__ == "__main__":
     print(f"sklearn objective sklearn: {obj_sklearn:,}")
 
     print("------------------------------------------")
+
+    optimizer.hessian(
+        beta=poisson_sklearn.coef_,
+        X=X,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+        sample_weight=sample_weight,
+    )
