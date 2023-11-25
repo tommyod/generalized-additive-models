@@ -19,7 +19,7 @@ class TestOptimizationMethodsAgainstSklearn:
 
     @pytest.mark.parametrize("num_features", [3, 5, 10])
     @pytest.mark.parametrize("seed", list(range(10)))
-    @pytest.mark.parametrize("solver", ["pirls", "lbfgsb"])
+    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     def test_that_optimizers_produce_equal_results_on_Poisson_problem(self, solver, seed, num_features):
         """Check all GAM solvers against sklearn, implicitly testing them against each other."""
 

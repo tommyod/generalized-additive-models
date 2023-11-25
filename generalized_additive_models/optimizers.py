@@ -385,6 +385,7 @@ class LBFGSB(Optimizer):
         )
 
         beta = result.x
+        self.log(X=X, D=D, beta=beta)
 
         self.set_statistics(X=X, D=D, beta=beta)
 
