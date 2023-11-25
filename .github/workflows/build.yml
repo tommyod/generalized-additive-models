@@ -39,7 +39,7 @@ jobs:
           ruff check generalized_additive_models --ignore=E741
           black docs --check
           black examples --check
-          codespell --ignore-words-list='te,'
+          codespell --ignore-words-list='te,' --skip='*.csv'
           flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 \
                  --exclude=tests,'*ipynb_checkpoints*'
           
