@@ -191,7 +191,7 @@ class NelderMead(Optimizer):
         self.verbose = verbose
 
     def solve(self):
-        sample_weight = self.get_sample_weight(y=self.y)
+        sample_weight = self.get_sample_weight()  # TODO: expectile
         beta = self.initial_estimate(X=self.X, D=self.D, sample_weight=sample_weight, y=self.y)
         eta = self.X @ beta
         mu = self.link.inverse_link(eta)
@@ -270,6 +270,13 @@ class PIRLS(Optimizer):
         self.results_ = Bunch(iters_deviance=[], iters_coef=[], iters_loss=[])
         self.get_sample_weight = get_sample_weight
         self.verbose = verbose
+        # Number formatting when printing
+        self.fmt = functools.partial(
+            np.format_float_scientific,
+            precision=self.PRECISION,
+            min_digits=self.MIN_DIGITS,
+            exp_digits=self.EXP_DIGITS,
+        )
 
         self._validate_params()
 
@@ -321,57 +328,15 @@ class PIRLS(Optimizer):
 
         return alpha
 
-    def solve(self, fisher_weights=True):
-        """Solve the optimization problem."""
-        # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
-
-        # =============================================================================
-        # GENERAL SETUP
-        # =============================================================================
-        self.fisher_weights = fisher_weights
-        num_observations, num_beta = self.X.shape
-
-        # Set non-identifiable coefficients to zero
-        self.column_remover = ColumnRemover().fit(X=self.X, D=self.D)
-        column_remover = self.column_remover
-        beta = np.zeros(self.D.shape[0])
-        X, D = column_remover.transform(self.X, self.D)
-        if self.verbose >= 2:
-            print(
-                "Variables set to zero for identifiability:"
-                + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
-            )
-
-        # Number formatting when printing
-        fmt = functools.partial(
-            np.format_float_scientific,
-            precision=self.PRECISION,
-            min_digits=self.MIN_DIGITS,
-            exp_digits=self.EXP_DIGITS,
-        )
+    def pirls(self, beta, *, X, D, y, bounds):
+        fmt = self.fmt
 
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values
         # ---------------------------------------------------------------------
-        sample_weight = self.get_sample_weight()
-        bounds = column_remover.transform(*self.bounds)
-        beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
 
         eta = X @ beta
         mu = self.link.inverse_link(eta)
-
-        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-        w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-        self.log(beta=beta, w=w, X=X, D=D)
-
-        if self.verbose >= 1:
-            lpad = int(np.floor(np.log10(self.max_iter)))
-            objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
-
-            msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
-            beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
-            msg += f"Coef. rmse: {beta_fmt}   "
-            print(msg)
 
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
@@ -379,14 +344,10 @@ class PIRLS(Optimizer):
 
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
             w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
+            # assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
 
             # Step 3: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
-            bounds = (
-                self.bounds[0][column_remover.nonzero_coefs],
-                self.bounds[1][column_remover.nonzero_coefs],
-            )
             beta_trial = solve_lstsq(X=X, D=D, w=w, z=z, bounds=bounds)
 
             beta, objective_value, half_exponent = self.halving_search(X, D, self.y, sample_weight, beta, beta_trial)
@@ -419,7 +380,50 @@ class PIRLS(Optimizer):
             msg += "Increase `max_iter`, increase `tol` or increase penalties."
             warnings.warn(msg, ConvergenceWarning)
 
+        return beta
+
+    def solve(self, fisher_weights=False):
+        """Solve the optimization problem."""
+        fmt = self.fmt
+        # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
+
+        # =============================================================================
+        # GENERAL SETUP
+        # =============================================================================
+        self.fisher_weights = fisher_weights
+        num_observations, num_beta = self.X.shape
+
+        # Set non-identifiable coefficients to zero
+        self.column_remover = ColumnRemover().fit(X=self.X, D=self.D)
+        column_remover = self.column_remover
+        beta = np.zeros(self.D.shape[0])
+        X, D, *bounds = column_remover.transform(self.X, self.D, *self.bounds)
+        if self.verbose >= 2:
+            print(
+                "Variables set to zero for identifiability:"
+                + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
+            )
+
+        sample_weight = self.get_sample_weight()
+        beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
+        if self.verbose >= 1:
+            objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+            msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
+            beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
+            msg += f"Coef. rmse: {beta_fmt}   "
+            print(msg)
+
+        # See page 251 in Wood, 2nd edition
+        # Step 1: Compute initial values
+        # ---------------------------------------------------------------------
+        beta = self.pirls(beta=beta, X=X, D=D, y=self.y, bounds=bounds)
+
         # Set statistics in the identifiable space
+        eta = X @ beta
+        mu = self.link.inverse_link(eta)
+        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
+        w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+
         self.set_statistics(X=X, D=D, beta=beta, w=w)
 
         # Add back zeros

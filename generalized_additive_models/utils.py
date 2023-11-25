@@ -32,7 +32,8 @@ class ColumnRemover:
     ...               [0., 0., 0.]])
     >>> beta = np.array([1., 2., 3.])
     >>> remover = ColumnRemover().fit(X=X, D=D)
-    >>> X_t, D_t, beta_t = remover.transform(X, D, beta)
+    >>> bounds = (np.array([-1, -2, -3]), np.array([1, 2, 3]))
+    >>> X_t, D_t, beta_t, *bounds = remover.transform(X, D, beta, *bounds)
     >>> X_t
     array([[1., 1.],
            [1., 1.],
@@ -42,6 +43,8 @@ class ColumnRemover:
     array([[0., 0.],
            [0., 0.],
            [0., 0.]])
+    >>> bounds[0]
+    array([-1, -2])
     >>> remover.insert(initial=np.zeros(3), values=np.array([5, 10]))
     array([ 5., 10.,  0.])
     """

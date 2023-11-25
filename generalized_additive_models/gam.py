@@ -233,7 +233,7 @@ class GAM(BaseEstimator):
         )
 
         # Copy over solver information
-        self.coef_ = optimizer.solve(fisher_weights=True).copy()
+        self.coef_ = optimizer.solve().copy()
         self.results_ = copy.deepcopy(optimizer.results_)
         self.results_.pseudo_r2 = self.score(X, y, sample_weight=sample_weight)
 

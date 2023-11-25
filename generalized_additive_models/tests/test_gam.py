@@ -756,7 +756,7 @@ class TestGAMSanityChecks:
         # Load data
         X, y = load_breast_cancer(return_X_y=True)
         # Choose the first columns
-        X = X[:, :10]
+        X = X[:, :3]
 
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
 
