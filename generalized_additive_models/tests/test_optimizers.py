@@ -6,11 +6,12 @@ Created on Sat Nov 25 16:29:23 2023
 @author: tommy
 """
 
-import pytest
 import numpy as np
-from generalized_additive_models import GAM, Linear
+import pytest
 from sklearn.linear_model import PoissonRegressor
 from sklearn.metrics import mean_poisson_deviance
+
+from generalized_additive_models import GAM, Linear
 
 
 class TestOptimizationMethodsAgainstSklearn:

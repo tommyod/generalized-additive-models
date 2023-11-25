@@ -159,7 +159,7 @@ def phi_pearson(y, mu, distribution, edof, sample_weight=None):
 
 
 def phi_fletcher(y, mu, distribution, edof, sample_weight=None):
-    """Esimate the scale parameter using Fletchers method.
+    """Estimate the scale parameter using Fletchers method.
 
     - See page 111, equation (3.11) in Wood, 2nd ed.
     - D. J. Fletcher, Estimating overdispersion when fitting a generalized
