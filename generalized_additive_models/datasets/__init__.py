@@ -36,4 +36,19 @@ def load_bicycles():
     - https://opencom.no/dataset/samling-av-sykkelmalinger-stavanger/resource/ac59ce73-e691-430b-8619-83dbf637d861
 
     """
-    return pd.read_csv(os.path.join(DATASET_DIRECTORY, "bicycles.csv"))
+    df = pd.read_csv(os.path.join(DATASET_DIRECTORY, "bicycles.csv"))
+    df["date"] = pd.to_datetime(df["date"])
+    return df
+
+def load_powerlifters():
+    """Load powerlifters dataset.
+
+    RAW (unequipped) results from Norwegian powerlifters in Norwegian meets.
+    A subset of data from OpenPowerlifting.
+
+    - https://openpowerlifting.gitlab.io/opl-csv/bulk-csv.html
+
+    """
+    df = pd.read_csv(os.path.join(DATASET_DIRECTORY, "powerlifters.csv"))
+    df["date"] = pd.to_datetime(df["date"])
+    return df
