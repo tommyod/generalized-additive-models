@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import pandas as pd
 
+import pandas as pd
 
 DATASET_DIRECTORY, _ = os.path.split(os.path.realpath(__file__))
 

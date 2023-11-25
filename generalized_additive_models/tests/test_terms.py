@@ -15,15 +15,7 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.exceptions import NotFittedError
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import (
-    Categorical,
-    Intercept,
-    Linear,
-    Spline,
-    Tensor,
-    Term,
-    TermList,
-)
+from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
 
 
 class TestTermMultiplications:
