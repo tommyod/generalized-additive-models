@@ -286,7 +286,7 @@ class GAM(BaseEstimator):
         return distr.rvs(size=size, random_state=random_state)
 
     def predict(self, X):
-        """Predict the expected value :math:`\mu` with the model.
+        r"""Predict the expected value :math:`\mu` with the model.
 
         Parameters
         ----------

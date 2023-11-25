@@ -159,11 +159,18 @@ def phi_pearson(y, mu, distribution, edof, sample_weight=None):
 
 
 def phi_fletcher(y, mu, distribution, edof, sample_weight=None):
+    """Esimate the scale parameter using Fletchers method.
+
+    - See page 111, equation (3.11) in Wood, 2nd ed.
+    - D. J. Fletcher, Estimating overdispersion when fitting a generalized
+      linear model to sparse data, Biometrika, Volume 99, Issue 1, March 2012,
+      Pages 230–237, https://doi.org/10.1093/biomet/asr083
+    """
     check_consistent_length(y, mu)
     if sample_weight is None:
         sample_weight = np.ones_like(mu, dtype=float)
 
-    s_bar = np.mean(distribution.V_derivative(mu) * (y - mu) * sample_weight / distribution.V(mu))
+    s_bar = np.average(distribution.V_derivative(mu) * (y - mu) / distribution.V(mu), weights=sample_weight)
     return phi_pearson(y, mu, distribution, edof, sample_weight) / (1 + s_bar)
 
 

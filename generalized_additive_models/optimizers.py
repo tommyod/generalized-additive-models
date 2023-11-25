@@ -28,7 +28,7 @@ def solve_unbounded_lstsq(*, X, D, w, z):
     lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
     rhs = X.T @ (w * z)
 
-    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="sym")
+    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos")
 
 
 def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
@@ -48,6 +48,8 @@ def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
 
     verbose = min(max(0, verbose - 2), 2)
     result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds, verbose=verbose)
+    assert np.all(result.x <= bounds[1])
+    assert np.all(result.x >= bounds[0])
 
     if verbose >= 2:
         msg = f"  Constrained LSQ {'success' if result.success else 'failure'} "
@@ -61,6 +63,8 @@ def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
 
 
 class Optimizer:
+    """Base class for all optimizers."""
+
     def _validate_params(self):
         """Validate input parameters."""
 
@@ -79,6 +83,16 @@ class Optimizer:
         results_keys = ("", "", "", "")
         assert all((key in self._statistics.keys()) for key in results_keys)
 
+    def alpha(self, mu, fisher_weights=False):
+        """Compute alpha, depending on whether fisher weights are used or not."""
+        # Fisher weights, see page 250 in Wood, 2nd ed
+        if fisher_weights:
+            return 1
+
+        V_term = self.distribution.V_derivative(mu) / self.distribution.V(mu)
+        g_term = self.link.second_derivative(mu) / self.link.derivative(mu)
+        return 1 + (self.y - mu) * (V_term + g_term)
+
     def evaluate_objective(self, beta, *, X, D, y, sample_weight):
         """Evaluate the objective - the sum of deviance plus the penalty.
 
@@ -89,7 +103,7 @@ class Optimizer:
         deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
 
-        return (deviance + penalty) / len(beta)
+        return deviance + penalty
 
     def gradient(self, beta, *, X, D, y, sample_weight):
         """Evaluate the gradient of the objective function.
@@ -115,16 +129,14 @@ class Optimizer:
         penalty_grad = 2 * np.linalg.multi_dot([D.T, D, beta])
 
         assert deviance_grad.shape == penalty_grad.shape
-        return (deviance_grad + penalty_grad) / len(beta)
+        return deviance_grad + penalty_grad
 
     def hessian(self, beta, *, X, D, y, sample_weight):
         """Evaluate the hessian of the objective function."""
 
         # Section 3.1.2 in Wood
         mu = self.link.inverse_link(X @ beta)
-        V_prime_over_V = self.distribution.V_derivative(mu) / self.distribution.V(mu)
-        g_pp_over_g_p = self.link.second_derivative(mu) / self.link.derivative(mu)
-        alpha = 1 + (y - mu) * (V_prime_over_V + g_pp_over_g_p)
+        alpha = self.alpha(mu, fisher_weights=False)
 
         pseudoweights = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
         if self.distribution.scale:
@@ -137,7 +149,7 @@ class Optimizer:
 
         assert deviance_hessian.shape == (len(beta), len(beta))
         assert deviance_hessian.shape == penalty_hessian.shape
-        return (deviance_hessian + penalty_hessian) / len(beta)
+        return deviance_hessian + penalty_hessian
 
     def initial_estimate(self, *, X, D, sample_weight, y, bounds=None):
         """Construct an initial estimate of beta by solving a Ridge problem.
@@ -270,7 +282,6 @@ class PIRLS(Optimizer):
         self.results_ = Bunch(iters_deviance=[], iters_coef=[], iters_loss=[])
         self.get_sample_weight = get_sample_weight
         self.verbose = verbose
-        # Number formatting when printing
         self.fmt = functools.partial(
             np.format_float_scientific,
             precision=self.PRECISION,
@@ -317,74 +328,72 @@ class PIRLS(Optimizer):
         # No better solution found
         return beta0, obj0, iteration
 
-    def alpha(self, mu):
-        # Fisher weights, see page 250 in Wood, 2nd ed
-        if self.fisher_weights:
-            alpha = 1
-        else:
-            V_term = self.distribution.V_derivative(mu) / self.distribution.V(mu)
-            g_term = self.link.second_derivative(mu) / self.link.derivative(mu)
-            alpha = 1 + (self.y - mu) * (V_term + g_term)
-
-        return alpha
-
     def pirls(self, beta, *, X, D, y, bounds):
-        fmt = self.fmt
+        """Main loop for penalized iteratively re-weighted least squares (PIRLS)."""
+        fmt = self.fmt  # Number formatter
 
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values
         # ---------------------------------------------------------------------
 
+        # Initial predictions
         eta = X @ beta
         mu = self.link.inverse_link(eta)
 
+        # Main loop - each iteration solves a least squares problem (Newton step)
         for iteration in range(1, self.max_iter + 1):
             # Step 1: Compute pseudodata z and iterative weights w
-            z = self.link.derivative(mu) * (self.y - mu) / self.alpha(mu) + eta
-
+            alpha = self.alpha(mu, fisher_weights=self.fisher_weights)
+            z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-            w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-            # assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
+            w = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            if self.fisher_weights:
+                assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
 
-            # Step 3: Find beta to solve the weighted least squares objective
+            # Step 2: Find beta to solve the weighted least squares objective
             # Solve f(z) = |z - X @ beta|^2_W + |D @ beta|^2
             beta_trial = solve_lstsq(X=X, D=D, w=w, z=z, bounds=bounds)
 
+            # Step 3: Perform halving search between previous beta and trial beta
             beta, objective_value, half_exponent = self.halving_search(X, D, self.y, sample_weight, beta, beta_trial)
 
-            # Log info for the new beta value - loss, deviance and beta
+            # Log info: loss, deviance and beta
             self.log(beta=beta, w=w, X=X, D=D)
 
-            # New predictions
+            # New predictions for the next iteration
             eta = X @ beta
             mu = self.link.inverse_link(eta)
 
+            # Print iteration information
             if self.verbose >= 1:
                 lpad = int(np.floor(np.log10(self.max_iter)))
-
                 msg = f"Iteration: {str(iteration).rjust(lpad, ' ')}/{self.max_iter}   "
                 msg += f"Objective: {fmt(objective_value)}   "
                 msg += f"Coef. rmse: {fmt(np.sqrt(np.mean(beta**2)))}   "
                 msg += f"Step size: 1/2^{half_exponent}"
                 print(msg)
 
+            # Check tolerance criterion
             if self._should_stop(betas=self.results_.iters_coef, step_size=1):
                 if self.verbose >= 1:
                     print(" => SUCCESS: Solver converged (met tolerance criterion).")
                 break
+
+        # Solver did not converge
         else:
             if self.verbose >= 1:
                 print(f" => FAILURE: Solver did not converge in {self.max_iter} iterations.")
 
             msg = f"Solver did not converge in {self.max_iter} iterations.\n"
             msg += "Increase `max_iter`, increase `tol` or increase penalties."
+            msg += "Scaling data or using a canonical link function can also help."
             warnings.warn(msg, ConvergenceWarning)
 
-        return beta
+        return beta  # Return optimal beta
 
     def solve(self, fisher_weights=False):
         """Solve the optimization problem."""
-        fmt = self.fmt
+        fmt = self.fmt  # Formatter
         # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
 
         # =============================================================================
@@ -404,6 +413,7 @@ class PIRLS(Optimizer):
                 + f"{column_remover.zero_coefs.sum()}/{len(column_remover.zero_coefs)}"
             )
 
+        # Compute initial estimate - this must also obey the bounds
         sample_weight = self.get_sample_weight()
         beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
         if self.verbose >= 1:
@@ -418,13 +428,8 @@ class PIRLS(Optimizer):
         # ---------------------------------------------------------------------
         beta = self.pirls(beta=beta, X=X, D=D, y=self.y, bounds=bounds)
 
-        # Set statistics in the identifiable space
-        eta = X @ beta
-        mu = self.link.inverse_link(eta)
-        sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-        w = sample_weight * self.alpha(mu) / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
-
-        self.set_statistics(X=X, D=D, beta=beta, w=w)
+        # Build the statistics - in the identifiable space
+        self.set_statistics(X=X, D=D, beta=beta)
 
         # Add back zeros
         self.results_.iters_coef = [
@@ -450,37 +455,47 @@ class PIRLS(Optimizer):
         obj = self.evaluate_objective(beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
         self.results_.iters_loss.append(obj)
 
-    def set_statistics(self, *, X, D, beta, w):
+    def set_statistics(self, *, X, D, beta):
         num_original_betas = len(self.column_remover.nonzero_coefs)
 
-        # New predictions
-        eta = X @ beta
-        mu = self.link.inverse_link(eta)
+        # Predict using optimal beta values
+        mu = self.link.inverse_link(X @ beta)
+        sample_weight = self.get_sample_weight(y=self.y, mu=mu)
 
-        # Compute the hat matrix: H = X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
+        alpha = self.alpha(mu, fisher_weights=False)
+        w = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+
+        # Simon minimizes the negative log likelihood, we minimize the deviance
+        # The observed Fisher information matrix is the negative Hessian of the log likelihood.
+        # Remember that D(u, mu) := 2 (log(p(y|y)) - log(p(y|mu))) = -2 log(p(y|mu))
+        # Since we minimize deviance, we multiply by 0.5.
+        # https://stats.stackexchange.com/questions/68080/basic-question-about-fisher-information-matrix-and-relationship-to-hessian-and-s
+        fisher_information = 0.5 * self.hessian(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+
+        # The covariance matrix is the inverse of the Fisher information
+        np.fill_diagonal(fisher_information, fisher_information.diagonal() + EPSILON)  # Add to diagonal
+        covariance_matrix = sp.linalg.inv(fisher_information)
+
+        # Compute the hat matrix H, the matrix such that:
+        # \hat{y} = H @ y
+        # \hat{y} = X @ beta
+        # \hat{y} = X @ [(X.T @ W @ X + D.T @ D)^-1 @ W @ X.T @ y]
+        # Hence, H := X @ (X.T @ W @ X + D.T @ D)^-1 @ W @ X.T
         # Also called the projection matrix or influence matrix (page 251 in Wood, 2nd ed)
-        to_invert = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
-        np.fill_diagonal(to_invert, to_invert.diagonal() + EPSILON)  # Add to diagonal
-        inverted = sp.linalg.inv(to_invert)
-
-        # Compute the effective degrees of freedom per coefficient
         # Only need the diagonal of H, so use the fact that
         # np.diag(B @ A.T) = (B * A).sum(axis=1)
         # to compute H below:
         # H = ((w.reshape(-1, 1) * self.X) @ inverted @ self.X.T)
-        # H_diag = np.sum(((w.reshape(-1, 1) * self.X) @ inverted) * self.X, axis=1)
-        # H_diag2 = sp.linalg.inv(self.X.T @ (w.reshape(-1, 1) * self.X) + self.D.T @ self.D) @ self.X.T @ np.diag(w) @ self.X
-        H_diag = ((X.T @ (w.reshape(-1, 1) * X)) * inverted).sum(axis=1)
-        # H_diag = np.diag(inverted @ self.X.T @ np.diag(w) @ self.X )
-        # assert np.allclose(H_diag, np.diag(H_diag2))
-
-        # assert len(beta) == len(np.diag(H_diag2))
+        H_diag = ((X.T @ (w.reshape(-1, 1) * X)) * covariance_matrix).sum(axis=1)
+        # Fill in with zeros
         H_diag = self.column_remover.insert(initial=np.zeros(num_original_betas), values=H_diag)
 
         assert len(H_diag) == num_original_betas
 
-        edof_per_coef = H_diag
-        edof = edof_per_coef.sum()
+        # Compute the effective degrees of freedom per coefficient
+        self.results_.edof_per_coef = H_diag
+        self.results_.edof = H_diag.sum()
+        edof = self.results_.edof
 
         # Compute phi by equation (6.2) (page 251 in Wood, 2nd ed; also p 110)
         # In the Gaussian case, phi is the variance
@@ -498,16 +513,13 @@ class PIRLS(Optimizer):
         self.results_.scale = phi
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)
-        covariance = inverted * phi
+        covariance = covariance_matrix * phi
         covariance = self.column_remover.insert(
             initial=np.eye(num_original_betas, dtype=float) * EPSILON, values=covariance
         )
 
         assert covariance.shape == (num_original_betas, num_original_betas)
         self.results_.covariance = covariance
-
-        self.results_.edof_per_coef = edof_per_coef
-        self.results_.edof = edof
 
         # Compute generalized cross validation score
         # Equation (6.18) on page 260
