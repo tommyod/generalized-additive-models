@@ -429,6 +429,19 @@ class TestSklearnCompatibility:
         assert search.best_params_ == {"terms": Spline(feature=0)}
         assert search.best_score_ > 0.4
 
+    def test_that_indexing_on_zero_works_before_and_after_fitting(self):
+        df = pd.DataFrame({"feature": [49, 20, 21, 1, 46], "target": [3752, 4720, 2183, 4378, 0]})
+
+        # Create periodic spline model
+        terms = Spline("feature", num_splines=6)
+        gam = GAM(terms=terms, distribution="poisson", link="log")
+
+        # Whether the model is fitted or not, indexing on the first spline should work
+        gam.set_params(terms__0__penalty=1)
+        gam.fit(df, df["target"])
+
+        gam.set_params(terms__0__penalty=1)
+
     def test_that_sklearn_grid_search_works_over_penalties(self):
         X, y = fetch_california_housing(return_X_y=True, as_frame=False)
 
@@ -988,6 +1001,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_that_tensors_outperform_splines_on_multiplicative_problem",
+            "-k test_that_indexing_on_zero_works_before_and_after_fitting",
         ]
     )
