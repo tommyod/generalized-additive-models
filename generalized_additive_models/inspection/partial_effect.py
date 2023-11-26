@@ -10,7 +10,7 @@ https://arxiv.org/pdf/1809.10632.pdf
 """
 
 import copy
-from numbers import Integral, Real
+from numbers import Real
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -316,7 +316,9 @@ class PartialEffectDisplay:
         if transformation is True:
             transformation = gam._link.inverse_link
         elif transformation in (None, False):
-            transformation = lambda x: x
+
+            def transformtion(x):
+                return x
 
         # For partial residual plots
         # https://en.wikipedia.org/wiki/Partial_residual_plot#Definition
