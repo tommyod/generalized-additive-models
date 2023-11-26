@@ -317,7 +317,7 @@ class PartialEffectDisplay:
             transformation = gam._link.inverse_link
         elif transformation in (None, False):
 
-            def transformtion(x):
+            def transformation(x):
                 return x
 
         # For partial residual plots
