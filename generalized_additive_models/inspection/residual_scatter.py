@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import numbers
-
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.utils import _safe_indexing, check_random_state
 
 
 class ResidualScatterDisplay:
-    def __init__(self, *, residuals, y_pred):
+    """Plot residuals."""
+
+    def __init__(self, *, x, residuals):
+        self.x = x
         self.residuals = residuals
-        self.y_pred = y_pred
 
     def plot(
         self,
@@ -34,16 +33,15 @@ class ResidualScatterDisplay:
         if ax is None:
             _, ax = plt.subplots()
 
-        self.scatter_ = ax.scatter(self.y_pred, self.residuals, **scatter_kwargs)
+        self.scatter_ = ax.scatter(self.x, self.residuals, **scatter_kwargs)
 
         self.line_ = ax.plot(
-            [np.min(self.y_pred), np.max(self.y_pred)],
+            [np.min(self.x), np.max(self.x)],
             [0, 0],
             **line_kwargs,
         )[0]
 
-        xlabel, ylabel = "Predicted values", "Residuals"
-        ax.set(xlabel=xlabel, ylabel=ylabel)
+        ax.set(ylabel="Residuals")
 
         self.ax_ = ax
         self.figure_ = ax.figure
@@ -59,38 +57,16 @@ class ResidualScatterDisplay:
         *,
         residuals="deviance",
         standardized=True,
-        subsample=1_000,
-        random_state=None,
         ax=None,
         scatter_kwargs=None,
         line_kwargs=None,
     ):
-        random_state = check_random_state(random_state)
-
-        n_samples = len(y)
-        if isinstance(subsample, numbers.Integral):
-            if subsample <= 0:
-                raise ValueError(f"When an integer, subsample={subsample} should be positive.")
-        elif isinstance(subsample, numbers.Real):
-            if subsample <= 0 or subsample >= 1:
-                raise ValueError(f"When a floating-point, subsample={subsample} should" " be in the (0, 1) range.")
-            subsample = int(n_samples * subsample)
-        elif subsample is None:
-            y_sampled = y
-            X_sampled = X
-            subsample = n_samples
-
-        if subsample is not None and subsample < n_samples:
-            indices = random_state.choice(np.arange(n_samples), size=subsample)
-            y_sampled = _safe_indexing(y, indices, axis=0)
-            X_sampled = _safe_indexing(X, indices, axis=0)
-
-        residuals = gam.residuals(X_sampled, y_sampled, residuals=residuals, standardized=standardized)
-        y_pred = gam.predict(X_sampled)
+        residuals = gam.residuals(X, y, residuals=residuals, standardized=standardized)
+        y_pred = gam.predict(X)
 
         viz = cls(
+            x=y_pred,
             residuals=residuals,
-            y_pred=y_pred,
         )
 
         return viz.plot(
@@ -98,3 +74,18 @@ class ResidualScatterDisplay:
             scatter_kwargs=scatter_kwargs,
             line_kwargs=line_kwargs,
         )
+
+
+if __name__ == "__main__":
+    from generalized_additive_models import GAM, Spline, Categorical
+    from sklearn.datasets import load_diabetes
+
+    data = load_diabetes(as_frame=True)
+    df = data.data
+    y = data.target
+    gam = GAM(Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex"))
+    gam = gam.fit(df, y)
+    residuals = gam.residuals(df, y)
+
+    ResidualScatterDisplay(x=df["age"], residuals=residuals).plot()
+    ResidualScatterDisplay(x=df["bmi"], residuals=residuals).plot()

@@ -268,7 +268,6 @@ class Optimizer:
                 edof,
                 sample_weight=self.get_sample_weight(mu=mu, y=self.y),
             )
-
         self.results_.scale = phi
 
         # Compute the covariance matrix of the parameters V_\beta (page 293 in Wood, 2nd ed)

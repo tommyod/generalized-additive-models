@@ -71,7 +71,7 @@ from generalized_additive_models.inspection import QQDisplay
 fig, ax = plt.subplots(1, 1, figsize=(4, 3))
 
 display = QQDisplay.from_estimator(
-    gam, df, y, residuals="deviance", standardized=True, method="normal", ax=ax
+    gam, df, y, residuals="deviance", method="normal", ax=ax
 )
 
 ax.grid(True)

@@ -1,9 +1,9 @@
 """
-=======================================
-PartialEffectDisplay with identity link
-=======================================
+================================
+QQDisplay on Gaussian regression
+================================
 
-Plot a Gaussian regression on a dataset with powerlifters.
+Plot a QQ-plot for a Gaussian regression on a dataset with powerlifters.
 
 """
 import matplotlib.pyplot as plt
@@ -12,13 +12,13 @@ from generalized_additive_models import GAM, Categorical, Spline
 from generalized_additive_models.datasets import load_powerlifters
 from generalized_additive_models.inspection import QQDisplay
 
-# Load data and filter it
+# Load data
 df = load_powerlifters()
 
 # Predict total weight lifted, given age, bodyweight and sex
 target = df["totalkg"]
-age = Spline("age", penalty=1e2)
-bodyweight = Spline("bodyweightkg", penalty=1e2)
+age = Spline("age")
+bodyweight = Spline("bodyweightkg")
 sex = Categorical("sex")
 
 terms = age + bodyweight + sex
@@ -27,6 +27,7 @@ gam.fit(df, target)
 
 print("Explained variance:", gam.score(df, target))
 
+# Create figure, then showcase each method
 fig, axes = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(8, 3))
 
 for method, ax in zip(["normal", "simulate"], axes.ravel()):
