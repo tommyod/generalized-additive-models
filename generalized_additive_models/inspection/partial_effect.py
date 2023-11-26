@@ -190,6 +190,10 @@ class PartialEffectDisplay:
     stored as attributes.
     """
 
+    # Partial Residual Plots in Generalized Linear Models
+    # R. Dennis Cook and Rodney Croos-Dabrera
+    # https://www.jstor.org/stable/2670123
+
     def __init__(self, *, x, y, y_low=None, y_high=None, x_obs=None, y_partial_residuals=None):
         self.x = x
         self.y = y
@@ -312,7 +316,7 @@ class PartialEffectDisplay:
         assert np.allclose(stdev_array**2, np.diag(X_smooth_transformed @ V @ X_smooth_transformed.T))
 
         # Get the inverse link from the gam object, mapping from linear
-        # predictions to the tranformed space
+        # predictions to the transformed space
         if transformation is True:
             transformation = gam._link.inverse_link
         elif transformation in (None, False):
