@@ -6,9 +6,12 @@ Created on Sun Feb 19 18:01:43 2023
 @author: tommy
 """
 
+import numpy as np
+import pytest
 from sklearn.base import clone
 
 from generalized_additive_models import Normal
+from generalized_additive_models.distributions import DISTRIBUTIONS
 
 
 class TestSklearnCompatibility:
@@ -26,6 +29,63 @@ class TestSklearnCompatibility:
 
         normal.set_params(scale=1)
         assert normal.get_params() == {"scale": 1}
+
+
+class TestDistributionProperties:
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
+    @pytest.mark.parametrize("scale", [1, 2, 3])
+    @pytest.mark.parametrize("seed", list(range(10)))
+    def test_that_theoretical_mean_and_variance_matches_samples(self, distr_class, mu, scale, seed):
+        distribution = distr_class(scale=scale)
+        samples = distribution.sample(mu=mu, size=100_000, random_state=seed)
+
+        assert np.isclose(mu, samples.mean(), rtol=0.05)
+        assert np.isclose(distribution.variance(mu), samples.var(), rtol=0.04)
+
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
+    @pytest.mark.parametrize("scale", [1, 2, 3])
+    def test_that_theoretical_mean_matches_scipy_mean(self, distr_class, mu, scale):
+        """This property should hold for all values of the scale."""
+
+        distribution = distr_class(scale=scale)
+        assert np.isclose(distribution.to_scipy(mu).mean(), mu)
+
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
+    @pytest.mark.parametrize("scale", [1, 2, 3])
+    def test_that_theoretical_variance_matches_scipy_variance(self, distr_class, mu, scale):
+        """This property should hold for all values of the scale."""
+
+        distribution = distr_class(scale=scale)
+        assert np.isclose(distribution.to_scipy(mu).var(), distribution.variance(mu))
+
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    @pytest.mark.parametrize("scale", [1, 2, 3])
+    def test_that_scipy_deviance_matches_implemented_deviance(self, distr_class, scale):
+        """This property should hold for all values of the scale."""
+
+        distribution = distr_class(scale=scale)
+        mu = np.array([0.083, 0.083, 0.192, 0.295, 0.34, 0.498, 0.987, 0.99994])
+
+        # Binomial with 1 trial is Bernoulli, which has support {0, 1}
+        # However, gamma is only defined for (0, \inf)
+        # So I have to choose a vector of ones here for all tests to pass
+        y = np.ones_like(mu)
+
+        deviance = distribution.deviance(mu=mu, y=y)
+
+        # Saturated model and actual model
+        if hasattr(distribution.to_scipy(mu=y), "logpdf"):
+            pdf_sat = distribution.to_scipy(mu=y).logpdf(y)
+            pdf_obs = distribution.to_scipy(mu=mu).logpdf(y)
+        else:
+            pdf_sat = distribution.to_scipy(mu=y).logpmf(y)
+            pdf_obs = distribution.to_scipy(mu=mu).logpmf(y)
+
+        # This is the definition of deviance
+        assert np.allclose(deviance, 2 * (pdf_sat - pdf_obs))
 
 
 if __name__ == "__main__":

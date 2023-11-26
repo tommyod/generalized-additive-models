@@ -21,16 +21,23 @@ EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
 class Distribution(ABC):
-    @abstractmethod
-    def sample(self, mu):
-        pass
-
     def variance(self, mu):
+        """Var(Y) = V(mu) * scale"""
         return self.V(mu) * self.scale
 
     @abstractmethod
     def V(self, mu):
         pass
+
+    @abstractmethod
+    def to_scipy(self, mu):
+        pass
+
+    def sample(self, mu, size=None, random_state=None):
+        return self.to_scipy(mu).rvs(size=size, random_state=random_state)
+
+    def log_pdf(self, y, mu):
+        return self.to_scipy(mu).logpdf(y)
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -63,10 +70,6 @@ class Normal(Distribution, BaseEstimator):
         """
         self.scale = scale
 
-    def log_pdf(self, y, mu):
-        standard_deviation = np.sqrt(self.variance(mu))
-        return sp.stats.norm.logpdf(y, loc=mu, scale=standard_deviation)
-
     def V(self, mu):
         return np.ones_like(mu, dtype=float)
 
@@ -85,10 +88,6 @@ class Normal(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu, size=None):
-        standard_deviation = np.sqrt(self.variance(mu))
-        return np.random.normal(loc=mu, scale=standard_deviation, size=size)
-
     def to_scipy(self, mu):
         standard_deviation = np.sqrt(self.variance(mu))
         return sp.stats.norm(loc=mu, scale=standard_deviation)
@@ -104,11 +103,8 @@ class Poisson(Distribution, BaseEstimator):
     continuous = True
     scale = 1
 
-    def __init__(self):
+    def __init__(self, scale=1):
         pass
-
-    def log_pdf(self, y, mu):
-        return sp.stats.poisson.logpmf(y, mu=mu)
 
     def V(self, mu):
         return mu
@@ -129,11 +125,53 @@ class Poisson(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu, size=None):
-        return np.random.poisson(lam=mu, size=size)
-
     def to_scipy(self, mu):
         return sp.stats.poisson(mu=mu)
+
+
+class Bernoulli(Distribution, BaseEstimator):
+    """
+    Bernoulli Distribution
+    """
+
+    name = "bernoulli"
+    scale = 1
+
+    def __init__(self, scale=1):
+        pass
+
+    @property
+    def domain(self):
+        domain = (0, 1)
+        return domain
+
+    def variance(self, mu):
+        return self.V(mu) * self.scale
+
+    def V(self, mu):
+        threshold = EPSILON
+        mu = np.maximum(np.minimum(mu, 1 - threshold), threshold)
+
+        return mu * (1 - mu)
+
+    def V_derivative(self, mu):
+        return 1 - 2 * mu
+
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
+        check_consistent_length(y, mu, sample_weight)
+
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
+
+        deviance = 2 * (rel_entr(y, mu) + rel_entr(1 - y, 1 - mu))
+
+        if scaled and self.scale:
+            deviance = deviance / self.scale
+
+        return deviance * sample_weight
+
+    def to_scipy(self, mu):
+        return sp.stats.bernoulli(mu)
 
 
 class Binomial(Distribution, BaseEstimator):
@@ -144,7 +182,7 @@ class Binomial(Distribution, BaseEstimator):
     name = "binomial"
     scale = 1
 
-    def __init__(self, trials=1):
+    def __init__(self, trials=1, scale=1):
         """
         creates an instance of the Binomial class
 
@@ -168,11 +206,6 @@ class Binomial(Distribution, BaseEstimator):
     def domain(self):
         domain = (0, self.trials)
         return domain
-
-    def log_pdf(self, y, mu):
-        n = self.trials
-        p = mu / self.trials
-        return sp.stats.binom.logpmf(y, n, p)
 
     def variance(self, mu):
         return self.V(mu) * self.scale
@@ -199,11 +232,6 @@ class Binomial(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu, size=None):
-        n = self.trials
-        p = mu / self.trials
-        return np.random.binomial(n=n, p=p, size=size)
-
     def to_scipy(self, mu):
         n = self.trials
         p = mu / self.trials
@@ -220,15 +248,6 @@ class Gamma(Distribution, BaseEstimator):
 
     def __init__(self, scale=None):
         self.scale = scale
-
-    def log_pdf(self, y, mu):
-        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
-        # The parametrization in scipy, vs. Wood table 3.1 in page 104 is
-        # x = y
-        # a = nu
-        # scale = mu / nu = mu * scale
-        nu = 1 / self.scale
-        return sp.stats.gamma.logpdf(x=y, a=nu, scale=mu / nu)
 
     def variance(self, mu):
         return self.V(mu) * self.scale
@@ -252,9 +271,52 @@ class Gamma(Distribution, BaseEstimator):
 
         return deviance * sample_weight
 
-    def sample(self, mu, size=None):
+    def to_scipy(self, mu):
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
+        # The parametrization in scipy, vs. Wood table 3.1 in page 104 is
+        # x = y
+        # a = nu
+        # scale = mu / nu = mu * scale
         nu = 1 / self.scale
-        return sp.stats.gamma(a=nu, scale=mu / nu).rvs(size=size)
+        return sp.stats.gamma(a=nu, scale=mu / nu)
+
+
+class Exponential(Distribution, BaseEstimator):
+    """
+    Exponential Distribution
+    """
+
+    name = "exponential"
+    domain = (0, np.inf)
+    scale = 1
+
+    def __init__(self, scale=1):
+        pass
+
+    def variance(self, mu):
+        return self.V(mu) * self.scale
+
+    def V(self, mu):
+        return mu**2
+
+    def V_derivative(self, mu):
+        return 2 * mu
+
+    def deviance(self, *, y, mu, sample_weight=None, scaled=True):
+        check_consistent_length(y, mu, sample_weight)
+
+        if sample_weight is None:
+            sample_weight = np.ones_like(mu, dtype=float)
+
+        deviance = 2 * ((y - mu) / mu - np.log(y / mu))
+
+        if scaled and self.scale:
+            deviance = deviance / self.scale
+
+        return deviance * sample_weight
+
+    def to_scipy(self, mu):
+        return sp.stats.expon(scale=mu)
 
 
 class InvGauss(Distribution, BaseEstimator):
@@ -267,10 +329,6 @@ class InvGauss(Distribution, BaseEstimator):
 
     def __init__(self, scale=None):
         self.scale = scale
-
-    def log_pdf(self, y, mu):
-        gamma = 1 / self.scale
-        return sp.stats.invgauss.logpdf(y, mu, scale=gamma**1 / 3)
 
     def V(self, mu):
         return mu**3
@@ -288,21 +346,14 @@ class InvGauss(Distribution, BaseEstimator):
 
         return deviance
 
-    def sample(self, mu, size=None):
+    def to_scipy(self, mu):
         gamma = 1 / self.scale
-        return sp.stats.invgauss(mu, scale=gamma**1 / 3).rvs(None)
+        # https://stackoverflow.com/questions/48600521/recovering-parameters-for-wald-distribution-from-numpy-to-scipy
+        mean = mu * self.scale
+        return sp.stats.invgauss(mean, scale=gamma)
 
 
-DISTRIBUTIONS = {
-    dist.name: dist
-    for dist in [
-        Normal,
-        Poisson,
-        Binomial,
-        Gamma,
-        #  InvGaussDist,
-    ]
-}
+DISTRIBUTIONS = {dist.name: dist for dist in [Normal, Poisson, Binomial, Gamma, InvGauss, Exponential, Bernoulli]}
 
 
 if __name__ == "__main__":

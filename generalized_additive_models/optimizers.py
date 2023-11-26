@@ -19,16 +19,85 @@ MACHINE_EPSILON = np.finfo(float).eps
 EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
+def X_T_W_X_plus_D_T_D(X, w=None, D=None):
+    """Compute the upper part of (X.T @ diag(w) @ X + D.T @ D).
+
+    Examples
+    --------
+    >>> X = np.array([[-0.48,  1.13],
+    ...               [ 1.12,  0.39],
+    ...               [ 0.66,  0.22]])
+    >>> w = np.array([2, 3, 4])
+    >>> D = np.array([[-2.02, -0.42],
+    ...               [ 0.53, -0.02]])
+
+    Only X is used:
+
+    >>> X.T @ X
+    array([[1.9204, 0.0396],
+           [0.0396, 1.4774]])
+    >>> X_T_W_X_plus_D_T_D(X)
+    array([[1.9204, 0.0396],
+           [0.    , 1.4774]])
+
+    Both X and w is used:
+
+    >>> X.T @ np.diag(w) @ X
+    array([[5.9664, 0.8064],
+           [0.8064, 3.2037]])
+    >>> X_T_W_X_plus_D_T_D(X, w=w)
+    array([[5.9664, 0.8064],
+           [0.    , 3.2037]])
+
+    Both X and D is used:
+
+    >>> X.T @ X + D.T @ D
+    array([[6.2817, 0.8774],
+           [0.8774, 1.6542]])
+    >>> X_T_W_X_plus_D_T_D(X, D=D)
+    array([[6.2817, 0.8774],
+           [0.    , 1.6542]])
+
+    All are used:
+
+    >>> X.T @ np.diag(w) @ X + D.T @ D
+    array([[10.3277,  1.6442],
+           [ 1.6442,  3.3805]])
+    >>> X_T_W_X_plus_D_T_D(X, w=w, D=D)
+    array([[10.3277,  1.6442],
+           [ 0.    ,  3.3805]])
+
+    """
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.blas.ssymm.html
+    # https://www.netlib.org/lapack/explore-html/db/dc9/group__single__blas__level3_ga8e8391a9873114d97e2b63e39fe83b2e.html
+    if w is None and D is None:
+        syrk = sp.linalg.get_blas_funcs("syrk", (X,))
+        return syrk(alpha=1.0, a=X, lower=0, trans=1)
+    elif D is None and np.all(w > 0):
+        syrk = sp.linalg.get_blas_funcs("syrk", (X, w))
+        return syrk(alpha=1.0, a=(X * np.sqrt(w[:, None])), lower=0, trans=1)
+    elif w is None:
+        D_T_D = X_T_W_X_plus_D_T_D(X=D)
+        syrk = sp.linalg.get_blas_funcs("syrk", (X, D))
+        return syrk(alpha=1.0, a=X, lower=0, trans=1, beta=1.0, c=D_T_D, overwrite_c=True)
+    elif D is not None and np.all(w > 0):
+        D_T_D = X_T_W_X_plus_D_T_D(X=D)
+        syrk = sp.linalg.get_blas_funcs("syrk", (X, D, w))
+        return syrk(alpha=1.0, a=(X * np.sqrt(w[:, None])), lower=0, trans=1, beta=1.0, c=D_T_D, overwrite_c=True)
+    else:
+        return X.T @ (w[:, None] * X) + D.T @ D
+
+
 def solve_unbounded_lstsq(*, X, D, w, z):
     """Solve (X.T @ diag(w) @ X + D.T @ D) beta = X.T @ diag(w) @ z for beta.
 
     Form the normal equations and solve them.
 
     """
-    lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+    lhs = X_T_W_X_plus_D_T_D(X=X, w=w, D=D)
     rhs = X.T @ (w * z)
 
-    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos")
+    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
 
 
 def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
@@ -43,8 +112,11 @@ def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
         return solve_unbounded_lstsq(X=X, D=D, w=w, z=z)
 
     # Set up left hand side and right hand side
-    lhs = X.T @ (w.reshape(-1, 1) * X) + D.T @ D
+    lhs = X.T @ (w[:, None] * X) + D.T @ D
     rhs = X.T @ (w * z)
+
+    # TODO: Use
+    # scipy.sparse.linalg.LinearOperator
 
     verbose = min(max(0, verbose - 2), 2)
     result = sp.optimize.lsq_linear(lhs, rhs, bounds=bounds, verbose=verbose)
@@ -98,15 +170,16 @@ class Optimizer:
         results_keys = ("", "", "", "")
         assert all((key in self._statistics.keys()) for key in results_keys)
 
-    def log(self, *, X, D, beta):
+    def log(self, *, X, D, beta, mu=None):
         """Log information in each optimization iteration."""
 
         # Log the coefficients
         self.results_.iters_coef.append(beta)
 
         # Log the mean deviance
-        eta = X @ beta
-        mu = self.link.inverse_link(eta)
+        if mu is None:  # If mu is given, no need to recompute X @ beta
+            eta = X @ beta
+            mu = self.link.inverse_link(eta)
         sample_weight = self.get_sample_weight(mu=mu, y=self.y)
         deviance = self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean()
         self.results_.iters_deviance.append(deviance)
@@ -125,13 +198,16 @@ class Optimizer:
         g_term = self.link.second_derivative(mu) / self.link.derivative(mu)
         return 1 + (self.y - mu) * (V_term + g_term)
 
-    def evaluate_objective(self, beta, *, X, D, y, sample_weight):
+    def evaluate_objective(self, beta, *, X, D, y, sample_weight, mu=None):
         """Evaluate the objective - the sum of deviance plus the penalty.
 
         sum_i deviance(mu_i, y_i) + |D beta|^2
 
         """
-        mu = self.link.inverse_link(X @ beta)
+
+        # If mu is given, no reason to recompute X @ beta
+        if mu is None:
+            mu = self.link.inverse_link(X @ beta)
         deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
 
@@ -324,6 +400,7 @@ class LBFGSB(Optimizer):
         # Initial guess
         sample_weight = self.get_sample_weight()
         x0 = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
+        self.log(beta=x0, X=X, D=D)
 
         def objective_and_gradient(beta, X, D):
             """Compute the objective and gradient, updating weights on the fly."""
@@ -347,11 +424,11 @@ class LBFGSB(Optimizer):
             def __call__(cb, intermediate_result):
                 """Callback function for logging."""
                 beta = intermediate_result.x
-                self.log(X=X, D=D, beta=intermediate_result.x)
 
                 mu = self.link.inverse_link(X @ beta)
                 sample_weight = self.get_sample_weight(mu=mu, y=self.y)
                 objective_value = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+                self.log(X=X, D=D, beta=intermediate_result.x, mu=mu)
 
                 # Print iteration information
                 if self.verbose >= 1:
@@ -383,6 +460,12 @@ class LBFGSB(Optimizer):
                 "ftol": 64 * np.finfo(float).eps,
             },
         )
+
+        if result.nit >= self.max_iter:
+            msg = f"Solver did not converge in {self.max_iter} iterations.\n"
+            msg += "Increase `max_iter`, increase `tol` or increase penalties.\n"
+            msg += "Scaling data or using a canonical link function can also help."
+            warnings.warn(msg, ConvergenceWarning)
 
         beta = result.x
         self.log(X=X, D=D, beta=beta)
@@ -497,12 +580,12 @@ class PIRLS(Optimizer):
             # Step 3: Perform halving search between previous beta and trial beta
             beta, objective_value, half_exponent = self.halving_search(X, D, self.y, sample_weight, beta, beta_trial)
 
-            # Log info: loss, deviance and beta
-            self.log(beta=beta, X=X, D=D)
-
             # New predictions for the next iteration
             eta = X @ beta
             mu = self.link.inverse_link(eta)
+
+            # Log info: loss, deviance and beta
+            self.log(beta=beta, X=X, D=D, mu=mu)
 
             # Print iteration information
             if self.verbose >= 1:
@@ -525,7 +608,7 @@ class PIRLS(Optimizer):
                 print(f" => FAILURE: Solver did not converge in {self.max_iter} iterations.")
 
             msg = f"Solver did not converge in {self.max_iter} iterations.\n"
-            msg += "Increase `max_iter`, increase `tol` or increase penalties."
+            msg += "Increase `max_iter`, increase `tol` or increase penalties.\n"
             msg += "Scaling data or using a canonical link function can also help."
             warnings.warn(msg, ConvergenceWarning)
 
@@ -554,6 +637,7 @@ class PIRLS(Optimizer):
         # Compute initial estimate - this must also obey the bounds
         sample_weight = self.get_sample_weight()
         beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
+        self.log(beta=beta, X=X, D=D)
         if self.verbose >= 1:
             objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
             msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
@@ -596,6 +680,8 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])
+
+    1 / 0
 
     from generalized_additive_models import GAM, Linear
 
