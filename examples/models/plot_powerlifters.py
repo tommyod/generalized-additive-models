@@ -1,6 +1,6 @@
 """
 =======================
-Plot Gaussian regression
+Strength vs. Bodyweight
 =======================
 
 Plot a Gaussian regression on a dataset with powerlifters.
