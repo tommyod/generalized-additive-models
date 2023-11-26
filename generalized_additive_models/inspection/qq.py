@@ -62,7 +62,7 @@ class QQDisplay:
         y,
         *,
         residuals="deviance",
-        standardized=True,
+        # standardized=True,
         method="normal",
         ax=None,
         scatter_kwargs=None,
@@ -74,7 +74,7 @@ class QQDisplay:
         y = np.array(y, dtype=float)
 
         if method == "normal":
-            residuals = np.sort(gam.residuals(X, y, residuals=residuals, standardized=standardized))
+            residuals = np.sort(gam.residuals(X, y, residuals=residuals, standardized=True))
 
             # Loop up theoretical quantiles
             i = (np.arange(len(residuals)) + 0.5) / len(residuals)
@@ -110,7 +110,7 @@ class QQDisplay:
             d_star_i = np.percentile(deviance_residuals, q=i * 100)
 
             deviance_residuals = np.sort(deviance_residuals, axis=1)
-            residuals = np.sort(gam.residuals(X, y, residuals=residuals, standardized=standardized))
+            residuals = np.sort(gam.residuals(X, y, residuals=residuals, standardized=True))
             low, _, high = np.percentile(deviance_residuals, q=[1, 50, 99], axis=0)
 
             viz = cls(

@@ -482,6 +482,28 @@ class GAM(BaseEstimator):
         p(coef_table_str)
 
     def residuals(self, X, y, *, residuals="deviance", standardized=True):
+        """Compute a vector of residuals.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset to predict on. Must be a np.ndarray of dimension 2 with
+            shape (num_samples, num_features) or a pandas DataFrame. If the
+            `terms` in the GAM refer to integer features, a np.ndarray must be
+            passed. If the `terms` refer to string column names, a pandas
+            DataFrame must be passed.
+        y : np.ndarray or Series
+            An array of target values.
+        residuals : string, optional
+            One of "response", "pearson" or "deviance". The default is "deviance".
+        standardized : bool, optional
+            Whether or not to standardize the residuals. The default is True.
+
+        Returns
+        -------
+        residuals : np.ndarray
+            An array of residuals.
+        """
         check_is_fitted(self, attributes=["coef_"])
 
         distribution = self._distribution
