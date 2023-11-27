@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 from sklearn.base import clone
 
-from generalized_additive_models.distributions import DISTRIBUTIONS, Normal, Exponential, Gamma, Bernoulli, Binomial
+from generalized_additive_models.distributions import DISTRIBUTIONS, Bernoulli, Binomial, Exponential, Gamma, Normal
 
 
 class TestSklearnCompatibility:

@@ -10,7 +10,6 @@ from time import perf_counter
 import numpy as np
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.optimizers import PIRLS
 from generalized_additive_models.terms import Spline
 
 
@@ -39,7 +38,7 @@ def report_time(solver="pirls", num_samples=1_000, num_features=10):
     start_time = perf_counter()
     # Create a GAM
     terms = sum(Spline(i) for i in range(num_features))
-    poisson_gam = GAM(terms, link="log", distribution="poisson", solver=solver, verbose=False, max_iter=99).fit(X, y)
+    GAM(terms, link="log", distribution="poisson", solver=solver, verbose=False, max_iter=99).fit(X, y)
     elapsed_time = perf_counter() - start_time
 
     print(f"Solved with solver={solver} of " + f"shape ({num_samples}, {num_features}) in {elapsed_time}")
