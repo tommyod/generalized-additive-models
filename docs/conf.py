@@ -31,6 +31,8 @@ exclude_patterns = [
     "examples_gallery/*.ipynb",
     "examples_gallery/**/*.ipynb",
 ]
+# TODO: Set up a better order for sub galleries
+# https://sphinx-gallery.github.io/stable/configuration.html#sub-gallery-order
 
 source_suffix = [".rst"]
 

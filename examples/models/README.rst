@@ -1,4 +1,4 @@
-Model Examples
-==============
+Models
+======
 
 Examples of models.

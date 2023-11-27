@@ -1,4 +1,4 @@
-Spline Examples
-===============
+Splines
+=======
 
-Examples of splines.
+Examples showcasing how splines work.

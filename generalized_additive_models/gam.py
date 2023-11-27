@@ -485,31 +485,53 @@ class GAM(BaseEstimator):
         p(coef_table_str)
 
     def residuals(self, X, y, *, residuals="deviance", standardized=True):
+        """Compute a vector of residuals.
+
+        Parameters
+        ----------
+        X : np.ndarray or pd.DataFrame
+            A dataset to predict on. Must be a np.ndarray of dimension 2 with
+            shape (num_samples, num_features) or a pandas DataFrame. If the
+            `terms` in the GAM refer to integer features, a np.ndarray must be
+            passed. If the `terms` refer to string column names, a pandas
+            DataFrame must be passed.
+        y : np.ndarray or Series
+            An array of target values.
+        residuals : string, optional
+            One of "response", "pearson" or "deviance". The default is "deviance".
+        standardized : bool, optional
+            Whether or not to standardize the residuals. The default is True.
+
+        Returns
+        -------
+        residuals : np.ndarray
+            An array of residuals.
+        """
         check_is_fitted(self, attributes=["coef_"])
 
-        distribution = self._distribution
+        distribution = self._distribution  # Fitted distribution object
 
-        y_pred = self.predict(X)
+        mu = self.predict(X)
         y_true = np.array(y, dtype=float)
 
         expected_residuals = {"response", "pearson", "deviance"}
 
         if residuals == "response":
-            residuals = y_true - y_pred
+            residuals = y_true - mu
             if standardized:
-                residuals = residuals / np.sqrt(distribution.variance(y_pred))
+                residuals = residuals / np.sqrt(distribution.variance(mu))
 
         # Se page 112 in Wood, 2nd edition
         elif residuals == "pearson":
             # Should have approximately zero mean and variance "scale"
-            residuals = (y_true - y_pred) / np.sqrt(distribution.V(y_pred))
+            residuals = (y_true - mu) / np.sqrt(distribution.V(mu))
             # Should be N(0, 1)
             if standardized:
                 residuals = residuals / np.sqrt(distribution.scale)
 
         elif residuals == "deviance":
-            deviances = distribution.deviance(y=y_true, mu=y_pred, scaled=False)
-            residuals = np.sqrt(deviances) * np.sign(y_true - y_pred)
+            deviances = distribution.deviance(y=y_true, mu=mu, scaled=False)
+            residuals = np.sqrt(deviances) * np.sign(y_true - mu)
             # Should be N(0, 1)
             if standardized:
                 residuals = residuals / np.sqrt(distribution.scale)
