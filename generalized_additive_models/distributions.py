@@ -80,13 +80,11 @@ class Normal(Distribution, BaseEstimator):
         check_consistent_length(y, mu, sample_weight)
 
         deviance = (y - mu) ** 2
+
         if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
-        return deviance * sample_weight
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         standard_deviation = np.sqrt(self.variance(mu))
@@ -117,13 +115,11 @@ class Poisson(Distribution, BaseEstimator):
 
         # rel_entr(y, mu) := y log(y / mu)
         deviance = 2 * (rel_entr(y, mu) - (y - mu))
-        if scaled and self.scale:
+
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        if sample_weight is None:
-            return deviance
-
-        return deviance * sample_weight
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         return sp.stats.poisson(mu=mu)
@@ -160,15 +156,12 @@ class Bernoulli(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
         deviance = 2 * (rel_entr(y, mu) + rel_entr(1 - y, 1 - mu))
 
-        if scaled and self.scale:
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        return deviance * sample_weight
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         return sp.stats.bernoulli(mu)
@@ -222,15 +215,12 @@ class Binomial(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
         deviance = 2 * (rel_entr(y, mu) + rel_entr(self.trials - y, self.trials - mu))
 
-        if scaled and self.scale:
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        return deviance * sample_weight
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         n = self.trials
@@ -261,15 +251,12 @@ class Gamma(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
         deviance = 2 * ((y - mu) / mu - np.log(y / mu))
 
-        if scaled and self.scale:
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        return deviance * sample_weight
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
@@ -305,15 +292,12 @@ class Exponential(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
         deviance = 2 * ((y - mu) / mu - np.log(y / mu))
 
-        if scaled and self.scale:
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        return deviance * sample_weight
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         return sp.stats.expon(scale=mu)
@@ -336,15 +320,12 @@ class InvGauss(Distribution, BaseEstimator):
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
 
-        if sample_weight is None:
-            sample_weight = np.ones_like(mu, dtype=float)
-
         deviance = ((y - mu) ** 2) / (mu**2 * y)
 
-        if scaled and self.scale:
+        if scaled and self.scale is not None:
             deviance = deviance / self.scale
 
-        return deviance
+        return deviance if sample_weight is None else deviance * sample_weight
 
     def to_scipy(self, mu):
         gamma = 1 / self.scale

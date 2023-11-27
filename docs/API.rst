@@ -82,6 +82,10 @@ Distributions
    Normal
    Poisson
    Binomial
+   Gamma
+   InvGauss
+   Exponential
+   Bernoulli
 
 
 Models
