@@ -62,16 +62,21 @@ class TestDistributionProperties:
 
     @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
     @pytest.mark.parametrize("scale", [0.5, 1, 2])
-    def test_that_scipy_deviance_matches_implemented_deviance(self, distr_class, scale):
+    @pytest.mark.parametrize("mu", [0.1, 0.5, 0.95])  # mu in (0, 1) safe for all distributions
+    def test_that_scipy_deviance_matches_implemented_deviance(self, distr_class, scale, mu):
         """This property should hold for all values of the scale."""
 
-        distribution = distr_class(scale=scale)
-        mu = np.array([0.083, 0.083, 0.192, 0.295, 0.34, 0.498, 0.987, 0.99994])
+        rng = np.random.default_rng(42)
 
-        # Binomial with 1 trial is Bernoulli, which has support {0, 1}
-        # However, gamma is only defined for (0, \inf)
-        # So I have to choose a vector of ones here for all tests to pass
-        y = np.ones_like(mu)
+        # Create distribution
+        distribution = distr_class(scale=scale)
+
+        # Generate observations in the domain, mu=0.5 is always safe, since
+        # it's within the bounds of every distribution
+        y = distribution.sample(mu=mu, random_state=rng, size=999)
+
+        # Generate mu uniformly between upper and lower limit
+        mu = rng.uniform(low=y.min(), high=y.max(), size=999)
 
         deviance = distribution.deviance(mu=mu, y=y)
 
