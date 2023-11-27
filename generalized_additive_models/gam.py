@@ -378,8 +378,11 @@ class GAM(BaseEstimator):
         null_gam = clone(self)
         null_preds = null_gam.set_params(terms=Intercept(), verbose=0).fit(X, y, sample_weight=sample_weight).predict(X)
 
-        null_deviance = self._distribution.deviance(y=y, mu=null_preds, sample_weight=sample_weight).sum()
-        fitted_deviance = self._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight).sum()
+        # null_preds2 = np.average(y, weights=sample_weight) * np.ones_like(y)
+        # assert np.allclose(null_preds2, null_preds)
+
+        null_deviance = self._distribution.deviance(y=y, mu=null_preds, sample_weight=sample_weight).mean()
+        fitted_deviance = self._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight).mean()
         # assert fitted_deviance <= null_deviance
         return (null_deviance - fitted_deviance) / null_deviance
 
