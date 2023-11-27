@@ -46,6 +46,10 @@ class Distribution(ABC):
 
 
 class Normal(Distribution, BaseEstimator):
+    """
+    Normal Distribution
+    """
+
     name = "normal"
     domain = (-np.inf, np.inf)
     continuous = True
