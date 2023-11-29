@@ -10,7 +10,8 @@ import numpy as np
 import pytest
 from sklearn.base import clone
 
-from generalized_additive_models.distributions import DISTRIBUTIONS, Bernoulli, Binomial, Exponential, Gamma, Normal
+from generalized_additive_models.distributions import DISTRIBUTIONS, Bernoulli, Binomial, Exponential, Gamma, Normal, Distribution
+from generalized_additive_models.links import LINKS
 
 
 class TestSklearnCompatibility:
@@ -31,6 +32,25 @@ class TestSklearnCompatibility:
 
 
 class TestDistributionProperties:
+    
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    def test_that_links_derivatives_are_close_to_finite_differences(self, distr_class):
+        rng = np.random.default_rng(42)
+        argument = 0.01 + rng.random(1000) * 0.98
+        epsilon = np.ones_like(argument) * 1e-7  # from 4 to 9 works, use 7
+        
+        distr = distr_class()
+
+        # Derivative from equation vs. finite difference approximation to the derivative
+        f_x_deriv = distr.V_derivative(argument)
+        f_x_finite_diff = (distr.V(argument + epsilon) - distr.V(argument - epsilon)) / (2 * epsilon)
+
+        assert np.allclose(f_x_deriv, f_x_finite_diff)
+    
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    def test_that_all_distributions_subclass_Distribution(self, distr_class):
+        assert isinstance(distr_class(), Distribution)
+    
     @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
     @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
     @pytest.mark.parametrize("scale", [0.5, 1, 2])
@@ -111,6 +131,26 @@ class TestDistributionProperties:
         logpdf1 = bernoulli.to_scipy(mu=y).logpmf(y)
         logpdf2 = binomial_as_bernoulli.to_scipy(mu=y).logpmf(y)
         assert np.allclose(logpdf1, logpdf2)
+
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    def test_that_every_distribution_has_a_canonical_link(self, distr_class):
+        # Every distribution has a canonical link
+        distribution = distr_class(scale=1)
+        assert distribution.canonical_link in set(LINKS.keys())
+
+    @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
+    @pytest.mark.parametrize("scale", [0.5, 1, 2])
+    def test_that_vector_samples_have_the_right_shape(self, scale, distr_class):
+        rng = np.random.default_rng(42)
+
+        # Create distribution
+        distribution = distr_class(scale=scale)
+
+        # Generate means in the domain. (0, 1) is always safe
+        mu = rng.uniform(low=0, high=1, size=999)
+
+        vector_samples = distribution.sample(mu=mu, size=10)
+        assert vector_samples.shape == (10, len(mu))
 
 
 if __name__ == "__main__":

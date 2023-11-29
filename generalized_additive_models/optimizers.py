@@ -94,10 +94,23 @@ def solve_unbounded_lstsq(*, X, D, w, z):
     Form the normal equations and solve them.
 
     """
+    # Try to use cholesky-based solver first
     lhs = X_T_W_X_plus_D_T_D(X=X, w=w, D=D)
     rhs = X.T @ (w * z)
+    np.fill_diagonal(lhs, lhs.diagonal() + MACHINE_EPSILON)
+    try:
+        return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
 
-    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
+    # Singular matrix - fall back to svd
+    except np.linalg.LinAlgError:  # Singular matrix
+        # Fill the lower parts of the left hand side
+        lhs = lhs + lhs.T
+        np.fill_diagonal(lhs, lhs.diagonal() / 2)
+
+        # Use the SVD to compute the inverse, removing small singular values
+        U, s, Vt = sp.linalg.svd(lhs, full_matrices=False)
+        s = np.maximum(MACHINE_EPSILON, s)
+        return np.linalg.multi_dot([Vt.T, (1 / s[:, None]) * U.T, X.T, (w * z)])
 
 
 def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
@@ -152,18 +165,14 @@ class Optimizer:
             exp_digits=self.EXP_DIGITS,
         )
 
-    def _validate_params(self):
+    def _validate_params(self, *, X, D, y):
         """Validate input parameters."""
 
-        # Validate shapes
-        assert self.X.shape[1] == self.D.shape[1]
-        assert self.X.shape[0] == len(self.y)
-
         low, high = self.link.domain
-        if np.any(self.y > high):
+        if np.any(y > high):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
 
-        if np.any(self.y < low):
+        if np.any(y < low):
             raise ValueError(f"Domain of {self.link} is {self.link.domain}, but smallest y was: {self.y.min()}")
 
     def _validate_outputs(self):
@@ -366,9 +375,6 @@ class LBFGSB(Optimizer):
     def __init__(
         self,
         *,
-        X,
-        D,
-        y,
         link,
         distribution,
         bounds,
@@ -377,9 +383,6 @@ class LBFGSB(Optimizer):
         get_sample_weight,
         verbose,
     ):
-        self.X = X
-        self.D = D
-        self.y = y
         self.link = link
         self.distribution = distribution
         self.bounds = bounds
@@ -389,8 +392,11 @@ class LBFGSB(Optimizer):
         self.verbose = verbose
         super().__init__()
 
-    def solve(self):
+    def solve(self, *, X, D, y):
         """Solve using L-BFGS-B from scipy."""
+        self.X = X
+        self.D = D
+        self.y = y
 
         # Set non-identifiable coefficients to zero
         self.column_remover.fit(X=self.X, D=self.D)
@@ -488,29 +494,23 @@ class PIRLS(Optimizer):
     def __init__(
         self,
         *,
-        X,
-        D,
-        y,
         link,
         distribution,
         bounds,
         max_iter,
         tol,
         get_sample_weight,
-        verbose,
+        fisher_weights=False,
+        verbose=0,
     ):
-        self.X = X
-        self.D = D
-        self.y = y
         self.link = link
         self.distribution = distribution
         self.bounds = bounds
         self.max_iter = max_iter
         self.tol = tol
         self.get_sample_weight = get_sample_weight
+        self.fisher_weights = fisher_weights
         self.verbose = verbose
-
-        self._validate_params()
         super().__init__()
 
     def halving_search(self, X, D, y, sample_weight, beta0, beta1):
@@ -613,20 +613,24 @@ class PIRLS(Optimizer):
 
         return beta  # Return optimal beta
 
-    def solve(self, fisher_weights=False):
+    def solve(self, *, X, D, y):
         """Solve the optimization problem."""
+        # Validate shapes
+        assert X.shape[1] == D.shape[1]
+        assert X.shape[0] == len(y)
+        self.y = y
+
         fmt = self.fmt  # Formatter
         # Page 106 in Wood, 2nd ed: 3.1.2 Fitting generalized linear models
 
         # =============================================================================
         # GENERAL SETUP
         # =============================================================================
-        self.fisher_weights = fisher_weights
-        num_observations, num_beta = self.X.shape
+        num_observations, num_beta = X.shape
 
         # Set non-identifiable coefficients to zero
-        self.column_remover.fit(X=self.X, D=self.D)
-        X, D, *bounds = self.column_remover.transform(self.X, self.D, *self.bounds)
+        self.column_remover.fit(X=X, D=D)
+        X, D, *bounds = self.column_remover.transform(X, D, *self.bounds)
         if self.verbose >= 2:
             print(
                 "Variables set to zero for identifiability:"
@@ -635,10 +639,10 @@ class PIRLS(Optimizer):
 
         # Compute initial estimate - this must also obey the bounds
         sample_weight = self.get_sample_weight()
-        beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
+        beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=y, bounds=bounds)
         self.log(beta=beta, X=X, D=D)
         if self.verbose >= 1:
-            objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+            objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=y, sample_weight=sample_weight)
             msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
             beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
             msg += f"Coef. rmse: {beta_fmt}   "
@@ -647,7 +651,7 @@ class PIRLS(Optimizer):
         # See page 251 in Wood, 2nd edition
         # Step 1: Compute initial values
         # ---------------------------------------------------------------------
-        beta = self.pirls(beta=beta, X=X, D=D, y=self.y, bounds=bounds)
+        beta = self.pirls(beta=beta, X=X, D=D, y=y, bounds=bounds)
 
         # Build the statistics - in the identifiable space
         self.set_statistics(X=X, D=D, beta=beta)
@@ -671,6 +675,7 @@ class PIRLS(Optimizer):
         assert np.all(np.isfinite(diffs))
         max_coord_update = np.max(np.abs(diffs))
         max_coord = np.max(np.abs(betas[-1]))
+        print(max_coord)
         # log.info(f"Stopping criteria evaluation: {max_coord_update:.6f} <= {self.tol} * {max_coord:.6f} ")
         return max_coord_update / max_coord < self.tol * step_size
 
@@ -679,8 +684,6 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules"])
-
-    1 / 0
 
     from generalized_additive_models import GAM, Linear
 
@@ -725,9 +728,6 @@ if __name__ == "__main__":
     print("-----------------------------------------------------------")
 
     optimizer = LBFGSB(
-        X=poisson_gam.model_matrix_,
-        D=poisson_gam.terms.penalty_matrix(),
-        y=y,
         link=poisson_gam._link,
         distribution=poisson_gam._distribution,
         bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
@@ -737,16 +737,17 @@ if __name__ == "__main__":
         verbose=poisson_gam.verbose,
     )
 
-    beta_mead = optimizer.solve()
+    beta_mead = optimizer.solve(
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+    )
 
     print(beta_mead)
 
     print("-----------------------------------------------------------")
 
     optimizer = PIRLS(
-        X=poisson_gam.model_matrix_,
-        D=poisson_gam.terms.penalty_matrix(),
-        y=y,
         link=poisson_gam._link,
         distribution=poisson_gam._distribution,
         bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
@@ -756,7 +757,11 @@ if __name__ == "__main__":
         verbose=poisson_gam.verbose,
     )
 
-    beta_pirls = optimizer.solve()
+    beta_pirls = optimizer.solve(
+        X=poisson_gam.model_matrix_,
+        D=poisson_gam.terms.penalty_matrix(),
+        y=y,
+    )
 
     print("-----------------------------------------------------------")
     print(f"mead {beta_mead}")

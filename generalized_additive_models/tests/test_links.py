@@ -81,8 +81,6 @@ class TestLink:
         f_x_deriv = link().derivative(argument)
         f_x_finite_diff = (link().link(argument + epsilon) - link().link(argument - epsilon)) / (2 * epsilon)
 
-        # At least 90% must be close. This test is not exact. Depends on random
-        # numbers and numerics...
         assert np.allclose(f_x_deriv, f_x_finite_diff)
 
     @pytest.mark.parametrize("link", LINKS.values())
@@ -97,8 +95,6 @@ class TestLink:
         f_x_deriv2 = l.second_derivative(argument)
         dfx_finite_diff = (l.derivative(argument + epsilon) - l.derivative(argument - epsilon)) / (2 * epsilon)
 
-        # At least 90% must be close. This test is not exact. Depends on random
-        # numbers and numerics...
         assert np.allclose(f_x_deriv2, dfx_finite_diff)
 
 

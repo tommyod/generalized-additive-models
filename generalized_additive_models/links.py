@@ -403,7 +403,10 @@ LINKS = {
         Identity,
         Log,
         Logit,
-        # CLogLogLink, InvSquared, Inverse, SmoothLog,
+        # CLogLogLink,
+        InvSquared,
+        Inverse,
+        # SmoothLog,
         Softplus,
     ]
 }

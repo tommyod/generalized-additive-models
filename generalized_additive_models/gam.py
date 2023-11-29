@@ -45,18 +45,20 @@ class GAM(BaseEstimator):
     link : str or Link, optional
         The assumed link function of the target variable. Look at the dict
         GAM.LINKS for a list of available options.
-        The default is "identity".
+        The default is "canonical", which uses the canonical link for the 
+        distribution given in the `distribution` argument.
     fit_intercept : bool, optional
         Whether or not to automatically add an intercept term to the terms.
         If an intercept is already present, then this setting has no effect.
         The default is True.
     solver : str, optional
-        Either 'pirls' or 'lbfgsb'.
+        Either 'pirls' or 'lbfgsb', where 'pirls' is the default choice.
         'pirls' stands for Penalized Iterated Reweighted Least Squares, which
         is a Newton routine that uses step-halving line search.
         'lbfgsb' is the Limited-memory Broyden–Fletcher–Goldfarb–Shanno algorithm
         from scipy.optimize.minimize.
-        The default is "pirls".
+        In general 'pirls' is faster, but 'lbfgsb' might converge when 'pirls'
+        does not.
     max_iter : int, optional
         Maximum number of iterations in the solver.
         The default is 100.
@@ -92,7 +94,7 @@ class GAM(BaseEstimator):
     _parameter_constraints: dict = {
         "terms": [Term, TermList],
         "distribution": [StrOptions(set(DISTRIBUTIONS.keys())), Distribution],
-        "link": [StrOptions(set(LINKS.keys())), Link],
+        "link": [StrOptions(set(list(LINKS.keys()) + ["canonical"])), Link],
         "fit_intercept": ["boolean"],
         "solver": [
             StrOptions({"pirls", "lbfgsb"}),
@@ -127,14 +129,22 @@ class GAM(BaseEstimator):
     def _validate_params(self, X):
         super()._validate_params()
 
-        # if not hasattr(self, "_distribution"):
-        self._link = LINKS[self.link]() if isinstance(self.link, str) else self.link
-
-        # if not hasattr(self, "_distribution"):
+        # Determine the Distribution object
         self._distribution = (
             DISTRIBUTIONS[self.distribution]() if isinstance(self.distribution, str) else self.distribution
         )
+        
+        # Determine the Link object
+        if self.link == "canonical":
+            self._link = LINKS[self._distribution.canonical_link]()
+            if self.verbose:
+                msg = "Chose canonical link for distribution "
+                msg += "'{self._distribution}', which is '{self._link}'."
+                print(msg)
+        else:
+            self._link = LINKS[self.link]() if isinstance(self.link, str) else self.link
 
+        # Set up the solver
         if self.solver == "pirls":
             self._solver = PIRLS
         elif self.solver == "lbfgsb":
@@ -159,6 +169,7 @@ class GAM(BaseEstimator):
                 term_params.pop("feature")
                 self.terms = TermList([Linear(feature=i, **term_params) for i in range(num_features)])
 
+        # Add intercept term if it does not exist
         if self.fit_intercept and (Intercept() not in self.terms):
             self.terms.append(Intercept())
 
@@ -217,9 +228,6 @@ class GAM(BaseEstimator):
             sample_weight = np.ones_like(y, dtype=float)
 
         optimizer = self._solver(
-            X=self.model_matrix_,
-            D=self.terms.penalty_matrix(),
-            y=y,
             link=self._link,
             distribution=self._distribution,
             bounds=(self.terms._lower_bound, self.terms._upper_bound),
@@ -229,8 +237,16 @@ class GAM(BaseEstimator):
             verbose=self.verbose,
         )
 
+        # Use fisher weights with canonical links, since then alpha_i is 1.
+        if self._distribution.canonical_link == self._link.name and self._solver == PIRLS:
+            optimizer.fisher_weights = True
+
         # Copy over solver information
-        self.coef_ = optimizer.solve().copy()
+        self.coef_ = optimizer.solve(
+            X=self.model_matrix_,
+            D=self.terms.penalty_matrix(),
+            y=y,
+        )
         self.results_ = copy.deepcopy(optimizer.results_)
         self.results_.pseudo_r2 = self.score(X, y, sample_weight=sample_weight)
 
@@ -243,7 +259,8 @@ class GAM(BaseEstimator):
         for term in self.terms:
             term.coef_ = self.coef_[coef_idx : coef_idx + term.num_coefficients]
             term.coef_idx_ = np.arange(coef_idx, coef_idx + term.num_coefficients)
-            term.coef_covar_ = self.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
+            coef_mask_2D = np.ix_(term.coef_idx_, term.coef_idx_)
+            term.coef_covar_ = self.results_.covariance[coef_mask_2D]
             term.edof_ = self.results_.edof_per_coef[term.coef_idx_]
 
             coef_idx += term.num_coefficients
@@ -280,15 +297,15 @@ class GAM(BaseEstimator):
         99.389...
         >>> gam.sample(mu=np.zeros(5), random_state=1).round(1)
         array([ 16.2,  -6.1,  -5.3, -10.7,   8.6])
-        >>> gam.sample(mu=np.zeros(5), random_state=3, size=(3, 5)).round(1)
+        >>> gam.sample(mu=np.zeros(5), random_state=3, size=3).round(1)
         array([[ 17.8,   4.4,   1. , -18.6,  -2.8],
                [ -3.5,  -0.8,  -6.3,  -0.4,  -4.8],
                [-13.1,   8.8,   8.8,  17. ,   0.5]])
 
         """
         check_is_fitted(self, attributes=["coef_"])
-        distr = self._distribution.to_scipy(mu)
-        return distr.rvs(size=size, random_state=random_state)
+        distr = self._distribution
+        return distr.sample(mu=mu, size=size, random_state=random_state)
 
     def predict(self, X):
         r"""Predict the expected value :math:`\mu` with the model.

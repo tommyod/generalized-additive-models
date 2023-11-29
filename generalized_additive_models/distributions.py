@@ -7,7 +7,7 @@ Created on Wed Feb  8 17:33:49 2023
 """
 
 from abc import ABC, abstractmethod
-from numbers import Real
+from numbers import Real, Integral, Number
 
 import numpy as np
 import scipy as sp
@@ -34,7 +34,40 @@ class Distribution(ABC):
         pass
 
     def sample(self, mu, size=None, random_state=None):
-        return self.to_scipy(mu).rvs(size=size, random_state=random_state)
+        if not (isinstance(size, (Integral, np.ndarray)) or size is None):
+            raise TypeError("Argument `size` must be None, an integer or np.ndarray")
+
+        # size=None, mu=number
+        if size is None and isinstance(mu, Number):
+            samples = self.to_scipy(mu).rvs(size=size, random_state=random_state)
+            assert samples.shape == ()
+            return samples
+
+        # size=None, mu=np.ndarray
+        elif size is None and isinstance(mu, np.ndarray):
+            samples = self.to_scipy(mu).rvs(size=size, random_state=random_state)
+            assert samples.shape == (len(mu),)
+            return samples
+
+        # size=number, mu=number
+        elif isinstance(size, Integral) and isinstance(mu, Number):
+            samples = self.to_scipy(mu).rvs(size=size, random_state=random_state)
+            assert samples.shape == (size,)
+            return samples
+
+        # size=number, mu=np.ndarray
+        elif isinstance(size, Integral) and isinstance(mu, np.ndarray):
+            size = (size, len(mu))
+            samples = self.to_scipy(mu).rvs(size=size, random_state=random_state)
+            return samples
+
+        # size=np.ndarray, mu=number
+        elif isinstance(size, np.ndarray) and isinstance(mu, Number):
+            samples = self.to_scipy(mu).rvs(size=size, random_state=random_state)
+            assert samples.shape == (len(size),)
+            return samples
+        else:
+            raise TypeError("Argument `size` must be number or np.ndarray")
 
     def log_pdf(self, y, mu):
         return self.to_scipy(mu).logpdf(y)
@@ -43,6 +76,9 @@ class Distribution(ABC):
         if type(self) != type(other):
             return False
         return self.get_params() == other.get_params()
+    
+    def __str__(self):
+        return self.name
 
 
 class Normal(Distribution, BaseEstimator):
@@ -53,6 +89,7 @@ class Normal(Distribution, BaseEstimator):
     name = "normal"
     domain = (-np.inf, np.inf)
     continuous = True
+    canonical_link = "identity"
 
     _parameter_constraints: dict = {
         "scale": [Interval(Real, 0.0, None, closed="neither"), None],
@@ -104,6 +141,7 @@ class Poisson(Distribution, BaseEstimator):
     domain = (0, np.inf)
     continuous = True
     scale = 1
+    canonical_link = "log"
 
     def __init__(self, scale=1):
         pass
@@ -136,6 +174,7 @@ class Bernoulli(Distribution, BaseEstimator):
 
     name = "bernoulli"
     scale = 1
+    canonical_link = "logit"
 
     def __init__(self, scale=1):
         pass
@@ -144,9 +183,6 @@ class Bernoulli(Distribution, BaseEstimator):
     def domain(self):
         domain = (0, 1)
         return domain
-
-    def variance(self, mu):
-        return self.V(mu) * self.scale
 
     def V(self, mu):
         threshold = EPSILON
@@ -178,6 +214,7 @@ class Binomial(Distribution, BaseEstimator):
 
     name = "binomial"
     scale = 1
+    canonical_link = "logit"
 
     def __init__(self, trials=1, scale=1):
         """
@@ -203,9 +240,6 @@ class Binomial(Distribution, BaseEstimator):
     def domain(self):
         domain = (0, self.trials)
         return domain
-
-    def variance(self, mu):
-        return self.V(mu) * self.scale
 
     def V(self, mu):
         threshold = EPSILON
@@ -239,12 +273,10 @@ class Gamma(Distribution, BaseEstimator):
 
     name = "gamma"
     domain = (0, np.inf)
+    canonical_link = "inverse"
 
     def __init__(self, scale=None):
         self.scale = scale
-
-    def variance(self, mu):
-        return self.V(mu) * self.scale
 
     def V(self, mu):
         return mu**2
@@ -280,12 +312,10 @@ class Exponential(Distribution, BaseEstimator):
     name = "exponential"
     domain = (0, np.inf)
     scale = 1
+    canonical_link = "inverse"
 
     def __init__(self, scale=1):
         pass
-
-    def variance(self, mu):
-        return self.V(mu) * self.scale
 
     def V(self, mu):
         return mu**2
@@ -314,12 +344,16 @@ class InvGauss(Distribution, BaseEstimator):
 
     name = "inv_gauss"
     domain = (0, np.inf)
+    canonical_link = "inv_squared"
 
     def __init__(self, scale=None):
         self.scale = scale
 
     def V(self, mu):
         return mu**3
+    
+    def V_derivative(self, mu):
+        return 3 * mu**2
 
     def deviance(self, *, y, mu, sample_weight=None, scaled=True):
         check_consistent_length(y, mu, sample_weight)
