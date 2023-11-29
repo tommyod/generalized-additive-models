@@ -45,7 +45,7 @@ class GAM(BaseEstimator):
     link : str or Link, optional
         The assumed link function of the target variable. Look at the dict
         GAM.LINKS for a list of available options.
-        The default is "canonical", which uses the canonical link for the 
+        The default is "canonical", which uses the canonical link for the
         distribution given in the `distribution` argument.
     fit_intercept : bool, optional
         Whether or not to automatically add an intercept term to the terms.
@@ -53,6 +53,9 @@ class GAM(BaseEstimator):
         The default is True.
     solver : str, optional
         Either 'pirls' or 'lbfgsb', where 'pirls' is the default choice.
+        In summary 'pirls' is often 10x faster, but on non-convex problems
+        'lbfgsb' is often more stable. A good choice is to start with 'pirls',
+        but also test 'lbfgsb'.
         'pirls' stands for Penalized Iterated Reweighted Least Squares, which
         is a Newton routine that uses step-halving line search.
         'lbfgsb' is the Limited-memory Broyden–Fletcher–Goldfarb–Shanno algorithm
@@ -133,7 +136,7 @@ class GAM(BaseEstimator):
         self._distribution = (
             DISTRIBUTIONS[self.distribution]() if isinstance(self.distribution, str) else self.distribution
         )
-        
+
         # Determine the Link object
         if self.link == "canonical":
             self._link = LINKS[self._distribution.canonical_link]()

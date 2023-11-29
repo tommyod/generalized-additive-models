@@ -98,6 +98,7 @@ def solve_unbounded_lstsq(*, X, D, w, z):
     lhs = X_T_W_X_plus_D_T_D(X=X, w=w, D=D)
     rhs = X.T @ (w * z)
     np.fill_diagonal(lhs, lhs.diagonal() + MACHINE_EPSILON)
+
     try:
         return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
 
@@ -105,7 +106,7 @@ def solve_unbounded_lstsq(*, X, D, w, z):
     except np.linalg.LinAlgError:  # Singular matrix
         # Fill the lower parts of the left hand side
         lhs = lhs + lhs.T
-        np.fill_diagonal(lhs, lhs.diagonal() / 2)
+        np.fill_diagonal(lhs, lhs.diagonal() / 2)  # Fix diagonal
 
         # Use the SVD to compute the inverse, removing small singular values
         U, s, Vt = sp.linalg.svd(lhs, full_matrices=False)
@@ -675,7 +676,6 @@ class PIRLS(Optimizer):
         assert np.all(np.isfinite(diffs))
         max_coord_update = np.max(np.abs(diffs))
         max_coord = np.max(np.abs(betas[-1]))
-        print(max_coord)
         # log.info(f"Stopping criteria evaluation: {max_coord_update:.6f} <= {self.tol} * {max_coord:.6f} ")
         return max_coord_update / max_coord < self.tol * step_size
 

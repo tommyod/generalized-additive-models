@@ -11,7 +11,6 @@ import numpy as np
 
 from generalized_additive_models.gam import GAM
 from generalized_additive_models.terms import Spline
-from generalized_additive_models.links import Softplus, Logit
 
 
 def create_poisson_problem(num_samples=1_000, num_features=10):
@@ -28,15 +27,9 @@ def create_poisson_problem(num_samples=1_000, num_features=10):
         - 1
     )
     assert np.std(mu) < 2
-    assert np.std(mu) > -1
+    assert np.std(mu) > 0.5
     mu = np.exp(mu)
     y = rng.poisson(lam=mu)
-    y = Logit().inverse_link(rng.normal(loc=mu, scale=5))
-
-    import matplotlib.pyplot as plt
-
-    # plt.hist(y, bins=100)
-    # plt.show()
 
     return X, y
 
@@ -47,7 +40,7 @@ def report_time(solver="pirls", num_samples=1_000, num_features=10):
     start_time = perf_counter()
     # Create a GAM
     terms = sum(Spline(i) for i in range(num_features))
-    gam = GAM(terms, link="softplus", distribution="normal", solver=solver, verbose=False, max_iter=99).fit(X, y)
+    gam = GAM(terms, link="log", distribution="poisson", solver=solver, verbose=False, max_iter=999).fit(X, y)
     elapsed_time = perf_counter() - start_time
 
     print(f"Solved with solver={solver} of " + f"shape ({num_samples}, {num_features}) in {elapsed_time}")
@@ -62,14 +55,32 @@ if __name__ == "__main__":
     # %lprun -f GAM.fit report_time(solver="pirls", num_samples=10**4, num_features=10)
 
     """
-    Solved with solver=pirls of shape (1000, 10) in 0.3671287909965031
-    Solved with solver=lbfgsb of shape (1000, 10) in 0.38573352902312763
+    Solved with solver=lbfgsb of shape (1000, 10) in 1.1361971000442281
+    Objective func value: 772.6141818640999
 
-    Solved with solver=pirls of shape (10000, 10) in 0.8323162900051102
-    Solved with solver=lbfgsb of shape (10000, 10) in 1.4314227839931846
+    Solved with solver=pirls of shape (1000, 10) in 0.11710246099391952
+    Objective func value: 772.614181723939
 
-    Solved with solver=pirls of shape (100000, 10) in 5.422825992980506
-    Solved with solver=lbfgsb of shape (100000, 10) in 14.729301321000094
+
+    Solved with solver=lbfgsb of shape (1000, 100) in 15.911379062046763
+    Objective func value: 168.1639341957488
+
+    Solved with solver=pirls of shape (1000, 100) in 4.43898131599417
+    Objective func value: 167.98180821492858
+
+
+    Solved with solver=lbfgsb of shape (10000, 10) in 9.14624711102806
+    Objective func value: 8340.945721135018
+
+    Solved with solver=pirls of shape (10000, 10) in 0.4907343750237487
+    Objective func value: 8340.933825946302
+
+
+    Solved with solver=lbfgsb of shape (10000, 100) in 107.53519268502714
+    Objective func value: 7579.695686394786
+
+    Solved with solver=pirls of shape (10000, 100) in 19.64154194202274
+    Objective func value: 7579.396346408554
     """
 
     for num_samples in [10**3, 10**4]:

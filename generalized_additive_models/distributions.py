@@ -76,7 +76,7 @@ class Distribution(ABC):
         if type(self) != type(other):
             return False
         return self.get_params() == other.get_params()
-    
+
     def __str__(self):
         return self.name
 
@@ -351,7 +351,7 @@ class InvGauss(Distribution, BaseEstimator):
 
     def V(self, mu):
         return mu**3
-    
+
     def V_derivative(self, mu):
         return 3 * mu**2
 

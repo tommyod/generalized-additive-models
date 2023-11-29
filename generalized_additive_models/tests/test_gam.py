@@ -512,51 +512,41 @@ class TestGamAutoModels:
 
 
 class TestGAMSanityChecks:
-    
-    
     @pytest.mark.parametrize("distribution", list(DISTRIBUTIONS.keys()) + list(DISTRIBUTIONS.values()))
     def test_that_links_resolve_to_canonical(self, distribution):
         rng = np.random.default_rng(42)
-        
+
         X = rng.standard_normal(size=(10, 1))
         mu = rng.random(10) / 10 + 0.5
-        
+
         # sample observations, so the y's fall in the domain of the distirbution
         if isinstance(distribution, str):
             y = DISTRIBUTIONS[distribution](scale=0.5).sample(mu, random_state=rng)
         else:
             y = distribution(scale=0.5).sample(mu, random_state=rng)
-        
+
         gam = GAM(
             Intercept(),
             link="canonical",
             distribution=distribution if isinstance(distribution, str) else distribution(),
         )
-        
+
         # The exponential has a canonical link (inverse) that can produce
         # negative values, causing trouble with the evaluation of deviance
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             gam.fit(X, y)
-        
+
         if isinstance(distribution, str):
             canonical_link_name = DISTRIBUTIONS[distribution].canonical_link
         else:
             canonical_link_name = distribution.canonical_link
-        
-        
+
         assert gam._link.name == canonical_link_name
-    
+
     def test_that_samples_match_data_on_intercept_model(self):
         pass
-    
-    
-    
-    
-    
-    
-    
-    
+
     @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("num", [5, 10, 50, 100, 500, 1000])
     def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(self, num, solver):
@@ -1037,6 +1027,5 @@ if __name__ == "__main__":
             "--doctest-modules",
             "--maxfail=1",
             "-k test_that_links_resolve_to_canonical",
-            
         ]
     )
