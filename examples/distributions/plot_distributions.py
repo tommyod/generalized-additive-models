@@ -8,7 +8,6 @@ Plot some of the distributions available.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-
 from generalized_additive_models.distributions import (
     Binomial,
     Exponential,

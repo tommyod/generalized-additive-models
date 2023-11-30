@@ -8,7 +8,6 @@ Plot a univariate spline with uncertainty.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-
 from generalized_additive_models import GAM, Spline
 
 plt.title("Spline with uncertainty")

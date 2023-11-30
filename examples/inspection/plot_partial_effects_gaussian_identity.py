@@ -7,7 +7,6 @@ Plot a Gaussian regression on a dataset with powerlifters.
 
 """
 import matplotlib.pyplot as plt
-
 from generalized_additive_models import GAM, Categorical, Spline
 from generalized_additive_models.datasets import load_powerlifters
 from generalized_additive_models.inspection import PartialEffectDisplay

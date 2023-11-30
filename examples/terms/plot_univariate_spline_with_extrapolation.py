@@ -8,7 +8,6 @@ Plot a univariate spline with extrapolation.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-
 from generalized_additive_models import GAM, Spline
 
 # Create data
