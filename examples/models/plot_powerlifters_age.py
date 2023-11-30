@@ -8,11 +8,10 @@ Plot a Gaussian regression on a dataset with powerlifters.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import make_scorer, mean_squared_error
-from sklearn.model_selection import GridSearchCV, KFold
-
 from generalized_additive_models import GAM, Categorical, Spline
 from generalized_additive_models.datasets import load_powerlifters
+from sklearn.metrics import make_scorer, mean_squared_error
+from sklearn.model_selection import GridSearchCV, KFold
 
 # Load data and filter it
 df = load_powerlifters()

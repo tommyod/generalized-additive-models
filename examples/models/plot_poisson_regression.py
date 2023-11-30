@@ -9,11 +9,10 @@ Plot a Poisson regression on a time series dataset.
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.metrics import make_scorer, mean_poisson_deviance
-from sklearn.model_selection import GridSearchCV, KFold
-
 from generalized_additive_models import GAM, Spline
 from generalized_additive_models.datasets import load_bicycles
+from sklearn.metrics import make_scorer, mean_poisson_deviance
+from sklearn.model_selection import GridSearchCV, KFold
 
 # Load data and filter it
 df = load_bicycles()

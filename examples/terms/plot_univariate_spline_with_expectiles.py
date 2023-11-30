@@ -8,7 +8,6 @@ Plot a univariate spline with expectiles.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-
 from generalized_additive_models import ExpectileGAM, Spline
 from generalized_additive_models.datasets import load_mcycle
 

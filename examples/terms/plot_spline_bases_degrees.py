@@ -8,7 +8,6 @@ Plot spline bases of varying degrees.
 """
 import matplotlib.pyplot as plt
 import numpy as np
-
 from generalized_additive_models import Spline
 
 # Create data
