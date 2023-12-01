@@ -17,7 +17,7 @@ rng = np.random.default_rng(42)
 df = (
     load_powerlifters()
     .rename(columns=lambda s: s.removeprefix("best3").removesuffix("kg"))
-    .sample(200, random_state=42)
+    .sample(50, random_state=42)
 )
 
 # Create figure
@@ -26,7 +26,7 @@ ax.set_title("Strength vs. Bodyweight")
 ax.scatter(df["bodyweight"], df["total"], color="black", s=15)
 
 # Loop over penalties
-for penalty in [0, 1e5, 1e10]:
+for penalty in [0, 2e4, 4e8]:
     # Fit a GAM with a single Linear term
     gam = GAM(terms=Linear("bodyweight", penalty=penalty))
     gam.fit(df, df["total"])
