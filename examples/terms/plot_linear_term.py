@@ -30,7 +30,8 @@ for penalty in [0, 2e4, 4e8]:
     # Fit a GAM with a single Linear term
     gam = GAM(terms=Linear("bodyweight", penalty=penalty))
     gam.fit(df, df["total"])
-    print(f"Explained variance (penalty={penalty}):", gam.score(df, df["total"]))
+    score = gam.score(df, df["total"])
+    print(f"Explained variance (penalty={penalty:.1e}): {score:.3f}")
 
     # Plot predictions
     X_smooth = np.linspace(40, 170)[:, None]
