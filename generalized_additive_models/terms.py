@@ -65,8 +65,6 @@ class Term(ABC):
         >>> term._infer_feature_variable(variable_name='feature', X=df)
         >>> term.feature_
         1
-
-
         """
         # Variable name is typically 'penalty' or 'by'
         num_samples, num_features = X.shape
@@ -100,7 +98,7 @@ class Term(ABC):
                 setattr(self, variable_to_set, variable_content)
 
     def is_redundant_with_respect_to(self, other):
-        """Check if a term is redundant with respect to another.
+        """Check if a Term is redundant with respect to another.
 
         Examples
         --------
@@ -214,7 +212,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
         return 1
 
     def penalty_matrix(self):
-        """Return the penalty matrix for the term."""
+        """Return the penalty matrix for the term. Intercepts have no penalty."""
         return np.array([[0.0]])
 
     def fit(self, X):
@@ -226,7 +224,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
             A dataset of shape (num_samples, num_features).
 
         """
-        self.feature_ = None  # Add underscore parameter to signal fitted
+        self.feature_ = None  # Add underscore parameter to signal fitted Term
         return self
 
     def transform(self, X):
@@ -252,9 +250,9 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
                [1.]])
 
         """
-        check_is_fitted(self)
+        check_is_fitted(self) # Checks if fitted (presence e.g. 'attr_')
         n_samples, n_features = X.shape
-        return np.ones(n_samples).reshape(-1, 1)
+        return np.ones(n_samples)[:, None]
 
 
 class Linear(TransformerMixin, Term, BaseEstimator):
@@ -266,7 +264,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
     >>> linear.num_coefficients
     1
 
-    Fitting and transforming extracts the relevant column:
+    Fitting and transforming a Linear term extracts the relevant column:
 
     >>> import numpy as np
     >>> X = np.arange(24).reshape(8, 3)
@@ -290,6 +288,24 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
     >>> Linear(feature=0, penalty=5).penalty_matrix()**2
     array([[5.]])
+    
+    It also works for pandas DataFrames:
+        
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({'a':[1, 2, 3], 'b':[4, 5, 6]})
+    >>> Linear('b').fit_transform(df)
+    array([[4],
+           [5],
+           [6]])
+    >>> Linear('b', by='a').fit_transform(df)
+    array([[ 4],
+           [10],
+           [18]])
+    >>> Linear('a', by='b').fit_transform(df)
+    array([[ 4],
+           [10],
+           [18]])
+    
     """
 
     name = "linear"  #: Name of the term.
@@ -374,11 +390,6 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         self._validate_params(X)
 
         basis_matrix = self._get_column(X, selector="feature")
-
-        # Must apply 'by' before computing mean, since we want symmetry to hold:
-        # x_1 * x_2 - mean(x_1 * x_2) = x_2 * x_1 - mean(x_2 * x_1)
-        # If the computed means first, symmetry would not hold:
-        # (x_1 - mean(x_1)) * x_2 != (x_2 - mean(x_2)) * x_1
 
         if self.by is not None:
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
@@ -529,7 +540,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
            [ 1., -2.,  1.],
            [ 0.,  0.,  0.]])
 
-    The structure is more easily seen on a Spline with `num_splines` set higher.
+    The structure is easily seen on a Spline with `num_splines` set higher.
 
     >>> Spline(0, num_splines=6).penalty_matrix()
     array([[ 0.,  0.,  0.,  0.,  0.,  0.],
@@ -553,6 +564,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
     >>> P = Spline(0, num_splines=6).penalty_matrix()
     >>> np.linalg.norm(P @ np.arange(6))**2
+    0.0
+    >>> np.linalg.norm(P @ (np.arange(6) + 3))**2
     0.0
     """
 
@@ -671,15 +684,17 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     def _post_transform_basis_for_constraint(self, *, constraint, basis_matrix, basis_matrix_mirrored, X_feature):
         """Transform basis matrices to comply with constraints.
 
-        The idea is from Meyer, see: https://arxiv.org/abs/0811.1705
+        This idea is from Meyer, see: https://arxiv.org/abs/0811.1705
         """
 
         _upper_bound = np.array([np.inf] * self.num_coefficients)
 
+        # The base case
         if constraint is None:
             _lower_bound = np.array([-np.inf] * self.num_coefficients)
             return _lower_bound, _upper_bound, basis_matrix
 
+        # All the other cases
         if constraint in ("increasing", "increasing-convex"):
             basis_matrix = basis_matrix
 
@@ -713,7 +728,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         Returns
         -------
         X : np.ndarray
-            An ndarray for the term.
+            An ndarray with a spline basis for the term.
 
         Examples
         --------
@@ -752,7 +767,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         X_feature = self._get_column(X, selector="feature")
 
-        # TODO: Decrement degree if constraint, since we integrate it up again
+        # Decrement degree if constraint, since we integrate it up again
         if self.constraint is None:
             degree_adjustment = 0
         elif self.constraint in ("increasing", "decreasing"):

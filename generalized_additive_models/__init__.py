@@ -66,6 +66,7 @@ __name__ = "generalized-additive-models"
 __version__ = importlib.metadata.version(__name__)
 
 __all__ = [
+    # Models
     "GAM",
     "ExpectileGAM",
     # Links
