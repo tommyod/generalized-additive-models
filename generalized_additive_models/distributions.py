@@ -60,7 +60,6 @@ class Normal(Distribution, BaseEstimator):
     def __init__(self, scale=None):
         """Create a Normal distribution.
 
-
         Parameters
         ----------
         scale : float or None, optional

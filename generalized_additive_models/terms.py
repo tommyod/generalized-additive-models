@@ -1648,11 +1648,47 @@ class TermList(UserList, BaseEstimator):
         return self
 
     def __setitem__(self, key, value):
-        """Set self[key] to value."""
+        """Set self[key] to value.
+
+        Examples
+        --------
+        >>> terms = Spline("age") + Linear("income") + Intercept()
+        >>> terms[0] = Linear("age")
+        >>> terms
+        TermList([Linear(feature='age'), Linear(feature='income'), Intercept()])
+
+        """
         if not isinstance(value, Term):
             raise TypeError(f"Only terms can be added to TermList, not {value}")
 
         super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        """Get self[key] to value.
+
+        Examples
+        --------
+        >>> terms = Spline("age") + Linear("income") + Intercept()
+        >>> terms["age"]
+        Spline(feature='age')
+        >>> terms[1]
+        Linear(feature='income')
+        >>> terms[1:]
+        TermList([Linear(feature='income'), Intercept()])
+
+        """
+
+        # Get by integer
+        if isinstance(key, (Integral, slice)):
+            return super().__getitem__(key)
+        elif isinstance(key, str):
+            for term in self:
+                if term.feature == key:
+                    return term
+            else:
+                raise IndexError("No term with feature name '{key}' in TermList")
+        else:
+            raise TypeError("Calling TermList[obj] is only valid if obj is a string or integer.")
 
     def __add__(self, other):
         if isinstance(other, Term):

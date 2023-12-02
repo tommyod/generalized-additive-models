@@ -76,13 +76,21 @@ class GAM(BaseEstimator):
     >>> from generalized_additive_models import GAM, Spline, Categorical
     >>> from sklearn.datasets import load_diabetes
     >>> data = load_diabetes(as_frame=True)
-    >>> df = data.data
-    >>> y = data.target
+    >>> df, y = data.data, data.target
     >>> gam = GAM(Spline("age") + Spline("bmi") + Spline("bp") + Categorical("sex"))
     >>> gam = gam.fit(df, y)
     >>> predictions = gam.predict(df)
     >>> for term in gam.terms:
     ...     print(term, term.coef_) # doctest: +SKIP
+    >>> gam.score(df, y)
+    0.4412081401019129
+    >>> from sklearn.metrics import r2_score
+    >>> r2_score(y_true=y, y_pred=predictions)
+    0.4412081401019129
+    >>> gam.terms["age"]
+    Spline(feature='age')
+    >>> gam.terms["age"].coef_[:3]
+    array([  0.        , -11.86887791, -23.59686477])
 
     """
 
