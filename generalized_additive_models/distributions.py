@@ -21,6 +21,8 @@ EPSILON = np.sqrt(MACHINE_EPSILON)
 
 
 class Distribution(ABC):
+    # An abstract base class, never to be directly initialized
+
     def variance(self, mu):
         """Var(Y) = V(mu) * scale"""
         return self.V(mu) * self.scale
@@ -35,9 +37,6 @@ class Distribution(ABC):
 
     def sample(self, mu, size=None, random_state=None):
         return self.to_scipy(mu).rvs(size=size, random_state=random_state)
-
-    def log_pdf(self, y, mu):
-        return self.to_scipy(mu).logpdf(y)
 
     def __eq__(self, other):
         if type(self) != type(other):

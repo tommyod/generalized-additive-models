@@ -242,9 +242,16 @@ class GAM(BaseEstimator):
         coef_idx = 0
         for term in self.terms:
             term.coef_ = self.coef_[coef_idx : coef_idx + term.num_coefficients]
+
+            # Verify that the coefficients for each Term obey the bounds
+            assert np.all(term.coef_ <= term._upper_bound)
+            assert np.all(term.coef_ >= term._lower_bound)
+
             term.coef_idx_ = np.arange(coef_idx, coef_idx + term.num_coefficients)
-            term.coef_covar_ = self.results_.covariance[np.ix_(term.coef_idx_, term.coef_idx_)]
             term.edof_ = self.results_.edof_per_coef[term.coef_idx_]
+
+            mask = np.ix_(term.coef_idx_, term.coef_idx_)
+            term.coef_covar_ = self.results_.covariance[mask]
 
             coef_idx += term.num_coefficients
             assert len(term.coef_) == term.num_coefficients

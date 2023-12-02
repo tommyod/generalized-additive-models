@@ -250,7 +250,7 @@ class Intercept(TransformerMixin, Term, BaseEstimator):
                [1.]])
 
         """
-        check_is_fitted(self) # Checks if fitted (presence e.g. 'attr_')
+        check_is_fitted(self)  # Checks if fitted (presence e.g. 'attr_')
         n_samples, n_features = X.shape
         return np.ones(n_samples)[:, None]
 
@@ -288,9 +288,9 @@ class Linear(TransformerMixin, Term, BaseEstimator):
 
     >>> Linear(feature=0, penalty=5).penalty_matrix()**2
     array([[5.]])
-    
+
     It also works for pandas DataFrames:
-        
+
     >>> import pandas as pd
     >>> df = pd.DataFrame({'a':[1, 2, 3], 'b':[4, 5, 6]})
     >>> Linear('b').fit_transform(df)
@@ -305,7 +305,7 @@ class Linear(TransformerMixin, Term, BaseEstimator):
     array([[ 4],
            [10],
            [18]])
-    
+
     """
 
     name = "linear"  #: Name of the term.
@@ -713,6 +713,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         elif constraint == "concave":
             basis_matrix = -basis_matrix - basis_matrix_mirrored[:, ::-1]
 
+        # Constrained splines must have positive coefficients.
+        # If they are not all positive, then the constraint might be violated
         _lower_bound = np.array([0] * self.num_coefficients)
 
         return _lower_bound, _upper_bound, basis_matrix
@@ -831,7 +833,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             X_feature=X_feature,
         )
 
-        # Center the spline basis so every column has 0 as the lowest value
+        # Shift the spline basis so every column has 0 as the lowest value
         self.basis_min_value_ = np.min(basis_matrix, axis=0)
         basis_matrix = basis_matrix - self.basis_min_value_
 
@@ -859,12 +861,23 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         Returns
         -------
         X : np.ndarray
-            An ndarray for the term.
+            An ndarray for the term representing the spline basis.
 
         Examples
         --------
         >>> spline = Spline(0, num_splines=3, degree=0)
         >>> X = np.linspace(0, 1, num=9).reshape(-1, 1)
+        >>> spline.fit_transform(X) * 3 + 1
+        array([[3., 0., 0.],
+               [3., 0., 0.],
+               [3., 0., 0.],
+               [0., 3., 0.],
+               [0., 3., 0.],
+               [0., 3., 0.],
+               [0., 0., 3.],
+               [0., 0., 3.],
+               [0., 0., 3.]])
+
         """
         # INFERENCE USING SHAPE-RESTRICTED REGRESSION SPLINES
         # https://arxiv.org/pdf/0811.1705.pdf
@@ -902,9 +915,6 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # Center the same was as was done during fitting
         basis_matrix = basis_matrix - self.means_
         return basis_matrix
-
-    def fit_transform(self, X):
-        return self.fit(X).transform(X)
 
 
 class Tensor(TransformerMixin, Term, BaseEstimator):
@@ -1707,7 +1717,6 @@ class TermList(UserList, BaseEstimator):
     def fit_transform(self, X):
         self.fit(X)
         return self.transform(X)
-        return np.hstack([term.fit_transform(X) for term in self])
 
     @property
     def coef_(self):
@@ -1718,6 +1727,8 @@ class TermList(UserList, BaseEstimator):
 
     def penalty_matrix(self):
         """Return the penalty matrix for the terms."""
+
+        # The full penalty matrix is the block diagonal of each Terms penalty
         penalty_matrices = [term.penalty_matrix() for term in self]
         return sp.linalg.block_diag(*penalty_matrices)
 

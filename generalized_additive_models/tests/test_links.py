@@ -17,6 +17,7 @@ from generalized_additive_models.links import LINKS
 class TestLink:
     @pytest.mark.parametrize("link", LINKS.values())
     def test_that_links_are_inverses_link_mu(self, link):
+        """From domain, to linear space and back."""
         rng = np.random.default_rng(42)
         argument = rng.random(10_000)
 
@@ -45,6 +46,7 @@ class TestLink:
 
     @pytest.mark.parametrize("link", LINKS.values())
     def test_that_links_are_inverses_mu_link(self, link):
+        """From linear space, to domain and back."""
         rng = np.random.default_rng(43)
         argument = rng.random(10_000)
 
