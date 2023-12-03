@@ -18,6 +18,7 @@ from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
 from sklearn.metrics import accuracy_score, r2_score
 from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 
 from generalized_additive_models.distributions import Binomial, Normal
@@ -842,6 +843,24 @@ class TestGAMSanityChecks:
         predictions_shifted = normal_gam.fit(X + shift, y).predict(X + shift)
         assert np.allclose(predictions_unshifted, predictions_shifted, atol=0.2)
 
+    @pytest.mark.parametrize("scale", [1e-8, 1e-4, 1, 1e4, 1e8])
+    def test_scale_invariance_of_features(self, scale):
+        rng = np.random.default_rng(1)
+
+        # Create a normal problem
+        X = rng.normal(scale=scale, size=(1000, 3))
+        y = np.sin(X[:, 0]) + X[:, 1] ** 2 + np.cos(X[:, 2] - X[:, 1]) + rng.normal(scale=0.1, size=1000)
+
+        # Create a GAM
+        terms = Spline(0) + Spline(1) + Spline(2)
+        normal_gam = GAM(terms)
+
+        # Test scale invariance
+        X_scaled = StandardScaler(with_mean=False).fit_transform(X)
+        predictions = normal_gam.fit(X, y).predict(X)
+        predictions_scaled = normal_gam.fit(X_scaled, y).predict(X_scaled)
+        assert np.allclose(predictions, predictions_scaled)
+
     @pytest.mark.parametrize("shift", [-100000, -100, -10, 10, 100, 100000])
     def test_shift_invariance_of_target(self, shift):
         rng = np.random.default_rng(1)
@@ -878,7 +897,7 @@ class TestGAMSanityChecks:
         # Assert equal preds
         assert np.allclose(gam_unscaled.predict(X), gam_scaled.predict(X) / scale)
 
-    def test_that_tensor_with_spline_and_categorical_works(self):
+    def test_that_tensor_with_spline_and_categorical_works_with_two_categories(self):
         # Set up problem - essentially one sub-problem per categorical value
         x = np.linspace(-np.pi, np.pi, num=2**10)
 
@@ -893,6 +912,22 @@ class TestGAMSanityChecks:
         gam = GAM(te).fit(df, y)
 
         assert (gam.score(df, y)) > 0.999
+
+    def test_that_tensor_with_spline_and_categorical_works_with_three_categories(self):
+        # Set up problem - essentially one sub-problem per categorical value
+        x = np.linspace(-np.pi, np.pi, num=2**10)
+
+        numerical_feature = np.hstack((x, x, x))
+        categorical_feature = [1] * len(x) + [2] * len(x) + [3] * len(x)
+
+        df = pd.DataFrame({"num": numerical_feature, "cat": categorical_feature})
+        y = np.hstack((np.sin(x), np.cos(x), np.cos(x * 2)))
+
+        # Create gam
+        te = Tensor([Spline("num", num_splines=10), Categorical("cat")])
+        gam = GAM(te).fit(df, y)
+
+        assert (gam.score(df, y)) > 0.99
 
     @pytest.mark.parametrize("columns", [1, 2, 3, 4, 5, 6])
     def test_that_categorical_identifiability_works(self, columns):
@@ -988,6 +1023,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_that_tensors_outperform_splines_on_multiplicative_problem",
+            "-k test_scale_invariance_of_features",
         ]
     )
