@@ -409,6 +409,8 @@ class Linear(TransformerMixin, Term, BaseEstimator):
         else:
             raise ValueError(f"Invalid constraint value: {self.constraint}")
 
+        self.means_ = 0  # Set it so it can be used in Tensor spline
+
         return self
 
     def transform(self, X):
@@ -913,6 +915,8 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         assert basis_matrix.shape == (num_samples, self.num_coefficients)
 
         # Center the same was as was done during fitting
+        # We do this because in a model Spline(0) + Intercept(), we would like
+        # the Intercept() to pick out the mean value
         basis_matrix = basis_matrix - self.means_
         return basis_matrix
 
@@ -922,7 +926,6 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
     Examples
     --------
-
     A Tensor is constructed from a list of Splines or a TermList with Splines:
 
     >>> tensor = Tensor(splines=[Spline(0), Spline(1)])
@@ -931,7 +934,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     >>> Tensor(Spline("age") + Spline("bmi"))
     Tensor(TermList([Spline(feature='age'), Spline(feature='bmi')]))
 
-    The number of coefficients equals the product of each Spline's coefficients:
+    The number of coefficients equals the product of each Splines coefficients:
 
     >>> tensor = Tensor(Spline(0, num_splines=3) + Spline(1, num_splines=4))
     >>> tensor.num_coefficients
@@ -966,6 +969,27 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
     >>> tensor.penalty_matrix()
     array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1.,  0.,  0., -2., -0., -0.,  1.,  0.,  0.],
+           [ 0.,  1.,  0., -0., -2., -0.,  0.,  1.,  0.],
+           [ 0.,  0.,  1., -0., -0., -2.,  0.,  0.,  1.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1., -2.,  1.,  0., -0.,  0.,  0., -0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0., -0.,  0.,  1., -2.,  1.,  0., -0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0., -0.,  0.,  0., -0.,  0.,  1., -2.,  1.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+
+
+
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
            [ 1., -2.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
            [ 1.,  0.,  0., -2.,  0.,  0.,  1.,  0.,  0.],
@@ -994,13 +1018,22 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     >>> tensor = Tensor(spline1 + spline2)
     >>> tensor.penalty_matrix()
     array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 1., -2.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 3.,  0.,  0., -6.,  0.,  0.,  3.,  0.,  0.],
-           [ 0.,  3.,  0.,  1., -8.,  1.,  0.,  3.,  0.],
-           [ 0.,  0.,  3.,  0.,  0., -6.,  0.,  0.,  3.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  1., -2.,  1.],
+           [ 3.,  0.,  0., -6., -0., -0.,  3.,  0.,  0.],
+           [ 0.,  3.,  0., -0., -6., -0.,  0.,  3.,  0.],
+           [ 0.,  0.,  3., -0., -0., -6.,  0.,  0.,  3.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1., -2.,  1.,  0., -0.,  0.,  0., -0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0., -0.,  0.,  1., -2.,  1.,  0., -0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 0., -0.,  0.,  0., -0.,  0.,  1., -2.,  1.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
 
     Linear functions of two variables are in the null space of the penalty
@@ -1010,9 +1043,50 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     >>> np.linalg.norm(P @ coefs)**2
     0.0
 
+    Categorical terms are also allowed.
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({'color': list('rgbgbrr'), 'grade':list('AAABBCC')})
+    >>> Categorical('color').fit_transform(df)
+    array([[0., 0., 1.],
+           [0., 1., 0.],
+           [1., 0., 0.],
+           [0., 1., 0.],
+           [1., 0., 0.],
+           [0., 0., 1.],
+           [0., 0., 1.]])
+    >>> te = Tensor(Categorical('color') + Categorical('grade', penalty=4))
+    >>> te.fit_transform(df).astype(int)
+    array([[0, 0, 0, 0, 0, 0, 1, 0, 0],
+           [0, 0, 0, 1, 0, 0, 0, 0, 0],
+           [1, 0, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 1, 0, 0, 0, 0],
+           [0, 1, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 0, 1],
+           [0, 0, 0, 0, 0, 0, 0, 0, 1]])
+    >>> te.penalty_matrix().astype(int)
+    array([[1, 0, 0, 0, 0, 0, 0, 0, 0],
+           [0, 1, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 1, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 1, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 1, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 1, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 1, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 1, 0],
+           [0, 0, 0, 0, 0, 0, 0, 0, 1],
+           [2, 0, 0, 0, 0, 0, 0, 0, 0],
+           [0, 2, 0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 2, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 2, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 2, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 2, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 2, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0, 2, 0],
+           [0, 0, 0, 0, 0, 0, 0, 0, 2]])
+
     """
 
     name = "tensor"  #: Name of the term.
+    feature = None
 
     _parameter_constraints = {
         "splines": [Iterable],
@@ -1053,6 +1127,8 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         self.splines = TermList(self.splines)
         for spline in self.splines:
+            # TODO: think about what it would be to use other types of terms
+            # then perhaps implement it
             if not isinstance(spline, (Spline, Categorical)):
                 raise TypeError(f"Only Splines and Categorical can be used in Tensor, found: {spline}")
             spline._validate_params(X)
@@ -1065,13 +1141,14 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         return np.prod([spline.num_coefficients for spline in self.splines])
 
     def _build_marginal_penalties(self, i):
-        """
+        """How each of the marginals connect to each other.
 
         Examples
         --------
         >>> spline1 = Spline(0, num_splines=3, penalty=1)
         >>> spline2 = Spline(1, num_splines=4, penalty=1)
-        >>> Tensor([spline1, spline2])._build_marginal_penalties(0).astype(int)
+        >>> tensor = Tensor([spline1, spline2])
+        >>> tensor._build_marginal_penalties(0).astype(int)
         array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -1084,7 +1161,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
-        >>> Tensor([spline1, spline2])._build_marginal_penalties(1).astype(int)
+        >>> tensor._build_marginal_penalties(1).astype(int)
         array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -1097,31 +1174,51 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
                [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
+
+        >>> import pandas as pd
+        >>> df = pd.DataFrame({'cat':list('AAAABBBB'),
+        ...                    'x1': [1, 2, 3, 4, 1, 2, 3, 4]})
+        >>> spline = Spline('x1', num_splines=3, degree=0)
+        >>> cat = Categorical('cat')
+        >>> tensor = Tensor([spline, cat]).fit(df)
+        >>> tensor._build_marginal_penalties(0).astype(int)
+        array([[ 0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0],
+               [ 1,  0, -2,  0,  1,  0],
+               [ 0,  1,  0, -2,  0,  1],
+               [ 0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0]])
+        >>> tensor._build_marginal_penalties(1).astype(int)
+        array([[1, 0, 0, 0, 0, 0],
+               [0, 1, 0, 0, 0, 0],
+               [0, 0, 1, 0, 0, 0],
+               [0, 0, 0, 1, 0, 0],
+               [0, 0, 0, 0, 1, 0],
+               [0, 0, 0, 0, 0, 1]])
+
         """
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.kron.html
+
+        if isinstance(self.splines[i], Categorical):
+            pass
 
         # i = 0 -> sp.sparse.kron(term.build_penalties(), sparse.eye, sparse.eye)
         # i = 1 -> sp.sparse.kron(sparse.eye, term.build_penalties(), sparse.eye)
-        # i = 1 -> sp.sparse.kron(sparse.eye, sparse.eye, term.build_penalties())
+        # i = 2 -> sp.sparse.kron(sparse.eye, sparse.eye, term.build_penalties())
+        penalty_matrices = []
+        for j, term in enumerate(self.splines):
+            if i == j:
+                penalty = term.penalty_matrix()
+            else:
+                penalty = np.eye(term.num_coefficients)
 
-        penalty_matrices = [
-            (spline.penalty_matrix() if i == j else np.eye(spline.num_coefficients))
-            for j, spline in enumerate(self.splines)
-        ]
+            penalty_matrices.append(penalty)
+
         return functools.reduce(sp.linalg.kron, penalty_matrices)
 
     def penalty_matrix(self):
-        """Return the penalty matrix for the term.
-
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
-
         """Build the penaltry matrix.
-        
+
         builds the GAM block-diagonal penalty matrix in quadratic form
         out of penalty matrices specified for each feature.
 
@@ -1149,21 +1246,40 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         >>> spline2 = Spline(1, num_splines=4, penalty=1)
         >>> Tensor([spline1, spline2]).penalty_matrix().astype(int)
         array([[ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 1,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0],
+               [ 0,  1,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0],
+               [ 0,  0,  1,  0,  0,  0, -2,  0,  0,  0,  1,  0],
+               [ 0,  0,  0,  1,  0,  0,  0, -2,  0,  0,  0,  1],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  1, -2,  1,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-               [ 1,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0],
-               [ 0,  1,  0,  0,  1, -4,  1,  0,  0,  1,  0,  0],
-               [ 0,  0,  1,  0,  0,  1, -4,  1,  0,  0,  1,  0],
-               [ 0,  0,  0,  1,  0,  0,  0, -2,  0,  0,  0,  1],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  1, -2,  1,  0,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  1, -2,  1,  0,  0,  0,  0],
+               [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1,  0],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  1, -2,  1],
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
-        
+
         """
         marginal_penalty_matrices = [self._build_marginal_penalties(i) for i, _ in enumerate(self.splines)]
-        return functools.reduce(np.add, marginal_penalty_matrices)
+
+        # We want penalties to be additive, so |D_1 \beta|^2 + |D_2 \beta|^2.
+        # To accomplish this, we stack the arrays since
+        # [D_1 | D_2]^T \beta = [D_1 \beta | D_2 \beta]^T
+        # and then |[D_1 \beta | D_2 \beta]^T|^2 = |D_1 \beta|^2 + |D_2 \beta|^2
+        # In other words, for the final result to be additive, we must stack here
+        return np.vstack(tuple(marginal_penalty_matrices))
+        # return functools.reduce(np.add, marginal_penalty_matrices)
 
     def fit(self, X):
         """Fit to data.
@@ -1216,7 +1332,8 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
             spline_basis = spline_basis * self._get_column(X, selector="by")
 
         # Subtract the means
-        spline_basis = spline_basis - self.means_
+        if any(isinstance(term, Spline) for term in self.splines):
+            spline_basis = spline_basis - self.means_
 
         return spline_basis
 
@@ -1507,7 +1624,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
         self.categories_ = list(self.onehotencoder_.categories_[0])
-        self.means_ = basis_matrix.mean(axis=0)
+        self.means_ = basis_matrix.mean(axis=0) * 0  # Do not shift means for Categorical
 
         # Set the bounds
         self._lower_bound = np.array([-np.inf for _ in range(self.num_coefficients)])
@@ -1546,7 +1663,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         if self.by is not None:
             basis_matrix = basis_matrix * self._get_column(X, "by")
 
-        basis_matrix = basis_matrix  # - self.means_
+        basis_matrix = basis_matrix - self.means_
         return basis_matrix
 
 
@@ -1675,13 +1792,23 @@ class TermList(UserList, BaseEstimator):
         Linear(feature='income')
         >>> terms[1:]
         TermList([Linear(feature='income'), Intercept()])
+        >>> terms = Tensor([Spline(0), Spline(1)]) + Spline("age")
+        >>> terms["age"]
+        Spline(feature='age')
 
         """
 
         # Get by integer
         if isinstance(key, (Integral, slice)):
             return super().__getitem__(key)
+
+        # Get by feature name
         elif isinstance(key, str):
+            # Must be unique for this type of indexing to work
+            if len([term for term in self if term.feature == key]) > 1:
+                raise IndexError("Several terms with feature name '{key}' in TermList")
+
+            # Get the appropriate term
             for term in self:
                 if term.feature == key:
                     return term

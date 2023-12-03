@@ -15,7 +15,6 @@ from generalized_additive_models.utils import cartesian
 def f(X):
     """A non-additive function."""
     assert X.shape[1] == 2
-    # The smooth XOR function, but squaring one variable
     x_1 = X[:, 0] ** 2
     x_2 = X[:, 1]
     return (x_1 + x_2) * (1 - (x_1 * x_2))
