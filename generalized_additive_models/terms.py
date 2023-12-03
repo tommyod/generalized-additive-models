@@ -1131,6 +1131,10 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
             # then perhaps implement it
             if not isinstance(spline, (Spline, Categorical)):
                 raise TypeError(f"Only Splines and Categorical can be used in Tensor, found: {spline}")
+
+            if isinstance(spline, Spline) and spline.constraint is not None:
+                raise ValueError("Splines in tensor cannot be constrained.")
+
             spline._validate_params(X)
 
         self._infer_feature_variable(variable_name="by", X=X)

@@ -221,7 +221,7 @@ class SmoothLog(Link, BaseEstimator):
         result = -np.ones_like(mu) * np.inf
         mask = mu > 0
 
-        result[mask > 0] = (mu[mask] ** (self.a - 1) - 1) / (self.a - 1)
+        result[mask > 0] = (mu[mask] ** (a - 1) - 1) / (a - 1)
         return result
 
     def inverse_link(self, linear_prediction):
