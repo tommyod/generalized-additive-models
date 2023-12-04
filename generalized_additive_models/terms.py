@@ -1044,6 +1044,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     0.0
 
     Categorical terms are also allowed.
+
     >>> import pandas as pd
     >>> df = pd.DataFrame({'color': list('rgbgbrr'), 'grade':list('AAABBCC')})
     >>> Categorical('color').fit_transform(df)
@@ -1082,6 +1083,20 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
            [0, 0, 0, 0, 0, 0, 2, 0, 0],
            [0, 0, 0, 0, 0, 0, 0, 2, 0],
            [0, 0, 0, 0, 0, 0, 0, 0, 2]])
+
+    Categoricals can be combined with Splines.
+
+    >>> df = pd.DataFrame({'cat': [0]*4 + [1]*4, 'x': [1, 2, 3, 4] * 2})
+    >>> te = Tensor([Categorical('cat'), Spline('x', num_splines=4, degree=0)])
+    >>> te.fit_transform(df)
+    array([[ 0.875, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125],
+           [-0.125,  0.875, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125],
+           [-0.125, -0.125,  0.875, -0.125, -0.125, -0.125, -0.125, -0.125],
+           [-0.125, -0.125, -0.125,  0.875, -0.125, -0.125, -0.125, -0.125],
+           [-0.125, -0.125, -0.125, -0.125,  0.875, -0.125, -0.125, -0.125],
+           [-0.125, -0.125, -0.125, -0.125, -0.125,  0.875, -0.125, -0.125],
+           [-0.125, -0.125, -0.125, -0.125, -0.125, -0.125,  0.875, -0.125],
+           [-0.125, -0.125, -0.125, -0.125, -0.125, -0.125, -0.125,  0.875]])
 
     """
 
