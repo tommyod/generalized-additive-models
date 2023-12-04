@@ -4,6 +4,7 @@ Strength vs. Age
 ================
 
 Plot a Gaussian regression on a dataset with powerlifters.
+We use cross-validation to determine the optimal smoothing penalty.
 
 """
 import matplotlib.pyplot as plt
@@ -24,12 +25,12 @@ terms = (
     + Spline("bodyweightkg", penalty=1e7)
     + Categorical("sex", penalty=1e4)
 )
-gam = GAM(terms=terms, distribution="normal", link="log", verbose=True)
+gam = GAM(terms=terms, distribution="normal", link="log")
 
 # Cross validate to find penalty
 cv = KFold(shuffle=True, random_state=42, n_splits=5)
 scoring = make_scorer(mean_squared_error, greater_is_better=False)
-param_grid = {"terms__0__penalty": np.logspace(4, 7, num=6)}
+param_grid = {"terms__0__penalty": np.logspace(5, 6, num=6)}
 grid_search = GridSearchCV(gam, param_grid, cv=cv, scoring=scoring)
 grid_search.fit(df, df["totalkg"])
 print("Optimal parameters:", grid_search.best_params_)

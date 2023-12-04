@@ -284,12 +284,20 @@ def tensor_product(a, b, reshape=True):
     >>> import numpy as np
     >>> A = np.eye(3, dtype=int)
     >>> B = np.arange(9).reshape(3, 3)
+    >>> B
+    array([[0, 1, 2],
+           [3, 4, 5],
+           [6, 7, 8]])
     >>> tensor_product(A, B)
     array([[0, 1, 2, 0, 0, 0, 0, 0, 0],
            [0, 0, 0, 3, 4, 5, 0, 0, 0],
            [0, 0, 0, 0, 0, 0, 6, 7, 8]])
     >>> A = np.diag([1, 2, 3])
     >>> A[0, :] = [1, 2, 3]
+    >>> A
+    array([[1, 2, 3],
+           [0, 2, 0],
+           [0, 0, 3]])
     >>> tensor_product(A, B, reshape=True)
     array([[ 0,  1,  2,  0,  2,  4,  0,  3,  6],
            [ 0,  0,  0,  6,  8, 10,  0,  0,  0],
@@ -339,6 +347,18 @@ def tensor_product(a, b, reshape=True):
            [0., 0., 1., 0., 0., 1., 0., 0., 0.],
            [0., 0., 1., 0., 0., 1., 0., 0., 1.]])
 
+    With ones:
+
+    >>> tensor_product(np.ones_like(B), B)
+    array([[1, 0, 0, 1, 0, 0, 1, 0, 0],
+           [1, 0, 0, 1, 0, 0, 1, 0, 0],
+           [1, 0, 0, 1, 0, 0, 1, 0, 0],
+           [0, 1, 0, 0, 1, 0, 0, 1, 0],
+           [0, 1, 0, 0, 1, 0, 0, 1, 0],
+           [0, 1, 0, 0, 1, 0, 0, 1, 0],
+           [0, 0, 1, 0, 0, 1, 0, 0, 1],
+           [0, 0, 1, 0, 0, 1, 0, 0, 1],
+           [0, 0, 1, 0, 0, 1, 0, 0, 1]])
 
     """
     assert a.ndim == 2, f"matrix a must be 2-dimensional, but found {a.ndim} dimensions"

@@ -8,6 +8,7 @@ Created on Sun Feb  5 09:18:35 2023
 import itertools
 
 import numpy as np
+import scipy as sp
 import pandas as pd
 import pytest
 from sklearn.base import clone
@@ -484,6 +485,59 @@ class TestSplines:
 
     def test_spline_transformations_and_penalties(self):
         pass
+
+
+class TestTensor:
+    def test_that_kronecker_product_is_associative(self):
+        """A sanity check on the Kronecker product.
+        https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.kron.html
+        """
+
+        a = np.diag([1, 2, 3])
+        b = np.diag([3, 5, 9])
+        c = np.diag([4, 6, 7])
+
+        k = sp.linalg.kron  # ease notation
+
+        assert (k(a, k(b, c)) == k(k(a, b), c)).all()
+
+    @pytest.mark.skip(reason="Not implemented.")
+    def test_tensor_with_linear(self):
+        df = pd.DataFrame({"x1": [1, 2, 3, 4, 5], "x2": [1, 1, 2, 2, 2]})
+
+        # For two Linear terms, the Tensor simply represents the elementwise product
+        te = Tensor(Linear("x1", penalty=2) + Linear("x2", penalty=3))
+        X_transformed = te.fit_transform(df)
+        assert np.allclose(X_transformed.ravel(), (df["x1"] * df["x2"]).values.ravel())
+
+        # The penalties are added
+        # assert np.isclose(te.penalty_matrix()[0, 0], 2 +3)
+
+    @pytest.mark.skip(reason="Not implemented.")
+    def test_tensor_splines_on_categoricals(self):
+        df = pd.DataFrame({"color": list("rgbgbrr"), "grade": list("AAABBCC")})
+        X_transformed = Categorical("color").fit_transform(df).astype(int)
+        ans = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 1], [0, 0, 1]])
+        assert np.allclose(X_transformed, ans)
+
+        te = Tensor([Categorical("color"), Categorical("grade")])
+        te.fit(df)
+        penalty_matrix = te.penalty_matrix()
+        assert np.allclose(penalty_matrix, np.diag(np.ones(3 * 3) * 2))
+
+        X_transformed = te.fit_transform(df)
+        ans = np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            ]
+        )
+        assert np.allclose(X_transformed, ans)
 
 
 if __name__ == "__main__":

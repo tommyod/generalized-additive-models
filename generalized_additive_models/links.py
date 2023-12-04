@@ -143,7 +143,6 @@ class Logit(Link, BaseEstimator):
         mu = np.maximum(np.minimum(mu, high - threshold), low + threshold)
 
         return np.exp(np.log(high - low) - np.log(high - mu) - np.log(mu - low))
-        return (high - low) / ((high - mu) * (mu - low))
 
     def second_derivative(self, mu):
         """Elementwise second derivative of the link function."""
@@ -215,31 +214,57 @@ class SmoothLog(Link, BaseEstimator):
         array([-1.36754447e+00, -5.85786438e-01, -1.02633404e-01, -1.00251258e-02,
                -1.00025013e-03])
         """
-        a = self._validate_threshold(threshold=self.a, argument=mu)
+        # Approximates the exp function
+        a = self.a
 
-        return (mu ** (a - 1) - 1) / (a - 1)
+        # Base value is the result at zero
+        result = -np.ones_like(mu) * np.inf
+        mask = mu > 0
+
+        result[mask > 0] = (mu[mask] ** (a - 1) - 1) / (a - 1)
+        return result
 
     def inverse_link(self, linear_prediction):
-        r"""Map from the linear space to the expected value :math:`\mu`."""
-        # (a*y - y + 1)**(1/(a - 1))
+        r"""Map from the linear space to the expected value :math:`\mu`.
 
-        a = self._validate_threshold(threshold=self.a, argument=linear_prediction)
+        Examples
+        --------
+        >>> linear_prediction = np.arange(-5, 6)
+        >>> SmoothLog().inverse_link(linear_prediction)
+        array([ 0,  0,  0,  0,  0,  1,  2,  4,  6,  9, 12])
+        """
+        # (a*y - y + 1)**(1/(a - 1))
+        a = self.a
 
         base = linear_prediction * (a - 1) + 1
         exponent = 1 / (a - 1)
-        return base**exponent
+
+        # When the base is negative, the function is not defined, set to zero.
+        result = np.zeros_like(linear_prediction)
+        result[base > 0] = base[base > 0] ** exponent
+        return result
 
     def derivative(self, mu):
         """Elementwise first derivative of the link function."""
-        a = self._validate_threshold(threshold=self.a, argument=mu)
-
-        return mu ** (a - 2)
+        # a = self._validate_threshold(threshold=self.a, argument=mu)
+        a = self.a
+        # Base value is the result at zero
+        result = -np.ones_like(mu) * np.inf
+        mask = mu > 0
+        result[mask] = mu[mask] ** (a - 2)
+        return result
 
     def second_derivative(self, mu):
         """Elementwise second derivative of the link function."""
-        a = self._validate_threshold(threshold=self.a, argument=mu)
+        a = self.a
 
-        return mu ** (a - 3) * (a - 2)
+        # Base value is the result at zero
+        result = -np.ones_like(mu) * np.inf
+        mask = mu > 0
+
+        # Fill in valid values
+        result[mask] = mu[mask] ** (a - 3) * (a - 2)
+        return result
 
 
 class Softplus(Link, BaseEstimator):
@@ -263,46 +288,58 @@ class Softplus(Link, BaseEstimator):
             function more closely mimic :math:`\max(0, \mu)`. The default is 1.
 
         """
+        assert isinstance(a, Real)
         self.a = a
         assert a > 0
 
     def link(self, mu):
         r"""Map from the expected value :math:`\mu` to the unbounded linear space.
 
+        The softplus function is log(1 + exp(x)), so the link function is the
+        inverse, which is log(exp(x) - 1)
+
         Examples
         --------
         >>> mu = np.array([0.01, 0.1, 1., 5., 10.])
         >>> Softplus(a=1).link(mu)
         array([-4.60016602, -2.25216846,  0.54132485,  4.99323925,  9.9999546 ])
+        >>> np.log(np.exp(mu) - 1)
+        array([-4.60016602, -2.25216846,  0.54132485,  4.99323925,  9.9999546 ])
         """
-        a = self._validate_threshold(threshold=self.a, argument=mu)
-
+        a = self.a
         return np.maximum(0, mu) + np.log1p(-np.exp(-a * np.abs(mu))) / a
-        return np.log(np.exp(a * mu) - 1) / a
 
     def inverse_link(self, linear_prediction):
-        r"""Map from the linear space to the expected value :math:`\mu`."""
-        # the inverse is the softplus
+        r"""Map from the linear space to the expected value :math:`\mu`.
 
-        a = self._validate_threshold(threshold=self.a, argument=linear_prediction)
+        The softplus function is log(1 + exp(x)).
 
+        Examples
+        --------
+        >>> linear_prediction = np.array([-10, 3, 4, 10])
+        >>> Softplus(a=1).inverse_link(linear_prediction)
+        array([4.53988992e-05, 3.04858735e+00, 4.01814993e+00, 1.00000454e+01])
+        >>> np.log(1 + np.exp(linear_prediction))
+        array([4.53988992e-05, 3.04858735e+00, 4.01814993e+00, 1.00000454e+01])
+        """
+        # the inverse is the softplus function: log(1 + exp(x))
+
+        a = self.a
         # return np.log(1 + np.exp(a * linear_prediction))/a
         return np.maximum(0, linear_prediction) + np.log1p(np.exp(-a * np.abs(linear_prediction))) / a
 
     def derivative(self, mu):
         """Elementwise first derivative of the link function."""
-        a = self._validate_threshold(threshold=self.a, argument=mu)
+        a = self.a
 
         # If mu is 0 + epislon, then exp(mu) = 1 and we divide by zero
-        threshold = EPSILON
-        mu = np.maximum(mu, 0 + threshold)
+        mu = np.maximum(mu, 0 + EPSILON)
 
         return 1 / (1 - np.exp(-a * mu))
 
     def second_derivative(self, mu):
         """Elementwise second derivative of the link function."""
-        a = self._validate_threshold(threshold=self.a, argument=mu)
-
+        a = self.a
         return -a / (4 * np.sinh(a * mu / 2) ** 2)
 
 
@@ -317,14 +354,14 @@ class CLogLogLink(Link, BaseEstimator):
         self.low = low
         self.high = high
 
-    def link(self, mu, levels=1):
+    def link(self, mu):
         r"""Map from the expected value :math:`\mu` to the unbounded linear space."""
         low = self._validate_threshold(threshold=self.low, argument=mu)
         high = self._validate_threshold(threshold=self.high, argument=mu)
 
         return np.log(np.log(high - low) - np.log(high - mu))
 
-    def inverse_link(self, linear_prediction, levels=1):
+    def inverse_link(self, linear_prediction):
         r"""Map from the linear space to the expected value :math:`\mu`."""
         low = self._validate_threshold(threshold=self.low, argument=linear_prediction)
         high = self._validate_threshold(threshold=self.high, argument=linear_prediction)
@@ -333,7 +370,7 @@ class CLogLogLink(Link, BaseEstimator):
 
         return high - high * exponential + low * exponential
 
-    def derivative(self, mu, levels=1):
+    def derivative(self, mu):
         """Elementwise first derivative of the link function."""
         low = self._validate_threshold(threshold=self.low, argument=mu)
         high = self._validate_threshold(threshold=self.high, argument=mu)
@@ -384,7 +421,10 @@ class InvSquared(Link, BaseEstimator):
         return 1.0 / mu**2
 
     def inverse_link(self, linear_prediction):
-        r"""Map from the linear space to the expected value :math:`\mu`."""
+        r"""Map from the linear space to the expected value :math:`\mu`.
+
+        Notice that this link function is not defined for negative linear predictions.
+        """
         return 1.0 / np.sqrt(linear_prediction)
 
     def derivative(self, mu):
@@ -403,7 +443,10 @@ LINKS = {
         Identity,
         Log,
         Logit,
-        # CLogLogLink, InvSquared, Inverse, SmoothLog,
+        CLogLogLink,
+        InvSquared,
+        Inverse,
+        SmoothLog,
         Softplus,
     ]
 }
@@ -416,11 +459,10 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
 
-    link = Softplus()
+    link = SmoothLog()
 
-    x = np.linspace(0.1, 10)
-    plt.plot(x, link(x))
-    plt.plot(x, link.derivative(x))
+    x = np.linspace(-0.1, 1, 2**8)
+    plt.plot(x, link.link(x))
     plt.plot(x, x)
     plt.grid(True)
     plt.show()
