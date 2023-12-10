@@ -8,9 +8,9 @@ Created on Sun Feb  5 09:18:35 2023
 import itertools
 
 import numpy as np
-import scipy as sp
 import pandas as pd
 import pytest
+import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing
 from sklearn.exceptions import NotFittedError

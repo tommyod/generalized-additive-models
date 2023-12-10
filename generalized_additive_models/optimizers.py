@@ -97,7 +97,19 @@ def solve_unbounded_lstsq(*, X, D, w, z):
     lhs = X_T_W_X_plus_D_T_D(X=X, w=w, D=D)
     rhs = X.T @ (w * z)
 
-    return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
+    # Try the standard solution method first - cholesky factorization
+    try:
+        return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
+
+    # Singular matrix. Fall back to SVD as solution method
+    except np.linalg.LinAlgError:
+        # TODO: Can we do something better here? Does this make sense?
+        # Fill the entire matrix
+        lhs = lhs + lhs.T
+        np.fill_diagonal(lhs, lhs.diagonal() / 2.0)
+        U, s, VT = sp.linalg.svd(lhs, full_matrices=False, overwrite_a=True)
+        s = np.maximum(s, EPSILON)
+        return np.linalg.multi_dot([VT.T, (U / s).T, X.T, (w * z)])
 
 
 def solve_lstsq(*, X, D, w, z, bounds=None, verbose=0):
@@ -450,7 +462,7 @@ class LBFGSB(Optimizer):
             callback=Callback(),
             options={
                 "maxiter": self.max_iter,
-                "maxls": 50,  # default is 20
+                "maxls": 20,  # default is 20
                 # "iprint": self.verbose - 1,
                 "gtol": self.tol,
                 # The constant 64 was found empirically to pass the test suite.
@@ -472,7 +484,7 @@ class LBFGSB(Optimizer):
         self.set_statistics(X=X, D=D, beta=beta)
 
         # Add back zeros to beta (unidentifiable parameters)
-        num_beta = self.D.shape[0]
+        num_beta = self.D.shape[1]
         self.results_.iters_coef = [
             self.column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in self.results_.iters_coef
         ]

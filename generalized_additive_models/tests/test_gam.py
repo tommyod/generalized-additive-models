@@ -16,8 +16,10 @@ import pytest
 import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
+from sklearn.linear_model import Ridge
 from sklearn.metrics import accuracy_score, r2_score
 from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 
@@ -79,6 +81,47 @@ class TestAPIContract:
         assert isinstance(gam._distribution.scale, Real)
         gam.score(df, y)
         assert isinstance(gam._distribution.scale, Real)
+
+
+class TestNonCanonicalLinks:
+    @pytest.mark.parametrize("num_splines", [4, 8, 12, 16, 20, 24, 28])
+    def test_that_log_link_optimization_works_california_housing(self, num_splines):
+        """This problem can potentially blow up."""
+        penalty = 1e2  # With the log-link, it's a good idea to increase penalty
+
+        X, y = fetch_california_housing(return_X_y=True, as_frame=True)
+        X, y = resample(X, y, replace=False, n_samples=num_splines * 100, random_state=num_splines)
+
+        # Set up scoring and CV
+        scoring = "neg_mean_squared_error"
+        cv = KFold(n_splits=5, shuffle=True, random_state=num_splines)
+
+        terms = (
+            Spline(feature="MedInc", num_splines=num_splines, penalty=penalty)
+            + Spline(feature="HouseAge", num_splines=num_splines, penalty=penalty)
+            + Spline(feature="AveRooms", num_splines=num_splines, penalty=penalty)
+            + Spline(feature="AveBedrms", num_splines=num_splines, penalty=penalty)
+            + Spline(feature="Population", num_splines=num_splines, penalty=penalty)
+            + Spline(feature="AveOccup", num_splines=num_splines, penalty=penalty)
+            + Tensor(
+                [
+                    Spline(feature="Latitude", num_splines=num_splines, penalty=penalty),
+                    Spline(feature="Longitude", num_splines=num_splines, penalty=penalty),
+                ]
+            )
+        )
+
+        pipeline = Pipeline(
+            [
+                ("scaler", StandardScaler()),
+                ("gam", GAM(terms, link="log", solver="pirls")),
+            ]
+        ).set_output(transform="pandas")
+
+        scores = -cross_val_score(pipeline, X, y, cv=cv, scoring=scoring)
+        # On this problem a dummy model achieves MSE of 1.33
+        # A linear regression achieves MSE of 0.53
+        assert np.all(scores < 0.5)
 
 
 class TestExponentialFunctionGamsWithCanonicalLinks:
@@ -144,6 +187,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
             link="log",
             distribution="poisson",
             solver=solver,
+            max_iter=999
         ).fit(X, y)
 
         assert np.allclose(mu, poisson_gam.predict(X), atol=1)
@@ -510,6 +554,33 @@ class TestGamAutoModels:
 
 
 class TestGAMSanityChecks:
+    def test_that_increasing_l2_spline_penalty_pulls_coefs_to_zero(self):
+        rng = np.random.default_rng(42)
+
+        # Create a normal problem
+        x = np.linspace(0, 2 * np.pi, num=2**10)
+        X = x.reshape(-1, 1)
+        y = rng.normal(loc=1 + np.sin(x), scale=0.1)
+
+        # Loop over increasing l2-penalties
+        l2_penalties = np.logspace(-12, 18, num=31)  # Powers of 10
+        for l2_low, l2_high in zip(l2_penalties[:-1], l2_penalties[1:]):
+            # Create GAM with low penalty
+            gam_low = GAM(Spline(0, l2_penalty=l2_low))
+            gam_low.fit(X, y)
+
+            # Create GAM with high penalty
+            gam_high = GAM(Spline(0, l2_penalty=l2_high))
+            gam_high.fit(X, y)
+
+            # Higher l2 penalty means coefficients are pulled more to zero
+            coef_low_norm = np.linalg.norm(gam_low.terms[0].coef_)
+            coef_high_norm = np.linalg.norm(gam_high.terms[0].coef_)
+            assert coef_low_norm > coef_high_norm
+
+            # Lower penalty means higher score however
+            assert gam_low.score(X, y) >= gam_high.score(X, y)
+
     @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
     @pytest.mark.parametrize("num", [5, 10, 50, 100, 500, 1000])
     def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(self, num, solver):
@@ -1023,6 +1094,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_scale_invariance_of_features",
+            "-k test_that_increasing_l2_spline_penalty_pulls_coefs_to_zero",
         ]
     )
