@@ -183,11 +183,7 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
         # Create a GAM
         poisson_gam = GAM(
-            Spline(0, extrapolation="periodic"),
-            link="log",
-            distribution="poisson",
-            solver=solver,
-            max_iter=999
+            Spline(0, extrapolation="periodic"), link="log", distribution="poisson", solver=solver, max_iter=999
         ).fit(X, y)
 
         assert np.allclose(mu, poisson_gam.predict(X), atol=1)
