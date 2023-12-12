@@ -16,7 +16,6 @@ import pytest
 import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
-from sklearn.linear_model import Ridge
 from sklearn.metrics import accuracy_score, r2_score
 from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline

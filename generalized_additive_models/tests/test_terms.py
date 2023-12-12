@@ -278,6 +278,52 @@ class TestTerms:
 
 
 class TestTermList:
+    def test_that_set_params_changes_all_terms_in_termlist(self):
+        # Setting 'penalty' on a termlist changes all penalties
+        termlist = Spline(0, penalty=1) + Spline(1, penalty=2)
+        termlist.set_params(penalty=3)
+        assert all(term.penalty == 3 for term in termlist)
+
+        # Setting 'penalty' on a termlist changes all penalties
+        termlist = Spline(0, penalty=1) + Linear(1, penalty=2)
+        termlist.set_params(penalty=7)
+        assert all(term.penalty == 7 for term in termlist)
+
+        # Setting 'penalty' on a termlist does not change the intercept
+        spline = Spline(0, penalty=1)
+        linear = Linear(1, penalty=2)
+        intercept = Intercept()
+        termlist = spline + linear + intercept
+        termlist.set_params(penalty=8)
+        assert spline.penalty == 8
+        assert linear.penalty == 8
+
+        # Setting 'penalty' and 'num_splines' at the same time
+        spline = Spline(0, penalty=1, num_splines=10)
+        linear = Linear(1, penalty=2)
+        intercept = Intercept()
+        termlist = spline + linear + intercept
+        termlist.set_params(penalty=8, num_splines=14)
+        assert spline.penalty == 8
+        assert spline.num_splines == 14
+        assert linear.penalty == 8
+
+        # Propagate down to Tensors too
+        tensor = Tensor([Spline(0, penalty=1), Spline(1, penalty=2)])
+        spline = Spline(2, penalty=3, num_splines=10)
+        termlist = tensor + spline
+        termlist.set_params(penalty=8)
+        assert spline.penalty == 8
+        for term in tensor:
+            assert term.penalty == 8
+
+    def test_that_set_params_on_index_changes_that_term(self):
+        # Setting 'penalty' on a termlist changes all penalties
+        termlist = Spline(0, penalty=1) + Spline(1, penalty=2)
+        termlist.set_params(**{"0__penalty": 0})
+        assert termlist[0].penalty == 0
+        assert termlist[1].penalty == 2
+
     def test_that_adding_tensor_term_does_not_unpack_tensor(self):
         # Since a Tensor is iterable, a bug caused each individual
         # spline in the Tensor to be added, instead of the tensor
@@ -323,8 +369,9 @@ class TestTermList:
 
 class TestPenaltyMatrices:
     @pytest.mark.parametrize("num_splines", [5, 10, 15])
-    def test_that_penalty_matrix_shape_is_correct(self, num_splines):
-        terms = [Intercept(), Linear(0), Spline(0, num_splines=num_splines)]
+    @pytest.mark.parametrize("l2_penalty", [0, 1, 10])
+    def test_that_penalty_matrix_shape_is_correct(self, num_splines, l2_penalty):
+        terms = [Intercept(), Linear(0), Spline(0, num_splines=num_splines, l2_penalty=l2_penalty)]
         for term in terms:
             assert term.num_coefficients > 0
 

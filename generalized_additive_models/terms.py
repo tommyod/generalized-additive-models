@@ -1009,18 +1009,6 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
            [ 0., -0.,  0.,  0., -0.,  0.,  1., -2.,  1.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
 
-
-
-    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 1., -2.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 1.,  0.,  0., -2.,  0.,  0.,  1.,  0.,  0.],
-           [ 0.,  1.,  0.,  1., -4.,  1.,  0.,  1.,  0.],
-           [ 0.,  0.,  1.,  0.,  0., -2.,  0.,  0.,  1.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  1., -2.,  1.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
-
     Imagine a matrix of coefficients that looks like this:
     [beta_11, beta_12, beta_13]
     [beta_21, beta_22, beta_23]
@@ -1460,6 +1448,12 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         >>> terms
         TermList([Linear(feature=2, penalty=2), Intercept()])
 
+        Setting on all terms in a Termlist:
+
+        >>> tensor = Tensor([Spline(0), Spline(1)])
+        >>> tensor.set_params(penalty=7)
+        Tensor(TermList([Spline(feature=0, penalty=7), Spline(feature=1, penalty=7)]))
+
 
         """
         if not params:
@@ -1474,6 +1468,16 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         nested_params = defaultdict(dict)  # grouped by prefix
         for key, value in params.items():
+            # Check if the key is a feature present in any of the Terms,
+            # for instance key='penalty'
+            if any(((key in spline.get_params().keys()) for spline in self.splines)):
+                for spline in self.splines:
+                    if key in spline.get_params().keys():
+                        spline.set_params(**{key: value})
+
+                # No more processing for this key
+                continue
+
             # Split the key, which indicates which Term in the TermList to
             # update
             # '0__feature'.partition("__") -> ('0', '__', 'feature')
@@ -2046,6 +2050,18 @@ class TermList(UserList, BaseEstimator):
         nested_params = defaultdict(dict)  # grouped by prefix
 
         for key, value in params.items():
+            # Check if the key is a feature present in any of the Terms,
+            # for instance key='penalty'
+            if any(((key in term.get_params().keys()) for term in self)):
+                for term in self:
+                    if key in term.get_params().keys():
+                        term.set_params(**{key: value})
+                    elif isinstance(term, Tensor):
+                        term.set_params(**{key: value})
+
+                # No more processing for this key
+                continue
+
             # Split the key, which indicates which Term in the TermList to
             # update
             # '0__feature'.partition("__") -> ('0', '__', 'feature')
