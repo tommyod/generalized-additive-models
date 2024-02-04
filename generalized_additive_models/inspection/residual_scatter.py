@@ -77,8 +77,9 @@ class ResidualScatterDisplay:
 
 
 if __name__ == "__main__":
-    from generalized_additive_models import GAM, Spline, Categorical
     from sklearn.datasets import load_diabetes
+
+    from generalized_additive_models import GAM, Categorical, Spline
 
     data = load_diabetes(as_frame=True)
     df = data.data

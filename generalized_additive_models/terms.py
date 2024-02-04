@@ -460,6 +460,12 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         If set high, the spline becomes linear (no second derivative).
         If set low, the spline becomes very wiggly and tends to overfit.
         The default is 1.
+    l2_penalty : float, optional
+        A penalty term that penalizes the size of each spline coefficient.
+        If set high, the spline becomes the zero function since all coefficients
+        are regularized toward zero. If set low, the spline coefficients can
+        be large.
+        The default is 1.
     by : int or str, optional
         An interaction effect with a numerical feature. The spline
 
@@ -576,6 +582,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     _parameter_constraints = {
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
         "penalty": [Interval(Real, 0, None, closed="left")],
+        "l2_penalty": [Interval(Real, 0, None, closed="left")],
         "by": [Interval(Integral, 0, None, closed="left"), str, None],
         "num_splines": [Interval(Integral, 2, None, closed="left"), None],
         "constraint": [
@@ -604,6 +611,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         feature=None,
         *,
         penalty=1,
+        l2_penalty=0,
         by=None,
         num_splines=20,
         constraint=None,
@@ -645,6 +653,7 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         """
         self.feature = feature
         self.penalty = penalty
+        self.l2_penalty = l2_penalty
         self.by = by
         self.num_splines = num_splines
         self.constraint = constraint
@@ -678,10 +687,23 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     def penalty_matrix(self):
         """Return the penalty matrix for the term."""
         super()._validate_params()  # Validate 'penalty' and 'num_coefficients'
-        periodic = self.extrapolation == "periodic"
-        matrix = second_order_finite_difference(self.num_coefficients, periodic=periodic)
 
-        return np.sqrt(self.penalty) * matrix
+        # The penalty for second order derivative
+        periodic = self.extrapolation == "periodic"
+        D = second_order_finite_difference(self.num_coefficients, periodic=periodic)
+        D = D * np.sqrt(self.penalty)
+
+        # No l2-penalty
+        if self.l2_penalty == 0:
+            assert D.shape[1] == self.num_coefficients
+            return D
+        else:
+            # The l2 penalty on the coefficients
+            P = np.eye(self.num_coefficients)
+            P = P * np.sqrt(self.l2_penalty)
+            penalty_matrix = np.vstack((D, P))
+            assert penalty_matrix.shape[1] == self.num_coefficients
+            return penalty_matrix
 
     def _post_transform_basis_for_constraint(self, *, constraint, basis_matrix, basis_matrix_mirrored, X_feature):
         """Transform basis matrices to comply with constraints.
@@ -985,18 +1007,6 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
            [ 0., -0.,  0.,  0., -0.,  0.,  1., -2.,  1.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
-
-
-
-    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 1., -2.,  1.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 1.,  0.,  0., -2.,  0.,  0.,  1.,  0.,  0.],
-           [ 0.,  1.,  0.,  1., -4.,  1.,  0.,  1.,  0.],
-           [ 0.,  0.,  1.,  0.,  0., -2.,  0.,  0.,  1.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.,  0.,  1., -2.,  1.],
            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
 
     Imagine a matrix of coefficients that looks like this:
@@ -1439,6 +1449,12 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         >>> terms
         TermList([Linear(feature=2, penalty=2), Intercept()])
 
+        Setting on all terms in a Termlist:
+
+        >>> tensor = Tensor([Spline(0), Spline(1)])
+        >>> tensor.set_params(penalty=7)
+        Tensor(TermList([Spline(feature=0, penalty=7), Spline(feature=1, penalty=7)]))
+
 
         """
         if not params:
@@ -1453,6 +1469,16 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         nested_params = defaultdict(dict)  # grouped by prefix
         for key, value in params.items():
+            # Check if the key is a feature present in any of the Terms,
+            # for instance key='penalty'
+            if any(((key in spline.get_params().keys()) for spline in self.splines)):
+                for spline in self.splines:
+                    if key in spline.get_params().keys():
+                        spline.set_params(**{key: value})
+
+                # No more processing for this key
+                continue
+
             # Split the key, which indicates which Term in the TermList to
             # update
             # '0__feature'.partition("__") -> ('0', '__', 'feature')
@@ -2049,6 +2075,18 @@ class TermList(UserList, BaseEstimator):
         nested_params = defaultdict(dict)  # grouped by prefix
 
         for key, value in params.items():
+            # Check if the key is a feature present in any of the Terms,
+            # for instance key='penalty'
+            if any(((key in term.get_params().keys()) for term in self)):
+                for term in self:
+                    if key in term.get_params().keys():
+                        term.set_params(**{key: value})
+                    elif isinstance(term, Tensor):
+                        term.set_params(**{key: value})
+
+                # No more processing for this key
+                continue
+
             # Split the key, which indicates which Term in the TermList to
             # update
             # '0__feature'.partition("__") -> ('0', '__', 'feature')
