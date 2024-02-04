@@ -81,6 +81,23 @@ class TestAPIContract:
         assert isinstance(gam._distribution.scale, Real)
 
 
+class TestCategoricalModels:
+    def test_that_unseen_category_works(self):
+        """User must set 'handle_unknown'. Prediction will be the grand mean."""
+
+        # Train a model on two categories
+        df_train = pd.DataFrame({"cat": list("abaab"), "y": [1, 3, 2, 1, 2]})
+        model = GAM(terms=Categorical("cat", handle_unknown="ignore")).fit(df_train, df_train.y)
+
+        # Predict on new data
+        df_test = pd.DataFrame({"cat": list("abcc")})
+        predictions = model.predict(df_test)
+
+        # The unknown category should be predicted as the grand mean
+        assert np.isclose(df_train.y.mean(), predictions[-1])
+        assert np.isclose(df_train.y.mean(), predictions[-2])
+
+
 class TestExponentialFunctionGamsWithCanonicalLinks:
     INTERCEPT = [-2, -1, 0, 1, 1.5]
 
@@ -1023,6 +1040,6 @@ if __name__ == "__main__":
             "--capture=sys",
             "--doctest-modules",
             "--maxfail=1",
-            "-k test_scale_invariance_of_features",
+            "-k TestCategoricalModels",
         ]
     )

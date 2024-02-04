@@ -1055,7 +1055,8 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
            [1., 0., 0.],
            [0., 0., 1.],
            [0., 0., 1.]])
-    >>> te = Tensor(Categorical('color') + Categorical('grade', penalty=4))
+    >>> te = Tensor(Categorical('color', sum_to_zero=False) +
+    ...             Categorical('grade', penalty=4, sum_to_zero=False))
     >>> te.fit_transform(df).astype(int)
     array([[0, 0, 0, 0, 0, 0, 1, 0, 0],
            [0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -1198,7 +1199,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         >>> df = pd.DataFrame({'cat':list('AAAABBBB'),
         ...                    'x1': [1, 2, 3, 4, 1, 2, 3, 4]})
         >>> spline = Spline('x1', num_splines=3, degree=0)
-        >>> cat = Categorical('cat')
+        >>> cat = Categorical('cat', sum_to_zero=False)
         >>> tensor = Tensor([spline, cat]).fit(df)
         >>> tensor._build_marginal_penalties(0).astype(int)
         array([[ 0,  0,  0,  0,  0,  0],
@@ -1501,7 +1502,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
     >>> import pandas as pd
     >>> df = pd.DataFrame({"colors": ["red", "red", "blue", "yellow", "red"]})
-    >>> categorical = Categorical("colors")
+    >>> categorical = Categorical("colors", sum_to_zero=False)
     >>> categorical.fit_transform(df)
     array([[0., 1., 0.],
            [0., 1., 0.],
@@ -1533,13 +1534,16 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         "feature": [Interval(Integral, 0, None, closed="left"), str, None],
         "penalty": [Interval(Real, 0, None, closed="left")],
         "by": [Interval(Integral, 0, None, closed="left"), str, None],
+        "sum_to_zero": ["boolean"],
     }
 
     def __init__(
         self,
         feature=None,
+        *,
         penalty=1,
         by=None,
+        sum_to_zero=True,
         handle_unknown="error",
         min_frequency=None,
         max_categories=None,
@@ -1583,6 +1587,7 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
         self.handle_unknown = handle_unknown
         self.min_frequency = min_frequency
         self.max_categories = max_categories
+        self.sum_to_zero = sum_to_zero
 
     def _validate_params(self, X):
         # Validate using BaseEsimator._validate_params, which in turn calls
@@ -1609,7 +1614,25 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
     def penalty_matrix(self):
         """Return the penalty matrix for the term."""
         super()._validate_params()  # Validate the 'penalty' parameter
-        return np.sqrt(self.penalty) * np.eye(self.num_coefficients)
+
+        # Only l2 penalties
+        if not self.sum_to_zero:
+            return np.sqrt(self.penalty) * np.eye(self.num_coefficients)
+
+        # The penalty for e.g. three coefficients will be
+        # |coef_1 + coef_2 + coef_3|^2 +
+        # |coef_1|^2 + |coef_2|^2 + |coef_3|^2
+
+        # Sum to zero penalties.
+        sum_to_zero_penalty = self.counts_ * 1e3
+
+        # L2 penalties
+        l2_penalty = np.sqrt(self.penalty) * np.eye(self.num_coefficients)
+
+        P = np.vstack((sum_to_zero_penalty, l2_penalty))
+        assert P.shape[1] == self.num_coefficients
+
+        return P
 
     def fit(self, X):
         """Fit to data.
@@ -1644,6 +1667,8 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
 
         self.categories_ = list(self.onehotencoder_.categories_[0])
         self.means_ = basis_matrix.mean(axis=0) * 0  # Do not shift means for Categorical
+        self.counts_ = (basis_matrix > 0).sum(axis=0)
+        assert len(self.counts_) == self.num_coefficients
 
         # Set the bounds
         self._lower_bound = np.array([-np.inf for _ in range(self.num_coefficients)])

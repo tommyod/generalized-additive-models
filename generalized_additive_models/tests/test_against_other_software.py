@@ -72,8 +72,8 @@ class TestAgainstRLM:
             }
         )
 
-        gender_cat = Categorical("gender", penalty=0)
-        country_cat = Categorical("country", penalty=0)
+        gender_cat = Categorical("gender", penalty=0, sum_to_zero=False)
+        country_cat = Categorical("country", penalty=0, sum_to_zero=False)
 
         gam = GAM(gender_cat + country_cat, fit_intercept=False).fit(df, df.height)
 

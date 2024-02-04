@@ -83,14 +83,14 @@ class GAM(BaseEstimator):
     >>> for term in gam.terms:
     ...     print(term, term.coef_) # doctest: +SKIP
     >>> gam.score(df, y)
-    0.4412081401019129
+    0.4412081...
     >>> from sklearn.metrics import r2_score
     >>> r2_score(y_true=y, y_pred=predictions)
-    0.4412081401019129
+    0.4412081...
     >>> gam.terms["age"]
     Spline(feature='age')
     >>> gam.terms["age"].coef_[:3]
-    array([  0.        , -11.86887791, -23.59686477])
+    array([  0.        , -11.86..., -23.59...])
 
     """
 
