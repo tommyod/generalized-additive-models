@@ -45,7 +45,7 @@ jobs:
         black docs --check
         black examples --check
         codespell --ignore-words-list='te,ans' --skip='*.csv'
-        flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731 --exclude=tests,'*ipynb_checkpoints*'
+        flake8 generalized_additive_models docs --select=F811,F841,F401,E711,E712,E731,E721 --exclude=tests,'*ipynb_checkpoints*'
 
     - name: Run tests
       run: pytest generalized_additive_models --doctest-modules
