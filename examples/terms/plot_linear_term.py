@@ -6,6 +6,7 @@ Plot Linear term
 A Linear term maybe penalized exactly like in Ridge regression.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import GAM, Linear

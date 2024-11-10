@@ -6,6 +6,7 @@ Plot Poisson regression
 Plot a Poisson regression on a time series dataset.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

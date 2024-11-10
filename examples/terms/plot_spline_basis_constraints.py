@@ -6,6 +6,7 @@ Spline basis with constraints
 Plot a spline basis with constraints.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import Spline

@@ -6,6 +6,7 @@ Model comparison on salary dataset
 Plot four different models.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import GAM, Spline
