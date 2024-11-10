@@ -139,7 +139,7 @@ class Term(ABC):
 
     def __eq__(self, other):
         # Two terms are equal iff their parameters are equal
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
 
         return self.get_params() == other.get_params()
