@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Generalized Additive Model
+
+
 Created on Sun Feb  5 12:05:41 2023
 
 @author: tommy
@@ -60,7 +63,7 @@ class GAM(BaseEstimator):
     max_iter : int, optional
         Maximum number of iterations in the solver.
         The default is 100.
-    tol : TYPE, optional
+    tol : float, optional
         Tolerance in the solver.
         The default is 0.0001.
     verbose : int, optional
