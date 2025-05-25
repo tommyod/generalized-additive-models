@@ -1243,7 +1243,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
             penalty_matrices.append(penalty)
 
-        return functools.reduce(sp.linalg.kron, penalty_matrices)
+        return functools.reduce(np.kron, penalty_matrices)
 
     def penalty_matrix(self):
         """Build the penaltry matrix.
