@@ -571,9 +571,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
     Linear functions are in the null space of the penalty:
 
     >>> P = Spline(0, num_splines=6).penalty_matrix()
-    >>> np.linalg.norm(P @ np.arange(6))**2
+    >>> float(np.linalg.norm(P @ np.arange(6))**2)
     0.0
-    >>> np.linalg.norm(P @ (np.arange(6) + 3))**2
+    >>> float(np.linalg.norm(P @ (np.arange(6) + 3))**2)
     0.0
     """
 
@@ -1050,7 +1050,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
     >>> coefs = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
     >>> P = tensor.penalty_matrix()
-    >>> np.linalg.norm(P @ coefs)**2
+    >>> float(np.linalg.norm(P @ coefs)**2)
     0.0
 
     Categorical terms are also allowed.
@@ -1167,7 +1167,7 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
     @property
     def num_coefficients(self):
         """Number of coefficients for the term."""
-        return np.prod([spline.num_coefficients for spline in self.splines])
+        return int(np.prod([spline.num_coefficients for spline in self.splines]))
 
     def _build_marginal_penalties(self, i):
         """How each of the marginals connect to each other.
@@ -1916,7 +1916,7 @@ class TermList(UserList, BaseEstimator):
     @property
     def num_coefficients(self):
         """Number of coefficients for the terms."""
-        return np.sum(list(term.num_coefficients for term in self))
+        return int(np.sum(list(term.num_coefficients for term in self)))
 
     def transform(self, X):
         """Transform the input."""

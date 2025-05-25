@@ -82,7 +82,7 @@ class GAM(BaseEstimator):
     >>> predictions = gam.predict(df)
     >>> for term in gam.terms:
     ...     print(term, term.coef_) # doctest: +SKIP
-    >>> gam.score(df, y)
+    >>> float(gam.score(df, y))
     0.4412081401019129
     >>> from sklearn.metrics import r2_score
     >>> r2_score(y_true=y, y_pred=predictions)
@@ -212,7 +212,7 @@ class GAM(BaseEstimator):
         check_consistent_length(X, y, sample_weight)
         y = column_or_1d(y)
 
-        sample_weight = _check_sample_weight(sample_weight, X, only_non_negative=True)
+        sample_weight = _check_sample_weight(sample_weight, X, ensure_non_negative=True)
         sample_weight = column_or_1d(sample_weight)
 
         self.model_matrix_ = self.terms.fit_transform(X)
@@ -291,7 +291,7 @@ class GAM(BaseEstimator):
         >>> X = np.ones((9999, 1))
         >>> y = rng.normal(size=9999) * 10
         >>> gam = GAM(terms=Intercept(), fit_intercept=False).fit(X, y)
-        >>> gam._distribution.scale
+        >>> float(gam._distribution.scale)
         99.389...
         >>> gam.sample(mu=np.zeros(5), random_state=1).round(1)
         array([ 16.2,  -6.1,  -5.3, -10.7,   8.6])
@@ -375,7 +375,7 @@ class GAM(BaseEstimator):
         check_consistent_length(X, y, sample_weight)
         y = column_or_1d(y)
 
-        sample_weight = _check_sample_weight(sample_weight, X, only_non_negative=True)
+        sample_weight = _check_sample_weight(sample_weight, X, ensure_non_negative=True)
         sample_weight = column_or_1d(sample_weight)
 
         # Special case for the null gam. Without this line of code, a cycle of
@@ -703,7 +703,7 @@ class ExpectileGAM(GAM):
         >>> X = np.ones((1000, 1))
         >>> y = rng.triangular(left=0, mode=0.5, right=1, size=(1000, 1))
         >>> gam = ExpectileGAM(Intercept()).fit_quantile(X, y, quantile=0.9)
-        >>> (gam.predict(X) > y).mean()
+        >>> float((gam.predict(X) > y).mean())
         0.90...
         >>> gam.expectile
         0.976...

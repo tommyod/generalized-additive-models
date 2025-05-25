@@ -63,7 +63,7 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     Coverage of 1 standard deviation is given by:
 
     >>> from scipy.stats import norm
-    >>> norm().cdf(1) - norm().cdf(-1)
+    >>> float(norm().cdf(1) - norm().cdf(-1))
     0.6826894921370...
 
     Parameters
