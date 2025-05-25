@@ -6,6 +6,7 @@ Univariate spline with regularization
 Plot a univariate spline with regularization.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import GAM, Spline

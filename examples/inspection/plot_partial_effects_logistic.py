@@ -6,6 +6,7 @@ PartialEffectDisplay for logistic regression
 Plot a Logistic regression on a dataset with powerlifters.
 
 """
+
 import matplotlib.pyplot as plt
 from generalized_additive_models import GAM, Binomial, Categorical, Logit, Spline
 from generalized_additive_models.datasets import load_powerlifters

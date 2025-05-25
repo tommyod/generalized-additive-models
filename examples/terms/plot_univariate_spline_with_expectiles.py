@@ -6,6 +6,7 @@ Univariate spline with expectiles
 Plot a univariate spline with expectiles.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import ExpectileGAM, Spline

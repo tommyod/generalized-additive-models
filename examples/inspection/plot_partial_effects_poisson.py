@@ -6,6 +6,7 @@ PartialEffectDisplay for Poisson regression
 Plot a Poisson regression on a time series dataset.
 
 """
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from generalized_additive_models import GAM, Spline

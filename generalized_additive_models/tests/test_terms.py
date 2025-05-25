@@ -10,7 +10,6 @@ import itertools
 import numpy as np
 import pandas as pd
 import pytest
-import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing
 from sklearn.exceptions import NotFittedError
@@ -544,7 +543,7 @@ class TestTensor:
         b = np.diag([3, 5, 9])
         c = np.diag([4, 6, 7])
 
-        k = sp.linalg.kron  # ease notation
+        k = np.kron  # ease notation
 
         assert (k(a, k(b, c)) == k(k(a, b), c)).all()
 

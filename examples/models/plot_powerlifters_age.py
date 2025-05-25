@@ -7,6 +7,7 @@ Plot a Gaussian regression on a dataset with powerlifters.
 We use cross-validation to determine the optimal smoothing penalty.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import GAM, Categorical, Spline

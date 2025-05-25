@@ -6,6 +6,7 @@ Plot categorical terms
 We examine relative strength on the powerlifting dataset.
 
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 from generalized_additive_models import GAM, Categorical, Spline
