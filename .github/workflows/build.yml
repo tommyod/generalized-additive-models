@@ -58,7 +58,7 @@ jobs:
       - name: Build package
         run: |
           # https://github.com/pypi/warehouse/issues/15611#issuecomment-2003569493
-          pip install pkginfo --upgrade
+          pip install build twine pkginfo packaging --upgrade
           python -m build
           twine check dist/* --strict
           
