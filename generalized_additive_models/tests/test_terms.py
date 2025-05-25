@@ -10,7 +10,6 @@ import itertools
 import numpy as np
 import pandas as pd
 import pytest
-import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing
 from sklearn.exceptions import NotFittedError
