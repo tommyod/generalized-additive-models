@@ -2,7 +2,7 @@
 name = "generalized_additive_models"
 version = "0.4.0"
 dependencies = [
-    "numpy<=2.0.0",
+    "numpy>=2.0.0",
     "scipy<=2.0.0",
     "matplotlib",
     "pandas",
