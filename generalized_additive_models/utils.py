@@ -150,7 +150,9 @@ def phi_pearson(y, mu, distribution, edof, sample_weight=None):
     # See page 111 in Wood
     # phi = np.sum((z - X @ beta) ** 2 * w) / (len(z) - edof)
     check_consistent_length(y, mu)
-    edof = check_scalar(edof, "edof", target_type=Real, min_val=0, include_boundaries="both")
+    edof = check_scalar(
+        edof, "edof", target_type=Real, min_val=0, include_boundaries="both"
+    )
     if sample_weight is None:
         sample_weight = np.ones_like(mu, dtype=float)
 
@@ -172,7 +174,10 @@ def phi_fletcher(y, mu, distribution, edof, sample_weight=None):
     if sample_weight is None:
         sample_weight = np.ones_like(mu, dtype=float)
 
-    s_bar = np.average(distribution.V_derivative(mu) * (y - mu) / distribution.V(mu), weights=sample_weight)
+    s_bar = np.average(
+        distribution.V_derivative(mu) * (y - mu) / distribution.V(mu),
+        weights=sample_weight,
+    )
     return phi_pearson(y, mu, distribution, edof, sample_weight) / (1 + s_bar)
 
 

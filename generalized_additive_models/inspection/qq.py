@@ -8,7 +8,9 @@ import scipy as sp
 
 
 class QQDisplay:
-    def __init__(self, *, residuals, quantiles, residuals_low=None, residuals_high=None):
+    def __init__(
+        self, *, residuals, quantiles, residuals_low=None, residuals_high=None
+    ):
         self.residuals = residuals
         self.quantiles = quantiles
         self.residuals_low = residuals_low
@@ -41,10 +43,14 @@ class QQDisplay:
         # Compute line
         min_value = max(np.min(self.quantiles), np.min(self.residuals))
         max_value = min(np.max(self.quantiles), np.max(self.residuals))
-        ax.line_ = ax.plot([min_value, max_value], [min_value, max_value], **line_kwargs)
+        ax.line_ = ax.plot(
+            [min_value, max_value], [min_value, max_value], **line_kwargs
+        )
 
         if self.residuals_low is not None and self.residuals_high is not None:
-            self.fill_between_ = ax.fill_between(self.quantiles, self.residuals_low, self.residuals_high, alpha=0.5)
+            self.fill_between_ = ax.fill_between(
+                self.quantiles, self.residuals_low, self.residuals_high, alpha=0.5
+            )
 
         ax.set_xlabel("Theoretical N(0, 1) quantiles")
         ax.set_ylabel("Observed residuals")
@@ -74,7 +80,9 @@ class QQDisplay:
         y = np.array(y, dtype=float)
 
         if method == "normal":
-            residuals = np.sort(gam.residuals(X, y, residuals=residuals, standardized=True))
+            residuals = np.sort(
+                gam.residuals(X, y, residuals=residuals, standardized=True)
+            )
 
             # Loop up theoretical quantiles
             i = (np.arange(len(residuals)) + 0.5) / len(residuals)
@@ -85,7 +93,9 @@ class QQDisplay:
                 quantiles=quantiles,
             )
 
-            return viz.plot(ax=ax, scatter_kwargs=scatter_kwargs, line_kwargs=line_kwargs)
+            return viz.plot(
+                ax=ax, scatter_kwargs=scatter_kwargs, line_kwargs=line_kwargs
+            )
 
         elif method == "simulate":
             # From paper: "On quantile quantile plots for generalized linear models"
@@ -102,7 +112,9 @@ class QQDisplay:
 
             # Compute deviance residuals for all simulations
             # This gives a probability distribution for the deviance residuals
-            deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=None, scaled=True)
+            deviance = gam._distribution.deviance(
+                y=simulated_y, mu=predictions, sample_weight=None, scaled=True
+            )
             deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
 
             # Compute percentiles => approx the inverse CDF of the residual distribution
@@ -110,7 +122,9 @@ class QQDisplay:
             d_star_i = np.percentile(deviance_residuals, q=i * 100)
 
             deviance_residuals = np.sort(deviance_residuals, axis=1)
-            residuals = np.sort(gam.residuals(X, y, residuals=residuals, standardized=True))
+            residuals = np.sort(
+                gam.residuals(X, y, residuals=residuals, standardized=True)
+            )
             low, _, high = np.percentile(deviance_residuals, q=[1, 50, 99], axis=0)
 
             viz = cls(
@@ -120,4 +134,6 @@ class QQDisplay:
                 residuals_high=high,
             )
 
-            return viz.plot(ax=ax, scatter_kwargs=scatter_kwargs, line_kwargs=line_kwargs)
+            return viz.plot(
+                ax=ax, scatter_kwargs=scatter_kwargs, line_kwargs=line_kwargs
+            )

@@ -5,6 +5,7 @@ Created on Sun Feb  5 09:18:35 2023
 
 @author: tommy
 """
+
 import itertools
 
 import numpy as np
@@ -16,7 +17,15 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.exceptions import NotFittedError
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+    TermList,
+)
 
 
 class TestTermMultiplications:
@@ -72,7 +81,11 @@ class TestTermMultiplications:
     def test_tensor_multiplication(self):
         te12 = Tensor([Spline(1), Spline(2)])
         te34 = Tensor([Spline(2), Spline(4)])
-        assert te12 * te34 == te34 * te12 == Tensor([Spline(1), Spline(2), Spline(3), Spline(4)])
+        assert (
+            te12 * te34
+            == te34 * te12
+            == Tensor([Spline(1), Spline(2), Spline(3), Spline(4)])
+        )
 
     @pytest.mark.skip(reason="Not implemented.")
     def test_non_associative_multiplication(self):
@@ -172,7 +185,9 @@ class TestTerms:
     def test_that_categorical_can_infer_means(self):
         # Group 1 has mean 3, group 2 has mean 5
         group_means = np.array([3, 5])
-        df = pd.DataFrame({"group": [1, 1, 1, 1, 1, 2, 2], "value": [2, 3, 4, 2, 4, 4, 6]})
+        df = pd.DataFrame(
+            {"group": [1, 1, 1, 1, 1, 2, 2], "value": [2, 3, 4, 2, 4, 4, 6]}
+        )
         categorical = Categorical("group", penalty=1e-4)  # Decrease regularization
         intercept = Intercept()
 
@@ -185,7 +200,9 @@ class TestTerms:
 
     def test_categorical_regularization_with_high_penalty(self):
         # Group 1 has mean 3, group 2 has mean 5
-        df = pd.DataFrame({"group": [1, 1, 1, 1, 1, 2, 2], "value": [2, 3, 4, 2, 4, 4, 6]})
+        df = pd.DataFrame(
+            {"group": [1, 1, 1, 1, 1, 2, 2], "value": [2, 3, 4, 2, 4, 4, 6]}
+        )
         grand_mean = df.value.mean()
 
         categorical = Categorical("group", penalty=1e6)  # Increase regularization
@@ -215,8 +232,12 @@ class TestTerms:
         X_transformed = term.fit_transform(X)
         assert np.allclose(X_transformed.sum(axis=0), 0)
 
-    @pytest.mark.parametrize("constraint", ["increasing", "decreasing", "convex", "concave"])
-    def test_that_transformed_data_sums_to_zero_in_each_column_with_constraints(self, constraint):
+    @pytest.mark.parametrize(
+        "constraint", ["increasing", "decreasing", "convex", "concave"]
+    )
+    def test_that_transformed_data_sums_to_zero_in_each_column_with_constraints(
+        self, constraint
+    ):
         rng = np.random.default_rng(33)
         X = rng.normal(size=(100, 2))
 
@@ -244,7 +265,9 @@ class TestTerms:
         assert np.allclose(X_transformed.sum(axis=0), 0)
 
     @pytest.mark.parametrize("term", [Linear, Spline])
-    def test_that_transforming_a_single_column_does_not_forget_feature_index(self, term):
+    def test_that_transforming_a_single_column_does_not_forget_feature_index(
+        self, term
+    ):
         x1 = np.arange(9)
         x2 = np.arange(9) + 5
         X = np.vstack((x1, x2)).T
@@ -371,7 +394,11 @@ class TestPenaltyMatrices:
     @pytest.mark.parametrize("num_splines", [5, 10, 15])
     @pytest.mark.parametrize("l2_penalty", [0, 1, 10])
     def test_that_penalty_matrix_shape_is_correct(self, num_splines, l2_penalty):
-        terms = [Intercept(), Linear(0), Spline(0, num_splines=num_splines, l2_penalty=l2_penalty)]
+        terms = [
+            Intercept(),
+            Linear(0),
+            Spline(0, num_splines=num_splines, l2_penalty=l2_penalty),
+        ]
         for term in terms:
             assert term.num_coefficients > 0
 
@@ -509,8 +536,13 @@ class TestSplines:
 
     def test_that_setting_and_getting_works_on_intercept(self):
         intercept = Intercept()
-        assert intercept.get_params() == Intercept().set_params(**intercept.get_params()).get_params()
-        assert intercept.get_params() == Intercept(**intercept.get_params()).get_params()
+        assert (
+            intercept.get_params()
+            == Intercept().set_params(**intercept.get_params()).get_params()
+        )
+        assert (
+            intercept.get_params() == Intercept(**intercept.get_params()).get_params()
+        )
 
     @pytest.mark.parametrize(
         "feature, penalty, by",
@@ -518,7 +550,10 @@ class TestSplines:
     )
     def test_that_setting_and_getting_works_on_linear(self, feature, penalty, by):
         linear = Linear(feature=feature, penalty=penalty, by=by)
-        assert linear.get_params() == Linear().set_params(**linear.get_params()).get_params()
+        assert (
+            linear.get_params()
+            == Linear().set_params(**linear.get_params()).get_params()
+        )
         assert linear.get_params() == Linear(**linear.get_params()).get_params()
 
     def test_cloning_with_sklearn_clone(self):
@@ -564,7 +599,17 @@ class TestTensor:
     def test_tensor_splines_on_categoricals(self):
         df = pd.DataFrame({"color": list("rgbgbrr"), "grade": list("AAABBCC")})
         X_transformed = Categorical("color").fit_transform(df).astype(int)
-        ans = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 0, 1], [0, 0, 1]])
+        ans = np.array(
+            [
+                [0, 0, 1],
+                [0, 1, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 0, 0],
+                [0, 0, 1],
+                [0, 0, 1],
+            ]
+        )
         assert np.allclose(X_transformed, ans)
 
         te = Tensor([Categorical("color"), Categorical("grade")])

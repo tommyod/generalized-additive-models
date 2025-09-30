@@ -19,7 +19,14 @@ from sklearn.utils import Bunch, check_scalar
 from sklearn.utils.validation import check_is_fitted
 
 from generalized_additive_models.gam import GAM
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+)
 from generalized_additive_models.utils import cartesian
 
 
@@ -34,7 +41,9 @@ def model_checking(gam):
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2, figsize=(8, 5))
 
     # =========================================================================
-    deviance = gam._distribution.deviance(y=y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance = gam._distribution.deviance(
+        y=y, mu=predictions, sample_weight=sample_weight, scaled=True
+    )
     deviance_residuals = np.sign(residuals) * np.sqrt(deviance)
 
     sorted_deviance_residuals = np.sort(deviance_residuals)
@@ -112,7 +121,12 @@ def generate_X_grid(gam, term, X, *, extrapolation=0.01, num=100, meshgrid=True)
         return np.array(term.categories_).reshape(-1, 1)
 
     if isinstance(term, Tensor):
-        linspaces = [generate_X_grid(gam, spline, X, extrapolation=extrapolation, num=num).ravel() for spline in term]
+        linspaces = [
+            generate_X_grid(
+                gam, spline, X, extrapolation=extrapolation, num=num
+            ).ravel()
+            for spline in term
+        ]
 
         # Return a cartesian grid (for predicting) and a meshgrid (for plotting)
         return (cartesian(linspaces), np.meshgrid(*linspaces, indexing="ij"))
@@ -196,14 +210,18 @@ def partial_effect(gam, term, standard_deviations=1.0, edges=None, linear_scale=
     # ================================ LOGIC  =================================
 
     # Get data related to term and create a smooth grid
-    term = copy.deepcopy(term)  # Copy so feature_ is not changed by term.transform() below
+    term = copy.deepcopy(
+        term
+    )  # Copy so feature_ is not changed by term.transform() below
     data = term._get_column(gam.X_, selector="feature")
 
     X_original_transformed = term.transform(gam.X_)
 
     meshgrid = None
     if isinstance(term, Tensor):
-        X_smooth, meshgrid = generate_X_grid(gam, term, gam.X_, extrapolation=0.01, num=100)
+        X_smooth, meshgrid = generate_X_grid(
+            gam, term, gam.X_, extrapolation=0.01, num=100
+        )
         for i, spline in enumerate(term):
             spline.set_params(feature=i)
     else:
@@ -264,7 +282,9 @@ def plot_qq(gam, return_data=False):
 
     # Compute deviance residuals, following the notation in Section 2.1
     mu = gam.predict(X)
-    deviance = gam._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight, scaled=True)
+    deviance = gam._distribution.deviance(
+        y=y, mu=mu, sample_weight=sample_weight, scaled=True
+    )
     d_i = np.sort(np.sign(y - mu) * np.sqrt(deviance))
 
     # Number of simulations
@@ -277,7 +297,9 @@ def plot_qq(gam, return_data=False):
 
     # Compute deviance residuals for all simulations
     # This gives a probability distribution for the deviance residuals
-    deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance = gam._distribution.deviance(
+        y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True
+    )
     deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
 
     # Compute percentiles => approx the inverse CDF of the residual distribution
@@ -345,7 +367,9 @@ if __name__ == "__main__":
 
     # Compute deviance residuals
     mu = gam.predict(X)
-    deviance = gam._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight, scaled=True)
+    deviance = gam._distribution.deviance(
+        y=y, mu=mu, sample_weight=sample_weight, scaled=True
+    )
     d_i = np.sign(y - mu) * np.sqrt(deviance)
     d_i = np.sort(d_i)
 
@@ -357,7 +381,9 @@ if __name__ == "__main__":
 
     # residuals = simulated_y - gam.predict(X)
 
-    deviance = gam._distribution.deviance(y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True)
+    deviance = gam._distribution.deviance(
+        y=simulated_y, mu=predictions, sample_weight=sample_weight, scaled=True
+    )
     deviance_residuals = np.sign(y - predictions) * np.sqrt(deviance)
 
     i = (np.arange(len(y)) + 0.5) / len(y)

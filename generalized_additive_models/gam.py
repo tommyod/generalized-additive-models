@@ -28,7 +28,15 @@ from sklearn.utils.validation import _check_sample_weight, check_is_fitted
 from generalized_additive_models.distributions import DISTRIBUTIONS, Distribution
 from generalized_additive_models.links import LINKS, Link
 from generalized_additive_models.optimizers import LBFGSB, PIRLS
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, Term, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    Term,
+    TermList,
+)
 
 
 class GAM(BaseEstimator):
@@ -143,7 +151,9 @@ class GAM(BaseEstimator):
 
         # if not hasattr(self, "_distribution"):
         self._distribution = (
-            DISTRIBUTIONS[self.distribution]() if isinstance(self.distribution, str) else self.distribution
+            DISTRIBUTIONS[self.distribution]()
+            if isinstance(self.distribution, str)
+            else self.distribution
         )
 
         if self.solver == "pirls":
@@ -164,11 +174,15 @@ class GAM(BaseEstimator):
             if isinstance(term, Spline) and term.feature is None:
                 term_params = term.get_params()
                 term_params.pop("feature")
-                self.terms = TermList([Spline(feature=i, **term_params) for i in range(num_features)])
+                self.terms = TermList(
+                    [Spline(feature=i, **term_params) for i in range(num_features)]
+                )
             elif isinstance(term, Linear) and term.feature is None:
                 term_params = term.get_params()
                 term_params.pop("feature")
-                self.terms = TermList([Linear(feature=i, **term_params) for i in range(num_features)])
+                self.terms = TermList(
+                    [Linear(feature=i, **term_params) for i in range(num_features)]
+                )
 
         if self.fit_intercept and (Intercept() not in self.terms):
             self.terms.append(Intercept())
@@ -234,7 +248,9 @@ class GAM(BaseEstimator):
             link=self._link,
             distribution=self._distribution,
             bounds=(self.terms._lower_bound, self.terms._upper_bound),
-            get_sample_weight=functools.partial(self._get_sample_weight, sample_weight=sample_weight),
+            get_sample_weight=functools.partial(
+                self._get_sample_weight, sample_weight=sample_weight
+            ),
             max_iter=self.max_iter,
             tol=self.tol,
             verbose=self.verbose,
@@ -246,7 +262,11 @@ class GAM(BaseEstimator):
         self.results_.pseudo_r2 = self.score(X, y, sample_weight=sample_weight)
 
         # Update distribution scale if set to None
-        self._distribution.scale = self.results_.scale if self._distribution.scale is None else self._distribution.scale
+        self._distribution.scale = (
+            self.results_.scale
+            if self._distribution.scale is None
+            else self._distribution.scale
+        )
         assert self._distribution.scale is not None
 
         # Assign coefficients to terms
@@ -394,13 +414,21 @@ class GAM(BaseEstimator):
 
         # Compute the null predictions
         null_gam = clone(self)
-        null_preds = null_gam.set_params(terms=Intercept(), verbose=0).fit(X, y, sample_weight=sample_weight).predict(X)
+        null_preds = (
+            null_gam.set_params(terms=Intercept(), verbose=0)
+            .fit(X, y, sample_weight=sample_weight)
+            .predict(X)
+        )
 
         # null_preds2 = np.average(y, weights=sample_weight) * np.ones_like(y)
         # assert np.allclose(null_preds2, null_preds)
 
-        null_deviance = self._distribution.deviance(y=y, mu=null_preds, sample_weight=sample_weight).mean()
-        fitted_deviance = self._distribution.deviance(y=y, mu=mu, sample_weight=sample_weight).mean()
+        null_deviance = self._distribution.deviance(
+            y=y, mu=null_preds, sample_weight=sample_weight
+        ).mean()
+        fitted_deviance = self._distribution.deviance(
+            y=y, mu=mu, sample_weight=sample_weight
+        ).mean()
         # assert fitted_deviance <= null_deviance
         return (null_deviance - fitted_deviance) / null_deviance
 
@@ -448,7 +476,11 @@ class GAM(BaseEstimator):
         rows = []
         for term in self.terms:
             t_name = type(term).__name__
-            t_features = ", ".join(s.feature for s in term) if isinstance(term, Tensor) else (term.feature or "")
+            t_features = (
+                ", ".join(s.feature for s in term)
+                if isinstance(term, Tensor)
+                else (term.feature or "")
+            )
             t_repr = f"{t_name}({t_features})"
             t_numcoef = term.num_coefficients
             t_edof = fmt(term.edof_.sum())
@@ -666,7 +698,9 @@ class ExpectileGAM(GAM):
         # asymmetric weight
         # see slide 8
         # https://freakonometrics.hypotheses.org/files/2017/05/erasmus-1.pdf
-        asymmetric_weights = (y > mu) * self.expectile + (y <= mu) * (1 - self.expectile)
+        asymmetric_weights = (y > mu) * self.expectile + (y <= mu) * (
+            1 - self.expectile
+        )
 
         return sample_weight * asymmetric_weights
 
@@ -793,7 +827,9 @@ class ExpectileGAM(GAM):
         if not _within_tol(empirical_quantile, quantile, tol):
             msg = f"Could determine `expectile` within tolerance {tol} in {max_iter} iterations.\n"
             msg += f"Ended up with `expectile={expectile}`, which gives an empirical\n"
-            msg += f"quantile of {empirical_quantile} (desired quantile was {quantile})."
+            msg += (
+                f"quantile of {empirical_quantile} (desired quantile was {quantile})."
+            )
             warnings.warn(msg, ConvergenceWarning)
 
         return self
@@ -802,4 +838,6 @@ class ExpectileGAM(GAM):
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(
+        args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"]
+    )

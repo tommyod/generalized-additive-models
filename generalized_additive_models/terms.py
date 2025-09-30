@@ -5,6 +5,7 @@
 https://www.uio.no/studier/emner/matnat/ifi/nedlagte-emner/INF-MAT5340/v05/undervisningsmateriale/hele.pdf
 
 """
+
 import copy
 import functools
 from abc import ABC, abstractmethod
@@ -45,7 +46,9 @@ class Term(ABC):
     def _get_column(self, X, selector="feature"):
         # A Tensor can select several columns, so we recursively do that
         if isinstance(self, Tensor) and selector == "feature":
-            return np.hstack([spline._get_column(X, selector=selector) for spline in self])
+            return np.hstack(
+                [spline._get_column(X, selector=selector) for spline in self]
+            )
 
         selector = getattr(self, selector + "_")
 
@@ -88,7 +91,9 @@ class Term(ABC):
                 setattr(self, variable_to_set, feature_names.index(variable_content))
         elif isinstance(variable_content, Integral):
             if (num_features > 1) and variable_content not in range(num_features):
-                raise ValueError(f"Parameter `{variable_name}` must be in range [0, {num_features-1}].")
+                raise ValueError(
+                    f"Parameter `{variable_name}` must be in range [0, {num_features - 1}]."
+                )
 
             # A single column was passed, assume it's the one to transform
             elif num_features == 1 and hasattr(self, variable_to_set):
@@ -128,11 +133,17 @@ class Term(ABC):
 
         # Check for Spline/Linear/Intercept, etc
         if isinstance(self, (Intercept, Linear, Spline, Categorical)):
-            return frozenset([self.feature, self.by]) == frozenset([other.feature, other.by])
+            return frozenset([self.feature, self.by]) == frozenset(
+                [other.feature, other.by]
+            )
         # Check for Tensor
         elif isinstance(self, Tensor):
-            self_vars = frozenset([frozenset([term.feature, term.by]) for term in self] + [self.by])
-            other_vars = frozenset([frozenset([term.feature, term.by]) for term in other] + [other.by])
+            self_vars = frozenset(
+                [frozenset([term.feature, term.by]) for term in self] + [self.by]
+            )
+            other_vars = frozenset(
+                [frozenset([term.feature, term.by]) for term in other] + [other.by]
+            )
             return self_vars == other_vars
         else:
             raise TypeError(f"Cannot compare {self} and {other}")
@@ -603,7 +614,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         "edges": [None, Container],
         "degree": [Interval(Integral, 0, None, closed="left")],
         "knots": [StrOptions({"uniform", "quantile"})],
-        "extrapolation": [StrOptions({"error", "constant", "linear", "continue", "periodic"})],
+        "extrapolation": [
+            StrOptions({"error", "constant", "linear", "continue", "periodic"})
+        ],
     }
 
     def __init__(
@@ -705,7 +718,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
             assert penalty_matrix.shape[1] == self.num_coefficients
             return penalty_matrix
 
-    def _post_transform_basis_for_constraint(self, *, constraint, basis_matrix, basis_matrix_mirrored, X_feature):
+    def _post_transform_basis_for_constraint(
+        self, *, constraint, basis_matrix, basis_matrix_mirrored, X_feature
+    ):
         """Transform basis matrices to comply with constraints.
 
         This idea is from Meyer, see: https://arxiv.org/abs/0811.1705
@@ -803,7 +818,11 @@ class Spline(TransformerMixin, Term, BaseEstimator):
 
         # Solve this equation for the number of knots
         # https://github.com/scikit-learn/scikit-learn/blob/7db5b6a98ac6ad0976a3364966e214926ca8098a/sklearn/preprocessing/_polynomial.py#L470
-        n_knots = self.num_splines + 1 - (self.degree - degree_adjustment) * (self.extrapolation != "periodic")
+        n_knots = (
+            self.num_splines
+            + 1
+            - (self.degree - degree_adjustment) * (self.extrapolation != "periodic")
+        )
 
         # Set up two spline transformers
         # - The first one is fit on the data ordinarity
@@ -834,12 +853,14 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         # If the constraint is 'convex' or 'concave' or related, antidifferentiate twice
         assert len(self.spline_transformer_.bsplines_) == 1
         if degree_adjustment:
-            self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[0].antiderivative(
-                degree_adjustment
-            )
-            self.spline_transformer_mirrored_.bsplines_[0] = self.spline_transformer_mirrored_.bsplines_[
+            self.spline_transformer_.bsplines_[0] = self.spline_transformer_.bsplines_[
                 0
             ].antiderivative(degree_adjustment)
+            self.spline_transformer_mirrored_.bsplines_[0] = (
+                self.spline_transformer_mirrored_.bsplines_[0].antiderivative(
+                    degree_adjustment
+                )
+            )
 
             # Adjust the degree up again
             self.spline_transformer_.degree += degree_adjustment
@@ -853,7 +874,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         ) = self._post_transform_basis_for_constraint(
             constraint=self.constraint,
             basis_matrix=self.spline_transformer_.transform(X_feature_masked),
-            basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(-X_feature_masked),
+            basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(
+                -X_feature_masked
+            ),
             X_feature=X_feature,
         )
 
@@ -920,7 +943,9 @@ class Spline(TransformerMixin, Term, BaseEstimator):
         ) = self._post_transform_basis_for_constraint(
             constraint=self.constraint,
             basis_matrix=self.spline_transformer_.transform(X_feature),
-            basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(-X_feature),
+            basis_matrix_mirrored=self.spline_transformer_mirrored_.transform(
+                -X_feature
+            ),
             X_feature=X_feature,
         )
         assert basis_matrix.shape == (num_samples, self.num_coefficients)
@@ -1155,7 +1180,9 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
             # TODO: think about what it would be to use other types of terms
             # then perhaps implement it
             if not isinstance(spline, (Spline, Categorical)):
-                raise TypeError(f"Only Splines and Categorical can be used in Tensor, found: {spline}")
+                raise TypeError(
+                    f"Only Splines and Categorical can be used in Tensor, found: {spline}"
+                )
 
             if isinstance(spline, Spline) and spline.constraint is not None:
                 raise ValueError("Splines in tensor cannot be constrained.")
@@ -1300,7 +1327,9 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]])
 
         """
-        marginal_penalty_matrices = [self._build_marginal_penalties(i) for i, _ in enumerate(self.splines)]
+        marginal_penalty_matrices = [
+            self._build_marginal_penalties(i) for i, _ in enumerate(self.splines)
+        ]
 
         # We want penalties to be additive, so |D_1 \beta|^2 + |D_2 \beta|^2.
         # To accomplish this, we stack the arrays since
@@ -1329,7 +1358,9 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
         # Transform, correct for individual means
         fit_matrices = [spline.transform(X) + spline.means_ for spline in self.splines]
         spline_basis = functools.reduce(tensor_product, fit_matrices)
-        assert np.all(spline_basis >= 0), f"Every element in tensor basis must be >= 0 {np.min(spline_basis)}"
+        assert np.all(spline_basis >= 0), (
+            f"Every element in tensor basis must be >= 0 {np.min(spline_basis)}"
+        )
 
         # Set the 'by' variable
         if self.by is not None:
@@ -1341,8 +1372,12 @@ class Tensor(TransformerMixin, Term, BaseEstimator):
 
         # Set bounds
         # TODO: think about this
-        self._lower_bound = np.ones(self.num_coefficients) * max(np.max(spline._lower_bound) for spline in self.splines)
-        self._upper_bound = np.ones(self.num_coefficients) * min(np.min(spline._upper_bound) for spline in self.splines)
+        self._lower_bound = np.ones(self.num_coefficients) * max(
+            np.max(spline._lower_bound) for spline in self.splines
+        )
+        self._upper_bound = np.ones(self.num_coefficients) * min(
+            np.min(spline._upper_bound) for spline in self.splines
+        )
         # self._bounds = np.ones(self.num_coefficients) * max(np.max(spline._bounds) for spline in self.splines)
 
         return self
@@ -1669,7 +1704,9 @@ class Categorical(TransformerMixin, Term, BaseEstimator):
             basis_matrix = basis_matrix * self._get_column(X, selector="by")
 
         self.categories_ = list(self.onehotencoder_.categories_[0])
-        self.means_ = basis_matrix.mean(axis=0) * 0  # Do not shift means for Categorical
+        self.means_ = (
+            basis_matrix.mean(axis=0) * 0
+        )  # Do not shift means for Categorical
 
         # Set the bounds
         self._lower_bound = np.array([-np.inf for _ in range(self.num_coefficients)])
@@ -1793,7 +1830,9 @@ class TermList(UserList, BaseEstimator):
 
     def append(self, item, /):
         if not isinstance(item, Term):
-            raise TypeError(f"Only terms can be added to TermList, not {item} of type {type(item)}")
+            raise TypeError(
+                f"Only terms can be added to TermList, not {item} of type {type(item)}"
+            )
 
         for term in self:
             if item.is_redundant_with_respect_to(term):
@@ -1860,7 +1899,9 @@ class TermList(UserList, BaseEstimator):
             else:
                 raise IndexError("No term with feature name '{key}' in TermList")
         else:
-            raise TypeError("Calling TermList[obj] is only valid if obj is a string or integer.")
+            raise TypeError(
+                "Calling TermList[obj] is only valid if obj is a string or integer."
+            )
 
     def __add__(self, other):
         if isinstance(other, Term):
@@ -2087,4 +2128,6 @@ class TermList(UserList, BaseEstimator):
 if __name__ == "__main__":
     import pytest
 
-    pytest.main(args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"])
+    pytest.main(
+        args=[__file__, "-v", "--capture=sys", "--doctest-modules", "--maxfail=1"]
+    )

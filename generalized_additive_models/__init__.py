@@ -5,13 +5,13 @@
 Generalized Additive Models
 ---------------------------
 
-A generalized additive model (GAM) is a generalized linear model in which the 
+A generalized additive model (GAM) is a generalized linear model in which the
 linear target variable depends linearly on unknown smooth functions (splines)
 of some features, and interest focuses on inference about these smooth functions.
 
-The model relates a target variable y, to some predictor variables, X. 
-An exponential family distribution is specified for y (e.g. Normal, Binomial, Poisson) 
-along with a link function g (e.g. Identity or Log) relating the expected value 
+The model relates a target variable y, to some predictor variables, X.
+An exponential family distribution is specified for y (e.g. Normal, Binomial, Poisson)
+along with a link function g (e.g. Identity or Log) relating the expected value
 of y to the features via a structure such as
 
     g(E(y)) = f_1(x_1) + f_2(x_2) + ... + f_m(x_m)
@@ -47,8 +47,8 @@ array([[ 0.66666667, -0.33333333, -0.33333333],
 https://arxiv.org/pdf/2006.06466.pdf
 
 
-Pya, N., Wood, S.N. 
-Shape constrained additive models. 
+Pya, N., Wood, S.N.
+Shape constrained additive models.
 Stat Comput 25, 543–559 (2015). https://doi.org/10.1007/s11222-013-9448-7
 https://link.springer.com/article/10.1007/s11222-013-9448-7
 
@@ -57,10 +57,25 @@ https://link.springer.com/article/10.1007/s11222-013-9448-7
 import importlib.metadata
 import warnings
 
-from generalized_additive_models.distributions import Bernoulli, Binomial, Exponential, Gamma, InvGauss, Normal, Poisson
+from generalized_additive_models.distributions import (
+    Bernoulli,
+    Binomial,
+    Exponential,
+    Gamma,
+    InvGauss,
+    Normal,
+    Poisson,
+)
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit, Softplus
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    TermList,
+)
 
 __name__ = "generalized-additive-models"
 __version__ = importlib.metadata.version(__name__)

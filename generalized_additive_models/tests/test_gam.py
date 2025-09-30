@@ -5,6 +5,7 @@ Created on Wed Feb  8 07:11:09 2023
 
 @author: tommy
 """
+
 import io
 import itertools
 from numbers import Real
@@ -17,7 +18,12 @@ import scipy as sp
 from sklearn.base import clone
 from sklearn.datasets import fetch_california_housing, load_breast_cancer, load_diabetes
 from sklearn.metrics import accuracy_score, r2_score
-from sklearn.model_selection import GridSearchCV, KFold, cross_val_score, train_test_split
+from sklearn.model_selection import (
+    GridSearchCV,
+    KFold,
+    cross_val_score,
+    train_test_split,
+)
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
@@ -25,7 +31,14 @@ from sklearn.utils import resample
 from generalized_additive_models.distributions import Binomial, Normal
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    TermList,
+)
 
 SMOOTH_FUNCTIONS = [
     np.log1p,
@@ -70,7 +83,9 @@ class TestAPIContract:
         assert all(hasattr(t, "coef_") for t in gam.terms)
         assert all(hasattr(t, "coef_idx_") for t in gam.terms)
         assert all(hasattr(t, "coef_covar_") for t in gam.terms)
-        assert all(np.allclose(gam.coef_[term.coef_idx_], term.coef_) for term in gam.terms)
+        assert all(
+            np.allclose(gam.coef_[term.coef_idx_], term.coef_) for term in gam.terms
+        )
         for term in gam.terms:
             if isinstance(term, Categorical):
                 assert hasattr(term, "categories_")
@@ -89,7 +104,9 @@ class TestNonCanonicalLinks:
         penalty = 1e2  # With the log-link, it's a good idea to increase penalty
 
         X, y = fetch_california_housing(return_X_y=True, as_frame=True)
-        X, y = resample(X, y, replace=False, n_samples=num_splines * 100, random_state=num_splines)
+        X, y = resample(
+            X, y, replace=False, n_samples=num_splines * 100, random_state=num_splines
+        )
 
         # Set up scoring and CV
         scoring = "neg_mean_squared_error"
@@ -104,8 +121,12 @@ class TestNonCanonicalLinks:
             + Spline(feature="AveOccup", num_splines=num_splines, penalty=penalty)
             + Tensor(
                 [
-                    Spline(feature="Latitude", num_splines=num_splines, penalty=penalty),
-                    Spline(feature="Longitude", num_splines=num_splines, penalty=penalty),
+                    Spline(
+                        feature="Latitude", num_splines=num_splines, penalty=penalty
+                    ),
+                    Spline(
+                        feature="Longitude", num_splines=num_splines, penalty=penalty
+                    ),
                 ]
             )
         )
@@ -126,7 +147,9 @@ class TestNonCanonicalLinks:
 class TestExponentialFunctionGamsWithCanonicalLinks:
     INTERCEPT = [-2, -1, 0, 1, 1.5]
 
-    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
+    @pytest.mark.parametrize(
+        "solver", (GAM._parameter_constraints["solver"][0]).options
+    )
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_canonical_normal(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
@@ -166,7 +189,9 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
         assert np.isclose(scale1, scale2)
 
-    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
+    @pytest.mark.parametrize(
+        "solver", (GAM._parameter_constraints["solver"][0]).options
+    )
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_canonical_poisson(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
@@ -182,7 +207,11 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
 
         # Create a GAM
         poisson_gam = GAM(
-            Spline(0, extrapolation="periodic"), link="log", distribution="poisson", solver=solver, max_iter=999
+            Spline(0, extrapolation="periodic"),
+            link="log",
+            distribution="poisson",
+            solver=solver,
+            max_iter=999,
         ).fit(X, y)
 
         assert np.allclose(mu, poisson_gam.predict(X), atol=1)
@@ -197,7 +226,9 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_weight = poisson_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
 
-    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
+    @pytest.mark.parametrize(
+        "solver", (GAM._parameter_constraints["solver"][0]).options
+    )
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_caononical_logistic(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
@@ -231,7 +262,9 @@ class TestExponentialFunctionGamsWithCanonicalLinks:
         preds_weight = logistic_gam.fit(X, y, sample_weight=weights).predict(X)
         assert np.allclose(preds_repeat, preds_weight)
 
-    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
+    @pytest.mark.parametrize(
+        "solver", (GAM._parameter_constraints["solver"][0]).options
+    )
     @pytest.mark.parametrize("intercept", INTERCEPT)
     def test_caononical_binomial(self, intercept, solver):
         rng = np.random.default_rng(123456 + int(intercept * 100))
@@ -271,7 +304,9 @@ class TestPandasCompatibility:
         gam.fit(df, y)
 
     @pytest.mark.parametrize("term_cls", [Spline, Linear])
-    def test_that_column_order_can_be_permuted_between_fit_and_transform(self, term_cls):
+    def test_that_column_order_can_be_permuted_between_fit_and_transform(
+        self, term_cls
+    ):
         rng = np.random.default_rng(3)
         col_A = np.exp(rng.normal(size=100))
         col_B = rng.normal(size=100)
@@ -295,7 +330,9 @@ class TestPandasCompatibility:
 
         # Decrease data sets to speed up tests
         df, y = resample(df, y, replace=False, n_samples=100, random_state=1)
-        df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1, random_state=42)
+        df_train, df_test, y_train, y_test = train_test_split(
+            df, y, test_size=0.1, random_state=42
+        )
 
         # Fit a model using column names
         gam = GAM(terms=Spline("AveRooms"), fit_intercept=True)
@@ -318,7 +355,9 @@ class TestPandasCompatibility:
         assert isinstance(df, pd.DataFrame)
         assert isinstance(y, pd.Series)
 
-        df_train, df_test, y_train, y_test = train_test_split(df, y, test_size=0.1, random_state=42)
+        df_train, df_test, y_train, y_test = train_test_split(
+            df, y, test_size=0.1, random_state=42
+        )
         assert isinstance(df_train, pd.DataFrame)
         assert isinstance(y_train, pd.Series)
 
@@ -509,11 +548,15 @@ class TestGamAutoModels:
         X, y = fetch_california_housing(return_X_y=True, as_frame=False)
 
         # Decrease data sets to speed up test
-        X, y = resample(X, y, replace=False, n_samples=50, random_state=int(penalty * 123456))
+        X, y = resample(
+            X, y, replace=False, n_samples=50, random_state=int(penalty * 123456)
+        )
         num_samples, num_features = X.shape
 
         # Auto model
-        auto_gam = GAM(term_class(None, penalty=penalty), fit_intercept=fit_intercept).fit(X, y)
+        auto_gam = GAM(
+            term_class(None, penalty=penalty), fit_intercept=fit_intercept
+        ).fit(X, y)
 
         # Manual model
         terms = TermList(term_class(i, penalty=penalty) for i in range(num_features))
@@ -576,9 +619,13 @@ class TestGAMSanityChecks:
             # Lower penalty means higher score however
             assert gam_low.score(X, y) >= gam_high.score(X, y)
 
-    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
+    @pytest.mark.parametrize(
+        "solver", (GAM._parameter_constraints["solver"][0]).options
+    )
     @pytest.mark.parametrize("num", [5, 10, 50, 100, 500, 1000])
-    def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(self, num, solver):
+    def test_that_scale_is_the_same_when_data_is_weighted_or_repeated(
+        self, num, solver
+    ):
         rng = np.random.default_rng(num)
 
         # Create a normal problem
@@ -640,7 +687,9 @@ class TestGAMSanityChecks:
 
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
-        list(itertools.product([1, 2], [2, 3, 4], [0.1, 1, 10], ["quantile", "uniform"])),
+        list(
+            itertools.product([1, 2], [2, 3, 4], [0.1, 1, 10], ["quantile", "uniform"])
+        ),
     )
     def test_that_constraints_work_no_extrapolation(self, seed, degree, penalty, knots):
         rng = np.random.default_rng(seed * 789)
@@ -666,7 +715,9 @@ class TestGAMSanityChecks:
             constraint = f"{constraint1}-{constraint2}".strip("-")
 
             # Create model
-            terms = Spline(0, constraint=constraint, degree=degree, penalty=penalty, knots=knots)
+            terms = Spline(
+                0, constraint=constraint, degree=degree, penalty=penalty, knots=knots
+            )
             prediction = GAM(terms, tol=0.01).fit(X, y).predict(X_smooth)
             assert np.all(np.isfinite(prediction))
 
@@ -680,13 +731,19 @@ class TestGAMSanityChecks:
 
     @pytest.mark.parametrize(
         "seed, degree, penalty, knots",
-        list(itertools.product([1, 2], [2, 3, 4], [0.1, 1, 10], ["quantile", "uniform"])),
+        list(
+            itertools.product([1, 2], [2, 3, 4], [0.1, 1, 10], ["quantile", "uniform"])
+        ),
     )
-    def test_that_constraints_work_with_extrapolation(self, seed, degree, penalty, knots):
+    def test_that_constraints_work_with_extrapolation(
+        self, seed, degree, penalty, knots
+    ):
         rng = np.random.default_rng(seed * 123)
         num_samples = 5 + 5 * seed
         X = (rng.random(size=(num_samples, 1)) - 0.5) * 2
-        X_smooth = np.linspace(np.min(X) - 0.5, np.max(X) + 0.5, num=2**8).reshape(-1, 1)
+        X_smooth = np.linspace(np.min(X) - 0.5, np.max(X) + 0.5, num=2**8).reshape(
+            -1, 1
+        )
         y = np.sin(X * 3).ravel() + rng.random(size=num_samples)
 
         convolution_masks = {
@@ -735,7 +792,9 @@ class TestGAMSanityChecks:
         y = y.ravel() - np.mean(y) + mean_value
 
         # Create a GAM and fit it
-        gam = GAM(terms=Spline(0, num_splines=20, degree=3, penalty=1), fit_intercept=True)
+        gam = GAM(
+            terms=Spline(0, num_splines=20, degree=3, penalty=1), fit_intercept=True
+        )
 
         gam.fit(X, y)
 
@@ -754,12 +813,20 @@ class TestGAMSanityChecks:
         cv = KFold(n_splits=5, shuffle=True, random_state=42)
 
         # Linear model GAM, with no-so-good performance
-        gam_spline_model = GAM(Spline(0, penalty=10) + Spline(1, penalty=10) + Intercept())
-        score_spline_model = cross_val_score(gam_spline_model, X, y, verbose=0, cv=cv).mean()
+        gam_spline_model = GAM(
+            Spline(0, penalty=10) + Spline(1, penalty=10) + Intercept()
+        )
+        score_spline_model = cross_val_score(
+            gam_spline_model, X, y, verbose=0, cv=cv
+        ).mean()
 
         # Tensor model GAM, with better performance
-        gam_tensor_model = GAM(Tensor([Spline(0, penalty=10), Spline(1, penalty=10)]) + Intercept())
-        score_tensor_model = cross_val_score(gam_tensor_model, X, y, verbose=0, cv=cv).mean()
+        gam_tensor_model = GAM(
+            Tensor([Spline(0, penalty=10), Spline(1, penalty=10)]) + Intercept()
+        )
+        score_tensor_model = cross_val_score(
+            gam_tensor_model, X, y, verbose=0, cv=cv
+        ).mean()
 
         assert score_tensor_model > score_spline_model
         assert score_tensor_model > 0.91
@@ -796,7 +863,9 @@ class TestGAMSanityChecks:
         assert bad_gam_score < gam_score
 
     @pytest.mark.parametrize("function", SMOOTH_FUNCTIONS)
-    def test_that_tensor_spline_score_on_smooth_function_with_by_is_close(self, function):
+    def test_that_tensor_spline_score_on_smooth_function_with_by_is_close(
+        self, function
+    ):
         # Create data of form: y = f(x_1, x_2) * x_3
         rng = np.random.default_rng(42)
         X = rng.random(size=(25, 3)) * np.pi
@@ -824,10 +893,14 @@ class TestGAMSanityChecks:
         # Choose the first columns
         X = X[:, :3]
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.33, random_state=42
+        )
 
         # Train GAM using automodel feature (sending in one spline and expanding)
-        terms = TermList(Spline(None, extrapolation="continue", num_splines=6, penalty=1e8))
+        terms = TermList(
+            Spline(None, extrapolation="continue", num_splines=6, penalty=1e8)
+        )
         gam = GAM(terms, link="logit", distribution=Binomial(trials=1))
         gam.fit(X_train, y_train)
         gam_preds = gam.predict(X_test) > 0.5
@@ -858,8 +931,12 @@ class TestGAMSanityChecks:
         assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
 
         # Same as above, but with poisson distribution
-        gam1 = GAM(term(0), distribution="poisson", link="log").fit(X_repeated, y_repeated)
-        gam2 = GAM(term(0), distribution="poisson", link="log").fit(X, y, sample_weight=weights)
+        gam1 = GAM(term(0), distribution="poisson", link="log").fit(
+            X_repeated, y_repeated
+        )
+        gam2 = GAM(term(0), distribution="poisson", link="log").fit(
+            X, y, sample_weight=weights
+        )
         assert np.allclose(gam1.predict(X), gam2.predict(X))
 
     @pytest.mark.parametrize("term", [Linear, Spline])
@@ -888,8 +965,12 @@ class TestGAMSanityChecks:
         assert np.allclose(gam1.predict(X), gam2.predict(X), rtol=1e-4)
 
         # Same as above, but with poisson distribution
-        gam1 = GAM(term(0), distribution="poisson", link="log").fit(X_repeated, y_repeated)
-        gam2 = GAM(term(0), distribution="poisson", link="log").fit(X, y, sample_weight=weights)
+        gam1 = GAM(term(0), distribution="poisson", link="log").fit(
+            X_repeated, y_repeated
+        )
+        gam2 = GAM(term(0), distribution="poisson", link="log").fit(
+            X, y, sample_weight=weights
+        )
         assert np.allclose(gam1.predict(X), gam2.predict(X))
 
     @pytest.mark.parametrize("shift", [-100000, -100, -10, 10, 100, 100000])
@@ -898,7 +979,12 @@ class TestGAMSanityChecks:
 
         # Create a normal problem
         X = rng.normal(size=(1000, 3))
-        y = np.sin(X[:, 0]) + X[:, 1] ** 2 + np.cos(X[:, 2] - X[:, 1]) + rng.normal(scale=0.1, size=1000)
+        y = (
+            np.sin(X[:, 0])
+            + X[:, 1] ** 2
+            + np.cos(X[:, 2] - X[:, 1])
+            + rng.normal(scale=0.1, size=1000)
+        )
 
         # Create a GAM
         terms = Spline(0) + Spline(1) + Spline(2)
@@ -915,7 +1001,12 @@ class TestGAMSanityChecks:
 
         # Create a normal problem
         X = rng.normal(scale=scale, size=(1000, 3))
-        y = np.sin(X[:, 0]) + X[:, 1] ** 2 + np.cos(X[:, 2] - X[:, 1]) + rng.normal(scale=0.1, size=1000)
+        y = (
+            np.sin(X[:, 0])
+            + X[:, 1] ** 2
+            + np.cos(X[:, 2] - X[:, 1])
+            + rng.normal(scale=0.1, size=1000)
+        )
 
         # Create a GAM
         terms = Spline(0) + Spline(1) + Spline(2)
@@ -933,7 +1024,12 @@ class TestGAMSanityChecks:
 
         # Create a normal problem
         X = rng.normal(size=(1000, 3))
-        y = np.sin(X[:, 0]) + X[:, 1] ** 2 + np.cos(X[:, 2] - X[:, 1]) + rng.normal(scale=0.1, size=1000)
+        y = (
+            np.sin(X[:, 0])
+            + X[:, 1] ** 2
+            + np.cos(X[:, 2] - X[:, 1])
+            + rng.normal(scale=0.1, size=1000)
+        )
 
         # Create a GAM
         terms = Spline(0) + Spline(1) + Spline(2)
@@ -1000,7 +1096,12 @@ class TestGAMSanityChecks:
         rng = np.random.default_rng(columns)
 
         # Create a data set
-        df = pd.DataFrame({f"cat_{i}": rng.integers(0, i, size=10 + columns**3) for i in range(2, 2 + columns)})
+        df = pd.DataFrame(
+            {
+                f"cat_{i}": rng.integers(0, i, size=10 + columns**3)
+                for i in range(2, 2 + columns)
+            }
+        )
 
         # No penalty => one column in the design matrix per categorical is not identifiable
         terms = TermList([Categorical(col, penalty=0) for col in df.columns])
@@ -1058,8 +1159,12 @@ class TestExpectileGAM:
         y = (2 + np.sin(X.ravel())) * np.exp((noise - 0.5) * 2)
 
         # Fit two models
-        gam = ExpectileGAM(Spline(0, extrapolation="periodic"), expectile=expectile).fit(X, y)
-        gam_higher = ExpectileGAM(Spline(0, extrapolation="periodic"), expectile=expectile + 0.05).fit(X, y)
+        gam = ExpectileGAM(
+            Spline(0, extrapolation="periodic"), expectile=expectile
+        ).fit(X, y)
+        gam_higher = ExpectileGAM(
+            Spline(0, extrapolation="periodic"), expectile=expectile + 0.05
+        ).fit(X, y)
 
         assert np.all(gam_higher.predict(X) >= gam.predict(X))
 

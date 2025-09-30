@@ -10,7 +10,14 @@ import numpy as np
 import pytest
 from sklearn.base import clone
 
-from generalized_additive_models.distributions import DISTRIBUTIONS, Bernoulli, Binomial, Exponential, Gamma, Normal
+from generalized_additive_models.distributions import (
+    DISTRIBUTIONS,
+    Bernoulli,
+    Binomial,
+    Exponential,
+    Gamma,
+    Normal,
+)
 
 
 class TestSklearnCompatibility:
@@ -32,10 +39,14 @@ class TestSklearnCompatibility:
 
 class TestDistributionProperties:
     @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
-    @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
+    @pytest.mark.parametrize(
+        "mu", [0.2, 0.5, 0.95]
+    )  # Common range for all distributions
     @pytest.mark.parametrize("scale", [0.5, 1, 2])
     @pytest.mark.parametrize("seed", list(range(10)))
-    def test_that_theoretical_mean_and_variance_matches_samples(self, distr_class, mu, scale, seed):
+    def test_that_theoretical_mean_and_variance_matches_samples(
+        self, distr_class, mu, scale, seed
+    ):
         distribution = distr_class(scale=scale)
         samples = distribution.sample(mu=mu, size=100_000, random_state=seed)
 
@@ -43,7 +54,9 @@ class TestDistributionProperties:
         assert np.isclose(distribution.variance(mu), samples.var(), rtol=0.04)
 
     @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
-    @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
+    @pytest.mark.parametrize(
+        "mu", [0.2, 0.5, 0.95]
+    )  # Common range for all distributions
     @pytest.mark.parametrize("scale", [0.5, 1, 2])
     def test_that_theoretical_mean_matches_scipy_mean(self, distr_class, mu, scale):
         """This property should hold for all values of the scale."""
@@ -52,9 +65,13 @@ class TestDistributionProperties:
         assert np.isclose(distribution.to_scipy(mu).mean(), mu)
 
     @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
-    @pytest.mark.parametrize("mu", [0.2, 0.5, 0.95])  # Common range for all distributions
+    @pytest.mark.parametrize(
+        "mu", [0.2, 0.5, 0.95]
+    )  # Common range for all distributions
     @pytest.mark.parametrize("scale", [0.5, 1, 2])
-    def test_that_theoretical_variance_matches_scipy_variance(self, distr_class, mu, scale):
+    def test_that_theoretical_variance_matches_scipy_variance(
+        self, distr_class, mu, scale
+    ):
         """This property should hold for all values of the scale."""
 
         distribution = distr_class(scale=scale)
@@ -62,8 +79,12 @@ class TestDistributionProperties:
 
     @pytest.mark.parametrize("distr_class", list(DISTRIBUTIONS.values()))
     @pytest.mark.parametrize("scale", [0.5, 1, 2])
-    @pytest.mark.parametrize("mu", [0.1, 0.5, 0.95])  # mu in (0, 1) safe for all distributions
-    def test_that_scipy_deviance_matches_implemented_deviance(self, distr_class, scale, mu):
+    @pytest.mark.parametrize(
+        "mu", [0.1, 0.5, 0.95]
+    )  # mu in (0, 1) safe for all distributions
+    def test_that_scipy_deviance_matches_implemented_deviance(
+        self, distr_class, scale, mu
+    ):
         """This property should hold for all values of the scale."""
 
         rng = np.random.default_rng(42)
