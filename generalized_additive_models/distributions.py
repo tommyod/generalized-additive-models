@@ -39,7 +39,7 @@ class Distribution(ABC):
         return self.to_scipy(mu).rvs(size=size, random_state=random_state)
 
     def __eq__(self, other):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
         return self.get_params() == other.get_params()
 

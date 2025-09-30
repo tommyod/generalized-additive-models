@@ -51,7 +51,7 @@ class Link(ABC):
         return self.link(*args, **kwargs)
 
     def __eq__(self, other):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
         return self.get_params() == other.get_params()
 
@@ -353,7 +353,7 @@ class CLogLogLink(Link, BaseEstimator):
     domain = (0, 1)  #: Domain of the link function
 
     def __init__(self, low=0, high=1):
-        assert type(low) == type(high)
+        assert type(low) is type(high)
         self.low = low
         self.high = high
 

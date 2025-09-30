@@ -54,9 +54,9 @@ def second_order_finite_difference(n, periodic=False):
 
     >>> x = np.linspace(0, 1, num=20)
     >>> D = second_order_finite_difference(20, periodic=False)
-    >>> np.linalg.norm(D @ x)
+    >>> float(np.linalg.norm(D @ x))
     0.0
-    >>> np.linalg.norm(D @ (x + 1))
+    >>> float(np.linalg.norm(D @ (x + 1)))
     0.0
     """
     n = check_scalar(
