@@ -8,7 +8,7 @@ Created on Thu Feb 23 07:15:31 2023
 
 import numpy as np
 from sklearn.preprocessing import SplineTransformer as SklearnSplineTransformer
-from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted, validate_data
 
 
 # The sklearn SplineTransformer does not extrapolate properly when the
@@ -35,7 +35,7 @@ class SplineTransformer(SklearnSplineTransformer):
         """
         check_is_fitted(self)
 
-        X = self._validate_data(X, reset=False, accept_sparse=False, ensure_2d=True)
+        X = validate_data(self, X=X, reset=False, accept_sparse=False, ensure_2d=True)
 
         n_samples, n_features = X.shape
         n_splines = self.bsplines_[0].c.shape[1]
