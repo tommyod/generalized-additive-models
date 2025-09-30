@@ -35,7 +35,7 @@ jobs:
         run: |
           pip install pip --upgrade
           pip install .[lint]
-          ruff check generalized_additive_models --ignore=E741
+          ruff check generalized_additive_models --ignore=E741,E721
           ruff format . --check
           codespell --ignore-words-list='te,ans' --skip='*.csv'
           
