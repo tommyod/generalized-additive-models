@@ -1,6 +1,6 @@
 [project]
 name = "generalized_additive_models"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
     "numpy",
     "scipy",
@@ -33,9 +33,7 @@ Repository = "https://github.com/tommyod/generalized-additive-models"
 "Bug Reports" = "https://github.com/tommyod/generalized-additive-models/issues"
 
 [project.optional-dependencies]
-lint = ["black",
-        "flake8",
-        "ruff",
+lint = ["ruff",
         "codespell",
         ]
 
