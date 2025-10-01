@@ -1,6 +1,6 @@
 [project]
 name = "generalized_additive_models"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
     "numpy",
     "scipy",
@@ -65,3 +65,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 # https://setuptools.pypa.io/en/latest/userguide/datafiles.html
 include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]  
+include = ["generalized_additive_models*"]  
