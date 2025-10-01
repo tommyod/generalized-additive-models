@@ -6,13 +6,16 @@ Created on Fri Mar 10 08:25:44 2023
 @author: tommy
 """
 
-
 import numpy as np
 import pandas as pd
 import pytest
 import scipy as sp
 from sklearn.linear_model import GammaRegressor, PoissonRegressor, Ridge
-from sklearn.metrics import mean_gamma_deviance, mean_poisson_deviance, mean_squared_error
+from sklearn.metrics import (
+    mean_gamma_deviance,
+    mean_poisson_deviance,
+    mean_squared_error,
+)
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -227,7 +230,9 @@ class TestAgainstSklearnRidge:
             fit_intercept=intercept,
         ).fit(X, y)
         coef_sklearn = (
-            np.hstack((poisson_sklearn.coef_, [poisson_sklearn.intercept_])) if intercept else poisson_sklearn.coef_
+            np.hstack((poisson_sklearn.coef_, [poisson_sklearn.intercept_]))
+            if intercept
+            else poisson_sklearn.coef_
         )
 
         assert np.allclose(coef_sklearn, poisson_gam.coef_, rtol=1e-4)
@@ -240,7 +245,9 @@ class TestAgainstSklearnRidge:
 
     @pytest.mark.parametrize("seed", list(range(10)))
     @pytest.mark.parametrize("num_samples", [10, 100, 500])
-    def test_that_poisson_gam_beats_glm_gam_on_nonlinear_problem(self, seed, num_samples):
+    def test_that_poisson_gam_beats_glm_gam_on_nonlinear_problem(
+        self, seed, num_samples
+    ):
         rng = np.random.default_rng(seed)
 
         num_features = 2
@@ -315,7 +322,9 @@ class TestAgainstSklearnRidge:
             fit_intercept=intercept,
         ).fit(X, y)
         coef_sklearn = (
-            np.hstack((gamma_sklearn.coef_, [gamma_sklearn.intercept_])) if intercept else gamma_sklearn.coef_
+            np.hstack((gamma_sklearn.coef_, [gamma_sklearn.intercept_]))
+            if intercept
+            else gamma_sklearn.coef_
         )
 
         assert np.allclose(coef_sklearn, gamma_gam.coef_, rtol=1e-2)
@@ -364,7 +373,9 @@ if __name__ == "__main__":
             # assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, atol=0.5)
 
             # Compare deviance
-            dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X))
+            dev_sklearn = mean_poisson_deviance(
+                y_true=y, y_pred=poisson_sklearn.predict(X)
+            )
             dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X))
 
             # Smaller ratio is better for GAM

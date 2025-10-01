@@ -326,7 +326,10 @@ class Softplus(Link, BaseEstimator):
 
         a = self.a
         # return np.log(1 + np.exp(a * linear_prediction))/a
-        return np.maximum(0, linear_prediction) + np.log1p(np.exp(-a * np.abs(linear_prediction))) / a
+        return (
+            np.maximum(0, linear_prediction)
+            + np.log1p(np.exp(-a * np.abs(linear_prediction))) / a
+        )
 
     def derivative(self, mu):
         """Elementwise first derivative of the link function."""

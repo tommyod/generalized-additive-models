@@ -59,7 +59,9 @@ def second_order_finite_difference(n, periodic=False):
     >>> float(np.linalg.norm(D @ (x + 1)))
     0.0
     """
-    n = check_scalar(n, name="n", target_type=numbers.Integral, min_val=1, include_boundaries="left")
+    n = check_scalar(
+        n, name="n", target_type=numbers.Integral, min_val=1, include_boundaries="left"
+    )
 
     if n in (1, 2):
         return np.zeros(shape=(n, n), dtype=float)

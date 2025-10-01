@@ -5,6 +5,7 @@ Created on Tue Feb  7 06:22:30 2023
 
 @author: tommy
 """
+
 import functools
 import warnings
 
@@ -79,11 +80,21 @@ def X_T_W_X_plus_D_T_D(X, w=None, D=None):
     elif w is None:
         D_T_D = X_T_W_X_plus_D_T_D(X=D)
         syrk = sp.linalg.get_blas_funcs("syrk", (X, D))
-        return syrk(alpha=1.0, a=X, lower=0, trans=1, beta=1.0, c=D_T_D, overwrite_c=True)
+        return syrk(
+            alpha=1.0, a=X, lower=0, trans=1, beta=1.0, c=D_T_D, overwrite_c=True
+        )
     elif D is not None and np.all(w > 0):
         D_T_D = X_T_W_X_plus_D_T_D(X=D)
         syrk = sp.linalg.get_blas_funcs("syrk", (X, D, w))
-        return syrk(alpha=1.0, a=(X * np.sqrt(w[:, None])), lower=0, trans=1, beta=1.0, c=D_T_D, overwrite_c=True)
+        return syrk(
+            alpha=1.0,
+            a=(X * np.sqrt(w[:, None])),
+            lower=0,
+            trans=1,
+            beta=1.0,
+            c=D_T_D,
+            overwrite_c=True,
+        )
     else:
         return X.T @ (w[:, None] * X) + D.T @ D
 
@@ -99,7 +110,9 @@ def solve_unbounded_lstsq(*, X, D, w, z):
 
     # Try the standard solution method first - cholesky factorization
     try:
-        return sp.linalg.solve(lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False)
+        return sp.linalg.solve(
+            lhs, rhs, overwrite_a=True, overwrite_b=True, assume_a="pos", lower=False
+        )
 
     # Singular matrix. Fall back to SVD as solution method
     except np.linalg.LinAlgError:
@@ -173,10 +186,14 @@ class Optimizer:
 
         low, high = self.link.domain
         if np.any(self.y > high):
-            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}")
+            raise ValueError(
+                f"Domain of {self.link} is {self.link.domain}, but largest y was: {self.y.max()}"
+            )
 
         if np.any(self.y < low):
-            raise ValueError(f"Domain of {self.link} is {self.link.domain}, but smallest y was: {self.y.min()}")
+            raise ValueError(
+                f"Domain of {self.link} is {self.link.domain}, but smallest y was: {self.y.min()}"
+            )
 
     def _validate_outputs(self):
         results_keys = ("", "", "", "")
@@ -193,11 +210,15 @@ class Optimizer:
             eta = X @ beta
             mu = self.link.inverse_link(eta)
         sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-        deviance = self.distribution.deviance(y=self.y, mu=mu, sample_weight=sample_weight).mean()
+        deviance = self.distribution.deviance(
+            y=self.y, mu=mu, sample_weight=sample_weight
+        ).mean()
         self.results_.iters_deviance.append(deviance)
 
         # Log the objective function
-        obj = self.evaluate_objective(beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+        obj = self.evaluate_objective(
+            beta, X=X, D=D, y=self.y, sample_weight=sample_weight
+        )
         self.results_.iters_loss.append(obj)
 
     def alpha(self, mu, fisher_weights=False):
@@ -220,7 +241,9 @@ class Optimizer:
         # If mu is given, no reason to recompute X @ beta
         if mu is None:
             mu = self.link.inverse_link(X @ beta)
-        deviance = self.distribution.deviance(y=y, mu=mu, scaled=True, sample_weight=sample_weight).sum()
+        deviance = self.distribution.deviance(
+            y=y, mu=mu, scaled=True, sample_weight=sample_weight
+        ).sum()
         penalty = sp.linalg.norm(D @ beta) ** 2
 
         return deviance + penalty
@@ -237,7 +260,11 @@ class Optimizer:
 
         # Equation (3.3) in Wood
         mu = self.link.inverse_link(X @ beta)
-        pseudoweights = sample_weight * (y - mu) / (self.distribution.V(mu) * self.link.derivative(mu))
+        pseudoweights = (
+            sample_weight
+            * (y - mu)
+            / (self.distribution.V(mu) * self.link.derivative(mu))
+        )
         if self.distribution.scale:
             pseudoweights = pseudoweights / self.distribution.scale
 
@@ -258,7 +285,11 @@ class Optimizer:
         mu = self.link.inverse_link(X @ beta)
         alpha = self.alpha(mu, fisher_weights=False)
 
-        pseudoweights = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+        pseudoweights = (
+            sample_weight
+            * alpha
+            / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+        )
         if self.distribution.scale:
             pseudoweights = pseudoweights / self.distribution.scale
 
@@ -292,7 +323,9 @@ class Optimizer:
         assert np.all(y_to_map > low), f"Initial `y` must be > {low}."
 
         # Solve X @ beta = g(y) = mu
-        return solve_lstsq(X=X, D=D, w=sample_weight, z=mu_initial, bounds=bounds, verbose=self.verbose)
+        return solve_lstsq(
+            X=X, D=D, w=sample_weight, z=mu_initial, bounds=bounds, verbose=self.verbose
+        )
 
     def set_statistics(self, *, X, D, beta):
         """Compute post-optimization statistics, such as:
@@ -310,17 +343,25 @@ class Optimizer:
         sample_weight = self.get_sample_weight(y=self.y, mu=mu)
 
         alpha = self.alpha(mu, fisher_weights=False)
-        w = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+        w = (
+            sample_weight
+            * alpha
+            / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+        )
 
         # Simon minimizes the negative log likelihood, we minimize the deviance
         # The observed Fisher information matrix is the negative Hessian of the log likelihood.
         # Remember that D(u, mu) := 2 (log(p(y|y)) - log(p(y|mu))) = -2 log(p(y|mu))
         # Since we minimize deviance, we multiply by 0.5.
         # https://stats.stackexchange.com/questions/68080/basic-question-about-fisher-information-matrix-and-relationship-to-hessian-and-s
-        fisher_information = 0.5 * self.hessian(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+        fisher_information = 0.5 * self.hessian(
+            beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight
+        )
 
         # The covariance matrix is the inverse of the Fisher information
-        np.fill_diagonal(fisher_information, fisher_information.diagonal() + EPSILON)  # Add to diagonal
+        np.fill_diagonal(
+            fisher_information, fisher_information.diagonal() + EPSILON
+        )  # Add to diagonal
         covariance_matrix = sp.linalg.inv(fisher_information)
 
         # Compute the hat matrix H, the matrix such that:
@@ -335,7 +376,9 @@ class Optimizer:
         # H = ((w.reshape(-1, 1) * self.X) @ inverted @ self.X.T)
         H_diag = ((X.T @ (w.reshape(-1, 1) * X)) * covariance_matrix).sum(axis=1)
         # Fill in with zeros
-        H_diag = self.column_remover.insert(initial=np.zeros(num_original_betas), values=H_diag)
+        H_diag = self.column_remover.insert(
+            initial=np.zeros(num_original_betas), values=H_diag
+        )
 
         assert len(H_diag) == num_original_betas
 
@@ -370,7 +413,11 @@ class Optimizer:
         # Compute generalized cross validation score
         # Equation (6.18) on page 260
         # TODO: This is only the Gaussian case, see page 262
-        gcv = sp.linalg.norm(X @ beta - self.y) ** 2 * len(self.y) / (len(self.y) - edof) ** 2
+        gcv = (
+            sp.linalg.norm(X @ beta - self.y) ** 2
+            * len(self.y)
+            / (len(self.y) - edof) ** 2
+        )
         self.results_.generalized_cross_validation_score = gcv
 
 
@@ -410,7 +457,9 @@ class LBFGSB(Optimizer):
 
         # Initial guess
         sample_weight = self.get_sample_weight()
-        x0 = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
+        x0 = self.initial_estimate(
+            X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds
+        )
         self.log(beta=x0, X=X, D=D)
 
         def objective_and_gradient(beta, X, D):
@@ -421,10 +470,14 @@ class LBFGSB(Optimizer):
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
 
             # Compute the objective function value at 'beta'
-            objective = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+            objective = self.evaluate_objective(
+                beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight
+            )
 
             # Compute the gradient at 'beta'
-            gradient = self.gradient(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+            gradient = self.gradient(
+                beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight
+            )
 
             return objective, gradient
 
@@ -438,7 +491,9 @@ class LBFGSB(Optimizer):
 
                 mu = self.link.inverse_link(X @ beta)
                 sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-                objective_value = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+                objective_value = self.evaluate_objective(
+                    beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight
+                )
                 self.log(X=X, D=D, beta=intermediate_result.x, mu=mu)
 
                 # Print iteration information
@@ -486,7 +541,8 @@ class LBFGSB(Optimizer):
         # Add back zeros to beta (unidentifiable parameters)
         num_beta = self.D.shape[1]
         self.results_.iters_coef = [
-            self.column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in self.results_.iters_coef
+            self.column_remover.insert(initial=np.zeros(num_beta), values=beta)
+            for beta in self.results_.iters_coef
         ]
 
         # Return optimal beta, with zeros added back
@@ -547,13 +603,17 @@ class PIRLS(Optimizer):
           halving search is equally good as easier.
         """
         # Starting objective value
-        obj0 = self.evaluate_objective(beta=beta0, X=X, D=D, y=y, sample_weight=sample_weight)
+        obj0 = self.evaluate_objective(
+            beta=beta0, X=X, D=D, y=y, sample_weight=sample_weight
+        )
 
         # Try step sizes 1, 1/2, 1/4, 1/8, ..., 1/2^19 = 1.9e-06
         for iteration in range(20):
             step_size = (1 / 2) ** iteration
             beta = step_size * beta1 + (1 - step_size) * beta0
-            obj = self.evaluate_objective(beta=beta, X=X, D=D, y=y, sample_weight=sample_weight)
+            obj = self.evaluate_objective(
+                beta=beta, X=X, D=D, y=y, sample_weight=sample_weight
+            )
 
             # Found a better solution, return it
             if obj < obj0:
@@ -580,7 +640,11 @@ class PIRLS(Optimizer):
             alpha = self.alpha(mu, fisher_weights=self.fisher_weights)
             z = self.link.derivative(mu) * (self.y - mu) / alpha + eta
             sample_weight = self.get_sample_weight(mu=mu, y=self.y)
-            w = sample_weight * alpha / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            w = (
+                sample_weight
+                * alpha
+                / (self.link.derivative(mu) ** 2 * self.distribution.V(mu))
+            )
             if self.fisher_weights:
                 assert np.all(w >= 0), f"smallest w_i was negative: {np.min(w)}"
 
@@ -589,7 +653,9 @@ class PIRLS(Optimizer):
             beta_trial = solve_lstsq(X=X, D=D, w=w, z=z, bounds=bounds)
 
             # Step 3: Perform halving search between previous beta and trial beta
-            beta, objective_value, half_exponent = self.halving_search(X, D, self.y, sample_weight, beta, beta_trial)
+            beta, objective_value, half_exponent = self.halving_search(
+                X, D, self.y, sample_weight, beta, beta_trial
+            )
 
             # New predictions for the next iteration
             eta = X @ beta
@@ -616,7 +682,9 @@ class PIRLS(Optimizer):
         # Solver did not converge
         else:
             if self.verbose >= 1:
-                print(f" => FAILURE: Solver did not converge in {self.max_iter} iterations.")
+                print(
+                    f" => FAILURE: Solver did not converge in {self.max_iter} iterations."
+                )
 
             msg = f"Solver did not converge in {self.max_iter} iterations.\n"
             msg += "Increase `max_iter`, increase `tol` or increase penalties.\n"
@@ -647,10 +715,14 @@ class PIRLS(Optimizer):
 
         # Compute initial estimate - this must also obey the bounds
         sample_weight = self.get_sample_weight()
-        beta = self.initial_estimate(X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds)
+        beta = self.initial_estimate(
+            X=X, D=D, sample_weight=sample_weight, y=self.y, bounds=bounds
+        )
         self.log(beta=beta, X=X, D=D)
         if self.verbose >= 1:
-            objective_init = self.evaluate_objective(beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight)
+            objective_init = self.evaluate_objective(
+                beta=beta, X=X, D=D, y=self.y, sample_weight=sample_weight
+            )
             msg = f"Initial guess:      Objective: {fmt(objective_init)}   "
             beta_fmt = fmt(np.sqrt(np.mean(beta**2)))
             msg += f"Coef. rmse: {beta_fmt}   "
@@ -666,7 +738,8 @@ class PIRLS(Optimizer):
 
         # Add back zeros to beta (unidentifiable parameters)
         self.results_.iters_coef = [
-            self.column_remover.insert(initial=np.zeros(num_beta), values=beta) for beta in self.results_.iters_coef
+            self.column_remover.insert(initial=np.zeros(num_beta), values=beta)
+            for beta in self.results_.iters_coef
         ]
 
         # Return optimal beta, with zeros added back in
@@ -743,7 +816,9 @@ if __name__ == "__main__":
         link=poisson_gam._link,
         distribution=poisson_gam._distribution,
         bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
-        get_sample_weight=functools.partial(poisson_gam._get_sample_weight, sample_weight=sample_weight),
+        get_sample_weight=functools.partial(
+            poisson_gam._get_sample_weight, sample_weight=sample_weight
+        ),
         max_iter=poisson_gam.max_iter,
         tol=poisson_gam.tol,
         verbose=poisson_gam.verbose,
@@ -762,7 +837,9 @@ if __name__ == "__main__":
         link=poisson_gam._link,
         distribution=poisson_gam._distribution,
         bounds=(poisson_gam.terms._lower_bound, poisson_gam.terms._upper_bound),
-        get_sample_weight=functools.partial(poisson_gam._get_sample_weight, sample_weight=sample_weight),
+        get_sample_weight=functools.partial(
+            poisson_gam._get_sample_weight, sample_weight=sample_weight
+        ),
         max_iter=poisson_gam.max_iter,
         tol=poisson_gam.tol,
         verbose=poisson_gam.verbose,

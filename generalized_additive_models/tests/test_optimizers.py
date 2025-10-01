@@ -19,8 +19,12 @@ class TestOptimizationMethodsAgainstSklearn:
 
     @pytest.mark.parametrize("num_features", [3, 5, 10])
     @pytest.mark.parametrize("seed", list(range(10)))
-    @pytest.mark.parametrize("solver", (GAM._parameter_constraints["solver"][0]).options)
-    def test_that_optimizers_produce_equal_results_on_Poisson_problem(self, solver, seed, num_features):
+    @pytest.mark.parametrize(
+        "solver", (GAM._parameter_constraints["solver"][0]).options
+    )
+    def test_that_optimizers_produce_equal_results_on_Poisson_problem(
+        self, solver, seed, num_features
+    ):
         """Check all GAM solvers against sklearn, implicitly testing them against each other."""
 
         # Dimensions
@@ -55,8 +59,12 @@ class TestOptimizationMethodsAgainstSklearn:
         assert np.allclose(poisson_sklearn.coef_, poisson_gam.coef_, atol=1e-3)
 
         # Deviances using sklearn objective
-        dev_sklearn = mean_poisson_deviance(y_true=y, y_pred=poisson_sklearn.predict(X), sample_weight=sample_weight)
-        dev_gam = mean_poisson_deviance(y_true=y, y_pred=poisson_gam.predict(X), sample_weight=sample_weight)
+        dev_sklearn = mean_poisson_deviance(
+            y_true=y, y_pred=poisson_sklearn.predict(X), sample_weight=sample_weight
+        )
+        dev_gam = mean_poisson_deviance(
+            y_true=y, y_pred=poisson_gam.predict(X), sample_weight=sample_weight
+        )
 
         # We want low deviance, so ideally we would have < 1 here.
         assert dev_sklearn / dev_gam < 1 + 1e-7

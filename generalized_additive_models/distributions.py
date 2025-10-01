@@ -336,7 +336,10 @@ class InvGauss(Distribution, BaseEstimator):
         return sp.stats.invgauss(mean, scale=gamma)
 
 
-DISTRIBUTIONS = {dist.name: dist for dist in [Normal, Poisson, Binomial, Gamma, InvGauss, Exponential, Bernoulli]}
+DISTRIBUTIONS = {
+    dist.name: dist
+    for dist in [Normal, Poisson, Binomial, Gamma, InvGauss, Exponential, Bernoulli]
+}
 
 
 if __name__ == "__main__":

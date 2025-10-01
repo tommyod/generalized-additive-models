@@ -8,7 +8,7 @@ Created on Thu Feb 23 07:15:31 2023
 
 import numpy as np
 from sklearn.preprocessing import SplineTransformer as SklearnSplineTransformer
-from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted
+from sklearn.utils.validation import FLOAT_DTYPES, check_is_fitted, validate_data
 
 
 # The sklearn SplineTransformer does not extrapolate properly when the
@@ -35,7 +35,7 @@ class SplineTransformer(SklearnSplineTransformer):
         """
         check_is_fitted(self)
 
-        X = self._validate_data(X, reset=False, accept_sparse=False, ensure_2d=True)
+        X = validate_data(self, X=X, reset=False, accept_sparse=False, ensure_2d=True)
 
         n_samples, n_features = X.shape
         n_splines = self.bsplines_[0].c.shape[1]
@@ -61,7 +61,9 @@ class SplineTransformer(SklearnSplineTransformer):
                     # for scipy>=1.0.0.
                     n = spl.t.size - spl.k - 1
                     # Assign to new array to avoid inplace operation
-                    x = spl.t[spl.k] + (X[:, i] - spl.t[spl.k]) % (spl.t[n] - spl.t[spl.k])
+                    x = spl.t[spl.k] + (X[:, i] - spl.t[spl.k]) % (
+                        spl.t[n] - spl.t[spl.k]
+                    )
                 else:
                     x = X[:, i]
 
@@ -79,7 +81,9 @@ class SplineTransformer(SklearnSplineTransformer):
                 # BSpline with extrapolate=False does not raise an error, but
                 # output np.nan.
                 if np.any(np.isnan(XBS[:, (i * n_splines) : ((i + 1) * n_splines)])):
-                    raise ValueError("X contains values beyond the limits of the knots.")
+                    raise ValueError(
+                        "X contains values beyond the limits of the knots."
+                    )
             elif self.extrapolation == "constant":
                 # Set all values beyond xmin and xmax to the value of the
                 # spline basis functions at those two positions.
@@ -119,12 +123,16 @@ class SplineTransformer(SklearnSplineTransformer):
                 for j in range(len(f_min)):
                     mask = X[:, i] < xmin
                     if np.any(mask):
-                        XBS[mask, i * n_splines + j] = f_min[j] + (X[mask, i] - xmin) * fp_min[j]
+                        XBS[mask, i * n_splines + j] = (
+                            f_min[j] + (X[mask, i] - xmin) * fp_min[j]
+                        )
 
                     mask = X[:, i] > xmax
                     if np.any(mask):
                         k = n_splines - 1 - j
-                        XBS[mask, i * n_splines + k] = f_max[k] + (X[mask, i] - xmax) * fp_max[k]
+                        XBS[mask, i * n_splines + k] = (
+                            f_max[k] + (X[mask, i] - xmax) * fp_max[k]
+                        )
 
         if self.include_bias:
             return XBS

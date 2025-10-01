@@ -81,7 +81,9 @@ class TestLink:
 
         # Derivative from equation vs. finite difference approximation to the derivative
         f_x_deriv = link().derivative(argument)
-        f_x_finite_diff = (link().link(argument + epsilon) - link().link(argument - epsilon)) / (2 * epsilon)
+        f_x_finite_diff = (
+            link().link(argument + epsilon) - link().link(argument - epsilon)
+        ) / (2 * epsilon)
 
         # At least 90% must be close. This test is not exact. Depends on random
         # numbers and numerics...
@@ -97,7 +99,9 @@ class TestLink:
 
         # Derivative from equation vs. finite difference approximation to the derivative
         f_x_deriv2 = l.second_derivative(argument)
-        dfx_finite_diff = (l.derivative(argument + epsilon) - l.derivative(argument - epsilon)) / (2 * epsilon)
+        dfx_finite_diff = (
+            l.derivative(argument + epsilon) - l.derivative(argument - epsilon)
+        ) / (2 * epsilon)
 
         # At least 90% must be close. This test is not exact. Depends on random
         # numbers and numerics...

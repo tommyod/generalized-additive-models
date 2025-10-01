@@ -57,10 +57,25 @@ https://link.springer.com/article/10.1007/s11222-013-9448-7
 import importlib.metadata
 import warnings
 
-from generalized_additive_models.distributions import Bernoulli, Binomial, Exponential, Gamma, InvGauss, Normal, Poisson
+from generalized_additive_models.distributions import (
+    Bernoulli,
+    Binomial,
+    Exponential,
+    Gamma,
+    InvGauss,
+    Normal,
+    Poisson,
+)
 from generalized_additive_models.gam import GAM, ExpectileGAM
 from generalized_additive_models.links import Identity, Log, Logit, Softplus
-from generalized_additive_models.terms import Categorical, Intercept, Linear, Spline, Tensor, TermList
+from generalized_additive_models.terms import (
+    Categorical,
+    Intercept,
+    Linear,
+    Spline,
+    Tensor,
+    TermList,
+)
 
 __name__ = "generalized-additive-models"
 __version__ = importlib.metadata.version(__name__)
