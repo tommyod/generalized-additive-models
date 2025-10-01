@@ -114,12 +114,12 @@ Citing
 
 Odland, T. (2023). *generalized-additive-models* [Software]. GitHub. https://github.com/tommyod/generalized-additive-models
 
-```text
-@software{odland2023gam,
-  author = {Odland, Tommy},
-  title = {generalized-additive-models},
-  year = {2023},
-  publisher = {GitHub},
-  url = {https://github.com/tommyod/generalized-additive-models}
-}
-```
+.. code-block:: bibtex
+
+    @software{odland2023gam,
+      author = {Odland, Tommy},
+      title = {generalized-additive-models},
+      year = {2023},
+      publisher = {GitHub},
+      url = {https://github.com/tommyod/generalized-additive-models}
+    }
