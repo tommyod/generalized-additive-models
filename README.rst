@@ -112,4 +112,14 @@ Once the `version` has been incremented, the commit must be tagged and pushed in
 Citing
 ------
 
-TODO
+Odland, T. (2023). *generalized-additive-models* [Software]. GitHub. https://github.com/tommyod/generalized-additive-models
+
+```text
+@software{odland2023gam,
+  author = {Odland, Tommy},
+  title = {generalized-additive-models},
+  year = {2023},
+  publisher = {GitHub},
+  url = {https://github.com/tommyod/generalized-additive-models}
+}
+```
